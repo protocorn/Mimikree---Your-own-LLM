@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Information Box</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .box {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .box h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .link-item, .image-item, .pdf-item {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        .predefined-links {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+        .platform-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .platform-input input {
+            flex: 1;
+        }
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <div class="box" id="linksBox">
+            <h2>Social Profiles</h2>
+            
+            <div class="predefined-links">
+                <div class="platform-input">
+                    <input type="text" id="githubUsername" placeholder="GitHub Username">
+                    <button onclick="addGitHub()">
+                        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
+                             class="platform-icon" alt="GitHub">
+                        Add GitHub
+                    </button>
+                </div>
+
+                <div class="platform-input">
+                    <input type="text" id="linkedinUsername" placeholder="LinkedIn Username/ID">
+                    <button onclick="addLinkedIn()">
+                        <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg" 
+                             class="platform-icon" alt="LinkedIn">
+                        Add LinkedIn
+                    </button>
+                </div>
+
+                <div class="platform-input">
+                    <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
+                    <button onclick="addTwitter()">
+                        <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png" 
+                             class="platform-icon" alt="Twitter">
+                        Add Twitter
+                    </button>
+                </div>
+            </div>
+
+            <h3>Other Links</h3>
+            <input type="text" id="linkInput" placeholder="Enter any other link">
+            <button onclick="addLink()">Add Custom Link</button>
+            <div id="linksList"></div>
+        </div>
+
+        <div class="box" id="imagesBox">
+            <h2>Images with Description</h2>
+            <input type="file" id="imageInput" accept="image/*" multiple>
+            <input type="text" id="imageDescription" placeholder="Image description">
+            <button onclick="addImages()">Add Images</button>
+            <div id="imagesList"></div>
+        </div>
+
+        <div class="box" id="pdfBox">
+            <h2>PDF Documents</h2>
+            <input type="file" id="pdfInput" accept=".pdf" multiple>
+            <button onclick="addPDFs()">Add PDFs</button>
+            <div id="pdfList"></div>
+        </div>
+
+        <div class="box" id="skillsBox">
+            <h2>Skills</h2>
+            <input type="text" id="skillInput" placeholder="Enter a skill">
+            <button onclick="addSkill()">Add Skill</button>
+            <div id="skillsList"></div>
+        </div>
+
+        <div class="box" id="educationBox">
+            <h2>Education</h2>
+            <input type="text" id="educationInput" placeholder="Enter education details">
+            <button onclick="addEducation()">Add Education</button>
+            <div id="educationList"></div>
+        </div>
+
+        <div class="box" id="projectsBox">
+            <h2>Projects</h2>
+            <input type="text" id="projectInput" placeholder="Enter project details">
+            <button onclick="addProject()">Add Project</button>
+            <div id="projectsList"></div>
+        </div>
+    </div>
+    <div class="submit-section">
+        <button id="submitBtn" onclick="submitData()">Submit All Information</button>
+        <div id="successMessage" class="success-message">✅ Data submitted successfully!</div>
+    </div>
+
+    <script>
+        function addGitHub() {
+            const username = document.getElementById('githubUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://github.com/${username}`, 'GitHub Profile');
+                document.getElementById('githubUsername').value = '';
+            }
+        }
+
+        function addLinkedIn() {
+            const username = document.getElementById('linkedinUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://www.linkedin.com/in/${username}`, 'LinkedIn Profile');
+                document.getElementById('linkedinUsername').value = '';
+            }
+        }
+
+        function addTwitter() {
+            const username = document.getElementById('twitterUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://twitter.com/${username}`, 'Twitter Profile');
+                document.getElementById('twitterUsername').value = '';
+            }
+        }
+
+        function addPredefinedLink(url, platform) {
+            const linksList = document.getElementById('linksList');
+            const existing = Array.from(linksList.children).find(item => 
+                item.querySelector('a').href === url
+            );
+
+            if (!existing) {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
+                    <a href="${url}" target="_blank">
+                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+                        ${platform} (${new URL(url).pathname.split('/').pop()})
+                    </a>
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                linksList.appendChild(linkItem);
+            }
+        }
+
+        function getPlatformIcon(platform) {
+            const icons = {
+                'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+                'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
+                'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png'
+            };
+            return icons[platform] || '';
+        }
+        async function submitData() {
+            const data = {
+                socialProfiles: {},
+                customLinks: [],
+                images: [],
+                pdfs: [],
+                skills: [],
+                education: [],
+                projects: []
+            };
+        
+            // Collect links
+            document.querySelectorAll('.link-item a').forEach(link => {
+                const url = new URL(link.href);
+                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter) Profile/)?.[0];
+        
+                if (platform) {
+                    data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {
+                        url: link.href,
+                        username: url.pathname.split('/').pop()
+                    };
+                } else {
+                    data.customLinks.push(link.href);
+                }
+            });
+        
+            // Collect images
+            document.querySelectorAll('.image-item').forEach(item => {
+                data.images.push({
+                    description: item.querySelector('p').textContent,
+                    src: item.querySelector('img').src
+                });
+            });
+        
+            // Collect PDFs
+            document.querySelectorAll('.pdf-item p').forEach(pdf => {
+                data.pdfs.push(pdf.textContent);
+            });
+        
+            // Collect skills
+            document.querySelectorAll('#skillsList div').forEach(skill => {
+                data.skills.push(skill.textContent);
+            });
+        
+            // Collect education details
+            document.querySelectorAll('#educationList div').forEach(edu => {
+                data.education.push(edu.textContent);
+            });
+        
+            // Collect projects
+            document.querySelectorAll('#projectsList div').forEach(project => {
+                data.projects.push(project.textContent);
+            });
+        
+            // Send data to backend
+            try {
+                const response = await fetch('http://localhost:5000/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+        
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error submitting data:', error);
+            }
+        }
+    function addLink() {
+        const linkInput = document.getElementById('linkInput');
+        const linksList = document.getElementById('linksList');
+        
+        if (linkInput.value) {
+            const url = linkInput.value.startsWith('http') ? 
+                linkInput.value : 
+                `https://${linkInput.value}`;
+            
+            const linkItem = document.createElement('div');
+            linkItem.className = 'link-item';
+            linkItem.innerHTML = `
+                <a href="${url}" target="_blank">${url}</a>
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+            linksList.appendChild(linkItem);
+            linkInput.value = '';
+        }
+    }
+
+        function addImages() {
+            const imageInput = document.getElementById('imageInput');
+            const imageDescription = document.getElementById('imageDescription');
+            const imagesList = document.getElementById('imagesList');
+            
+            if (imageInput.files.length > 0) {
+                for (let file of imageInput.files) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+                        imageItem.innerHTML = `
+                            <img src="${e.target.result}" class="image-preview">
+                            <p>${imageDescription.value}</p>
+                            <button onclick="this.parentElement.remove()">Remove</button>
+                        `;
+                        imagesList.appendChild(imageItem);
+                    }
+                    reader.readAsDataURL(file);
+                }
+                imageInput.value = '';
+                imageDescription.value = '';
+            }
+        }
+
+        function addPDFs() {
+            const pdfInput = document.getElementById('pdfInput');
+            const pdfList = document.getElementById('pdfList');
+            
+            if (pdfInput.files.length > 0) {
+                for (let file of pdfInput.files) {
+                    const pdfItem = document.createElement('div');
+                    pdfItem.className = 'pdf-item';
+                    pdfItem.innerHTML = `
+                        <p>${file.name}</p>
+                        <button onclick="this.parentElement.remove()">Remove</button>
+                    `;
+                    pdfList.appendChild(pdfItem);
+                }
+                pdfInput.value = '';
+            }
+        }
+
+        function addSkill() {
+            const skillInput = document.getElementById('skillInput');
+            const skillsList = document.getElementById('skillsList');
+            if (skillInput.value) {
+                const skillItem = document.createElement('div');
+                skillItem.className = 'link-item';
+                skillItem.innerHTML = `
+                    ${skillInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                skillsList.appendChild(skillItem);
+                skillInput.value = '';
+            }
+        }
+
+        function addEducation() {
+            const educationInput = document.getElementById('educationInput');
+            const educationList = document.getElementById('educationList');
+            if (educationInput.value) {
+                const educationItem = document.createElement('div');
+                educationItem.className = 'link-item';
+                educationItem.innerHTML = `
+                    ${educationInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                educationList.appendChild(educationItem);
+                educationInput.value = '';
+            }
+        }
+
+        function addProject() {
+            const projectInput = document.getElementById('projectInput');
+            const projectsList = document.getElementById('projectsList');
+            if (projectInput.value) {
+                const projectItem = document.createElement('div');
+                projectItem.className = 'link-item';
+                projectItem.innerHTML = `
+                    ${projectInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                projectsList.appendChild(projectItem);
+                projectInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
