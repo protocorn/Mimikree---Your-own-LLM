@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-box {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .bot-message {
+            background: #e9ecef;
+            color: black;
+            align-self: flex-start;
+        }
+        .input-box {
+            display: flex;
+            margin-top: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px;
+            margin-left: 10px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: gray;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chat Interface</h1>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-box">
+            <input type="text" id="queryInput" placeholder="Enter your query" required>
+            <button id="submitButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("submitButton").addEventListener("click", async function() {
+            const queryInput = document.getElementById("queryInput");
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            const chatBox = document.getElementById("chatBox");
+            const submitButton = document.getElementById("submitButton");
+
+            // Display user message
+            const userMessage = document.createElement("div");
+            userMessage.className = "message user-message";
+            userMessage.textContent = query;
+            chatBox.appendChild(userMessage);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+
+            // Clear input and disable button
+            queryInput.value = "";
+            submitButton.disabled = true;
+
+            // Show "loading" message
+            const botMessage = document.createElement("div");
+            botMessage.className = "message bot-message";
+            botMessage.textContent = "Thinking...";
+            chatBox.appendChild(botMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                // Send request to backend
+                const response = await fetch("/api/query", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+                botMessage.textContent = data.success ? data.response : "Error: " + data.message;
+            } catch (error) {
+                botMessage.textContent = "Error processing query.";
+                console.error("Error:", error);
+            } finally {
+                submitButton.disabled = false;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+
+        // Allow Enter key to send messages
+        document.getElementById("queryInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                document.getElementById("submitButton").click();
+            }
+        });
+    </script>
+</body>
+</html>

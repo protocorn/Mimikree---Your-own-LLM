@@ -169,7 +169,7 @@
         function addLinkedIn() {
             const username = document.getElementById('linkedinUsername').value.trim();
             if (username) {
-                addPredefinedLink(`https://www.linkedin.com/in/${username}`, 'LinkedIn Profile');
+                addPredefinedLink(`${username}`, 'LinkedIn Profile');
                 document.getElementById('linkedinUsername').value = '';
             }
         }
