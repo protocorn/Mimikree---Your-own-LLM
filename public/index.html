@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,28 +12,34 @@
             padding: 20px;
             background-color: #f0f0f0;
         }
+
         .grid-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
         }
+
         .box {
             background-color: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .box h2 {
             margin-top: 0;
             color: #333;
         }
-        input[type="text"], input[type="file"] {
+
+        input[type="text"],
+        input[type="file"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+
         button {
             background-color: #4CAF50;
             color: white;
@@ -41,33 +48,42 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         button:hover {
             background-color: #45a049;
         }
-        .link-item, .image-item, .pdf-item {
+
+        .link-item,
+        .image-item,
+        .pdf-item {
             background-color: #f9f9f9;
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
         }
+
         .image-preview {
             max-width: 100%;
             height: auto;
             margin-top: 10px;
         }
+
         .predefined-links {
             margin-bottom: 20px;
             border-bottom: 2px solid #eee;
             padding-bottom: 15px;
         }
+
         .platform-input {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
+
         .platform-input input {
             flex: 1;
         }
+
         .platform-icon {
             width: 24px;
             height: 24px;
@@ -76,17 +92,18 @@
         }
     </style>
 </head>
+
 <body>
     <div class="grid-container">
         <div class="box" id="linksBox">
             <h2>Social Profiles</h2>
-            
+
             <div class="predefined-links">
                 <div class="platform-input">
                     <input type="text" id="githubUsername" placeholder="GitHub Username">
                     <button onclick="addGitHub()">
-                        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" 
-                             class="platform-icon" alt="GitHub">
+                        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                            class="platform-icon" alt="GitHub">
                         Add GitHub
                     </button>
                 </div>
@@ -94,8 +111,8 @@
                 <div class="platform-input">
                     <input type="text" id="linkedinUsername" placeholder="LinkedIn Username/ID">
                     <button onclick="addLinkedIn()">
-                        <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg" 
-                             class="platform-icon" alt="LinkedIn">
+                        <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
+                            class="platform-icon" alt="LinkedIn">
                         Add LinkedIn
                     </button>
                 </div>
@@ -103,8 +120,8 @@
                 <div class="platform-input">
                     <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
                     <button onclick="addTwitter()">
-                        <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png" 
-                             class="platform-icon" alt="Twitter">
+                        <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png"
+                            class="platform-icon" alt="Twitter">
                         Add Twitter
                     </button>
                 </div>
@@ -184,7 +201,7 @@
 
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
-            const existing = Array.from(linksList.children).find(item => 
+            const existing = Array.from(linksList.children).find(item =>
                 item.querySelector('a').href === url
             );
 
@@ -220,12 +237,12 @@
                 education: [],
                 projects: []
             };
-        
+
             // Collect links
             document.querySelectorAll('.link-item a').forEach(link => {
                 const url = new URL(link.href);
                 const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter) Profile/)?.[0];
-        
+
                 if (platform) {
                     data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {
                         url: link.href,
@@ -235,7 +252,7 @@
                     data.customLinks.push(link.href);
                 }
             });
-        
+
             // Collect images
             document.querySelectorAll('.image-item').forEach(item => {
                 data.images.push({
@@ -243,27 +260,27 @@
                     src: item.querySelector('img').src
                 });
             });
-        
+
             // Collect PDFs
             document.querySelectorAll('.pdf-item p').forEach(pdf => {
                 data.pdfs.push(pdf.textContent);
             });
-        
+
             // Collect skills
             document.querySelectorAll('#skillsList div').forEach(skill => {
                 data.skills.push(skill.textContent);
             });
-        
+
             // Collect education details
             document.querySelectorAll('#educationList div').forEach(edu => {
                 data.education.push(edu.textContent);
             });
-        
+
             // Collect projects
             document.querySelectorAll('#projectsList div').forEach(project => {
                 data.projects.push(project.textContent);
             });
-        
+
             // Send data to backend
             try {
                 const response = await fetch('http://localhost:5000/api/submit', {
@@ -273,7 +290,7 @@
                     },
                     body: JSON.stringify(data)
                 });
-        
+
                 const result = await response.json();
                 if (result.success) {
                     document.getElementById('successMessage').style.display = 'block';
@@ -282,37 +299,39 @@
                 console.error('Error submitting data:', error);
             }
         }
-    function addLink() {
-        const linkInput = document.getElementById('linkInput');
-        const linksList = document.getElementById('linksList');
-        
-        if (linkInput.value) {
-            const url = linkInput.value.startsWith('http') ? 
-                linkInput.value : 
-                `https://${linkInput.value}`;
-            
-            const linkItem = document.createElement('div');
-            linkItem.className = 'link-item';
-            linkItem.innerHTML = `
+        function addLink() {
+            const linkInput = document.getElementById('linkInput');
+            const linksList = document.getElementById('linksList');
+
+            if (linkInput.value) {
+                const url = linkInput.value.startsWith('http') ?
+                    linkInput.value :
+                    `https://${linkInput.value}`;
+
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
                 <a href="${url}" target="_blank">${url}</a>
                 <button onclick="this.parentElement.remove()">Remove</button>
             `;
-            linksList.appendChild(linkItem);
-            linkInput.value = '';
+                linksList.appendChild(linkItem);
+                linkInput.value = '';
+            }
         }
-    }
 
         function addImages() {
             const imageInput = document.getElementById('imageInput');
             const imageDescription = document.getElementById('imageDescription');
             const imagesList = document.getElementById('imagesList');
-            
+            let a = imageInput.files.length;
+
             if (imageInput.files.length > 0) {
                 for (let file of imageInput.files) {
                     const reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         const imageItem = document.createElement('div');
                         imageItem.className = 'image-item';
+
                         imageItem.innerHTML = `
                             <img src="${e.target.result}" class="image-preview">
                             <p>${imageDescription.value}</p>
@@ -322,6 +341,9 @@
                     }
                     reader.readAsDataURL(file);
                 }
+                a=a-1;
+            }
+            if (a <= 1) {
                 imageInput.value = '';
                 imageDescription.value = '';
             }
@@ -330,7 +352,7 @@
         function addPDFs() {
             const pdfInput = document.getElementById('pdfInput');
             const pdfList = document.getElementById('pdfList');
-            
+
             if (pdfInput.files.length > 0) {
                 for (let file of pdfInput.files) {
                     const pdfItem = document.createElement('div');
@@ -391,4 +413,5 @@
         }
     </script>
 </body>
+
 </html>

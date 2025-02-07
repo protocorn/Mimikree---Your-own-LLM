@@ -1,17 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session
 from pinecone import Pinecone, ServerlessSpec
 import os
 from sentence_transformers import SentenceTransformer
 from langchain_core.prompts import ChatPromptTemplate
 from huggingface_hub import InferenceClient
 import uuid  # Import uuid to generate unique IDs
+import secrets
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(32) 
 
 # Initialize Pinecone
-pc = Pinecone(
-    api_key="pcsk_7Y7zWN_6eRYCU5oqR1jqwLAiQSv416HtB792Q3fC2HP7YQ1uNGWQd48egSezYDjG7CmSod"
-)
+pc = Pinecone(api_key="pcsk_7Y7zWN_6eRYCU5oqR1jqwLAiQSv416HtB792Q3fC2HP7YQ1uNGWQd48egSezYDjG7CmSod")
 
 index_name = "user-embeddings"
 user_id = "1234(test)"
@@ -48,8 +48,8 @@ prompt_template = ChatPromptTemplate.from_template(
 
 # Initialize Hugging Face InferenceClient
 client = InferenceClient(
-    provider="together",  # Ensure this is the correct provider
-    api_key="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"  # Replace with your actual Hugging Face API key
+    provider="hf-inference",
+    api_key="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"
 )
 
 @app.route('/process', methods=['POST'])
@@ -85,13 +85,17 @@ def process_document():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    """Handles user queries based on stored GitHub & Twitter data."""
+    """Handles user queries based on stored GitHub & Twitter data, with local chat history."""
     try:
         data = request.json
         query_text = data.get("query", "")
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
+
+        # Retrieve or initialize chat history in session
+        if "chat_history" not in session:
+            session["chat_history"] = []
 
         # Generate query embedding
         query_vector = embedding_model.encode(query_text).tolist()
@@ -100,12 +104,12 @@ def ask():
         pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": user_id})
 
         retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
-
         context = "\n".join(retrieved_docs)
-        
-        print(context)
 
-        # Generate prompt
+        # Format chat history
+        history = "\n".join([f"User: {entry['user']}\nAssistant: {entry['assistant']}" for entry in session["chat_history"]])
+
+        # Generate prompt with chat history
         prompt = prompt_template.format(context=context, question=query_text)
 
         # Request completion from Hugging Face API
@@ -114,12 +118,15 @@ def ask():
         ]
         
         completion = client.chat.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct",  # Use your desired model here
+            model="meta-llama/Llama-3.1-70B-Instruct",
             messages=messages, 
             max_tokens=500
         )
 
         response = completion.choices[0].message['content']
+
+        # Update session chat history
+        session["chat_history"].append({"user": query_text, "assistant": response})
 
         return jsonify({
             "success": True,
