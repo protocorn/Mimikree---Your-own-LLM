@@ -113,7 +113,7 @@
                 });
 
                 const data = await response.json();
-                botMessage.textContent = data.success ? data.response : "Error: " + data.message;
+                botMessage.innerHTML = data.success ? data.response : "Error: " + data.message;
             } catch (error) {
                 botMessage.textContent = "Error processing query.";
                 console.error("Error:", error);

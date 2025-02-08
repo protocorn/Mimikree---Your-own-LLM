@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from huggingface_hub import InferenceClient
 import uuid  # Import uuid to generate unique IDs
 import secrets
+import re
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32) 
@@ -82,7 +83,6 @@ def process_document():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/ask', methods=['POST'])
 def ask():
     """Handles user queries based on stored GitHub & Twitter data, with local chat history."""
@@ -122,8 +122,13 @@ def ask():
             messages=messages, 
             max_tokens=500
         )
+        def format_links(text):
+            """Finds URLs in text and converts them into clickable links."""
+            url_pattern = re.compile(r'(https?://\S+)')  # Match URLs starting with http or https
+            return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
 
         response = completion.choices[0].message['content']
+        formatted_response = format_links(response)  # Format links to be clickable
 
         # Update session chat history
         session["chat_history"].append({"user": query_text, "assistant": response})
@@ -131,7 +136,7 @@ def ask():
         return jsonify({
             "success": True,
             "query": query_text,
-            "response": response
+            "response": formatted_response
         })
 
     except Exception as e:
