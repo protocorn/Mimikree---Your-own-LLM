@@ -37,14 +37,20 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // User Schema
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true},
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
     socialProfiles: {
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
         twitter: { type: String, required: false }
     },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    selfAssessment: {
+        communicationStyle: { type: String, required: false },
+        personalityTraits: [{ type: String }],
+        writingSample: { type: String, required: false },
+        interests: [{ type: String }]
+    }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -113,13 +119,13 @@ app.post("/api/submit", async (req, res) => {
                 username: data.socialProfiles.twitter.username
             });
             collectedData.twitter = twitterResponse.data;
-            response.push(JSON.stringify(collectedData.twitter));
+            documents.push(JSON.stringify(collectedData.twitter));
         }
 
         for (const doc of documents) {
             await axios.post('http://localhost:5002/process', { document: doc });
         }
-        
+
         const token = req.headers.authorization?.split(" ")[1];
         if (token) {
             let decoded;
@@ -130,20 +136,29 @@ app.post("/api/submit", async (req, res) => {
                 if (data.socialProfiles.github) {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.github.username, "github");
                 }
-        
+
                 if (data.socialProfiles.linkedin) {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.linkedin.url, "linkedin");
                 }
-        
+
                 if (data.socialProfiles.twitter) {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "twitter");
                 }
+                if (data.selfAssessment) {
+                    console.log("Received self-assessment data:", data.selfAssessment);
+                    try {
+                        await updateUserSelfAssessment(username, data.selfAssessment);
+                        console.log(`Updated self-assessment for user: ${username}`);
+                    } catch (error) {
+                        console.error("Error updating self-assessment:", error);
+                    }
+                }
             }
-            catch{
+            catch {
                 console.error("Invalid token");
             }
         }
-        else{
+        else {
             return res.status(401).json({ success: false, message: "Unauthorized: No token provided" });
         }
 
@@ -155,6 +170,18 @@ app.post("/api/submit", async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 });
+
+async function updateUserSelfAssessment(username, selfAssessmentData) {
+    try {
+        await User.updateOne(
+            { username: username },
+            { $set: { selfAssessment: selfAssessmentData } }
+        );
+        console.log(`Updated self-assessment for user: ${username}`);
+    } catch (error) {
+        console.error("Error updating self-assessment:", error);
+    }
+}
 
 
 async function updateUserSocialMediaProfile(userId, profileData, platform) {
@@ -178,22 +205,53 @@ async function updateUserSocialMediaProfile(userId, profileData, platform) {
     }
 }
 
-app.get("/query", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "query.html"));
+app.get("/query", async (req, res) => {
+    const username = req.query.username;
+
+    if (!username) {
+        return res.status(400).send("Username is required");
+    }
+
+    try {
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        res.sendFile(path.join(__dirname, "public", "query.html"));
+    } catch (error) {
+        console.error("Error checking user:", error);
+        res.status(500).send("Server error");
+    }
 });
 
+
 // Add new route to handle user queries
-app.post("/api/query", async (req, res) => {
+app.post("/api/query/username=:username", async (req, res) => {
     try {
         const { query } = req.body; // Get the user's query
+        const { username } = req.params;
 
         // Validate the query
         if (!query || query.trim().length === 0) {
             return res.status(400).json({ success: false, message: "Query cannot be empty" });
         }
 
+        // Fetch user's selfAssessment data from MongoDB
+        const user = await User.findOne({ username: username });
+        if (!user || !user.selfAssessment) {
+            return res.status(404).json({ success: false, message: "User or self-assessment data not found" });
+        }
+
+        const dataForModel = {
+            query: query,
+            selfAssessment: user.selfAssessment,
+            username: username
+        };
+
         // Send the query to the Flask API (assuming Flask is running on port 5002)
-        const response = await axios.post(`http://localhost:5002/ask`, { query });
+        const response = await axios.post(`http://localhost:5002/ask`, dataForModel);
 
         console.log(response.data.response)
 
@@ -274,12 +332,16 @@ app.get("/api/user/profile", async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.json({ socialProfiles: user.socialProfiles });
+        res.json({
+            socialProfiles: user.socialProfiles,
+            selfAssessment: user.selfAssessment
+        });
     } catch (error) {
         console.error("Error fetching user profile:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
 
 
 

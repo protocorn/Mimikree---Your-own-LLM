@@ -10,42 +10,53 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background: #F4F8F9; /* Light background color */
+            background: #F4F8F9;
+            /* Light background color */
         }
-        
+
         .container {
             max-width: 600px;
             margin: auto;
-            background: rgba(255, 255, 255, 0.9); /* Light form background */
+            background: rgba(255, 255, 255, 0.9);
+            /* Light form background */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
         }
-        
+
         .box {
             margin-top: 20px;
             border-radius: 10px;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.8); /* Lighter box background */
+            background: rgba(255, 255, 255, 0.8);
+            /* Lighter box background */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
         }
-        
-        h2, h3 {
-            color: #2A3C3F; /* Dark teal for text */
+
+        h2,
+        h3 {
+            color: #2A3C3F;
+            /* Dark teal for text */
         }
-        
-        select, textarea, input[type="text"],
+
+        select,
+        textarea,
+        input[type="text"],
         input[type="file"] {
             width: 98%;
             padding: 10px;
             margin-bottom: 10px;
-            border: 1px solid #D1E1E3; /* Light gray border */
+            border: 1px solid #D1E1E3;
+            /* Light gray border */
             border-radius: 4px;
-            background-color: #ffffff; /* White background for inputs */
-            color: #2A3C3F; /* Dark text for clarity */
+            background-color: #ffffff;
+            /* White background for inputs */
+            color: #2A3C3F;
+            /* Dark text for clarity */
         }
+
         select {
             appearance: none;
             background-image: url('data:image/svg+xml;utf8,<svg fill="%232A3C3F" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
@@ -53,19 +64,20 @@
             background-position: right 10px center;
             background-size: 20px;
         }
+
         #personalityTraits {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 15px;
         }
-        
+
         #personalityTraits label {
             display: flex;
             align-items: center;
             cursor: pointer;
         }
-        
+
         input[type="checkbox"] {
             appearance: none;
             width: 20px;
@@ -76,12 +88,12 @@
             position: relative;
             cursor: pointer;
         }
-        
+
         input[type="checkbox"]:checked {
             background-color: #5CB85C;
             border-color: #5CB85C;
         }
-        
+
         input[type="checkbox"]:checked::before {
             content: "\2713";
             position: absolute;
@@ -91,16 +103,17 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        
+
         textarea {
             width: 95%;
             min-height: 100px;
             resize: vertical;
         }
+
         #interestsList {
             margin-top: 10px;
         }
-        
+
         .interest-item {
             background-color: #F4F8F9;
             padding: 8px 12px;
@@ -110,19 +123,20 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .interest-item button {
             background-color: #FF6B6B;
             padding: 5px 10px;
             font-size: 12px;
         }
-        
+
         .interest-item button:hover {
             background-color: #FF4949;
-        }        
-        
+        }
+
         button {
-            background-color: #5CB85C; /* Soft green for buttons */
+            background-color: #5CB85C;
+            /* Soft green for buttons */
             color: white;
             border: none;
             padding: 10px 15px;
@@ -130,17 +144,18 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-        
+
         button:hover {
-            background-color: #4CAF50; /* Darker green on hover */
+            background-color: #4CAF50;
+            /* Darker green on hover */
         }
-        
+
         .navigation {
             display: flex;
             justify-content: space-between;
             margin-top: 20px;
         }
-        
+
         .link-item,
         .image-item,
         .pdf-item {
@@ -149,68 +164,72 @@
             margin-top: 10px;
             margin-bottom: 10px;
             border-radius: 4px;
-            border: 1px solid #D1E1E3; /* Subtle border */
+            border: 1px solid #D1E1E3;
+            /* Subtle border */
         }
-        
+
         .image-preview {
             max-width: 100%;
             height: auto;
             margin-top: 10px;
         }
-        
+
         .predefined-links {
             margin-top: 20px;
             margin-bottom: 20px;
             border-bottom: 2px solid #E1E1E1;
             padding-bottom: 15px;
         }
-        
+
         .platform-input {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
         }
-        
+
         .platform-input input {
             flex: 1;
         }
-        
+
         .platform-icon {
             width: 24px;
             height: 24px;
             vertical-align: middle;
             margin-right: 5px;
         }
-        
+
         .step {
             display: none;
         }
-        
+
         .step.active {
             display: block;
         }
-        
+
         .step-indicator span {
             display: inline-block;
             padding: 5px 10px;
             margin: 2px;
             border-radius: 50%;
-            background-color: #E1E1E1; /* Light gray for inactive steps */
+            background-color: #E1E1E1;
+            /* Light gray for inactive steps */
         }
-        
+
         .step-indicator .active-step {
-            background-color: #5CB85C; /* Green for active step */
+            background-color: #5CB85C;
+            /* Green for active step */
             color: white;
         }
-        
+
         .success-message {
             display: none;
-            color: #5CB85C; /* Green success message */
+            color: #5CB85C;
+            /* Green success message */
             font-weight: bold;
             text-align: center;
             margin-top: 20px;
         }
-        
+
         .platform-input button {
             min-width: 50px;
             max-width: 180px;
@@ -220,9 +239,31 @@
             justify-content: center;
             gap: 5px;
         }
-        
+
         #step1 .navigation {
             justify-content: flex-end;
+        }
+
+        .warning-message {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .terms-agreement {
+            margin-bottom: 15px;
+        }
+
+        .terms-agreement a {
+            color: #5CB85C;
+            text-decoration: none;
+        }
+
+        .terms-agreement a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -290,7 +331,7 @@
                     <option value="casual">Casual and friendly</option>
                     <option value="formal">Formal and professional</option>
                 </select>
-        
+
                 <h3>Personality Traits</h3>
                 <div id="personalityTraits">
                     <label><input type="checkbox" value="extroverted"> Extroverted</label>
@@ -300,16 +341,17 @@
                     <label><input type="checkbox" value="organized"> Organized</label>
                     <label><input type="checkbox" value="adaptable"> Adaptable</label>
                 </div>
-        
+
                 <h3>Writing Style</h3>
-                <textarea id="writingSample" rows="4" placeholder="Provide a short writing sample that reflects your typical style"></textarea>
-        
+                <textarea id="writingSample" rows="4"
+                    placeholder="Provide a short writing sample that reflects your typical style"></textarea>
+
                 <h3>Interests and Hobbies</h3>
                 <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
                 <button onclick="addInterest()">Add Interest</button>
                 <div id="interestsList"></div>
             </div>
-        
+
             <div class="navigation">
                 <button onclick="prevStep(2)">Back</button>
                 <button onclick="nextStep(2)">Next</button>
@@ -333,9 +375,19 @@
         </div>
 
         <div class="step" id="step4">
-
+            <h2>Final Submission</h2>
+            <div class="warning-message">
+                <p><strong>Warning:</strong> Data once added cannot be deleted individually. You can only delete your
+                    entire account if you wish to remove your data.</p>
+            </div>
+            <div class="terms-agreement">
+                <input type="checkbox" id="termsAgreement" required>
+                <label for="termsAgreement">I agree to the <a href="/privacy-policy" target="_blank">Privacy Policy and
+                        Terms of Service</a></label>
+            </div>
             <div class="submit-section">
-                <button id="submitBtn" onclick="submitData()">Submit All Information</button>
+                <button id="submitBtn" style="width: 100%; margin-top:10px;" onclick="submitData()">Submit All
+                    Information</button>
                 <div id="successMessage" class="success-message">✅ Data submitted successfully!</div>
             </div>
             <div class="navigation">
@@ -375,7 +427,7 @@
                 console.error("No token found, user not authenticated.");
                 return;
             }
-        
+
             try {
                 const response = await fetch('http://localhost:5000/api/user/profile', {
                     method: 'GET',
@@ -386,6 +438,9 @@
                 const userData = await response.json();
                 if (userData.socialProfiles) {
                     populateSocialProfiles(userData.socialProfiles);
+                }
+                if (userData.selfAssessment) {
+                    populateSelfAssessment(userData.selfAssessment);
                 }
             } catch (error) {
                 console.error('Error fetching user profile:', error);
@@ -406,8 +461,44 @@
             }
             if (profiles.twitter) {
                 document.getElementById('twitterUsername').value = profiles.twitter;
+                const username = profiles.twitter;
+                if (username) {
+                    addPredefinedLink(`https://twitter.com/${username}`, 'Twitter Profile');
+                    document.getElementById('twitterUsername').value = '';
+                }
             }
-        }        
+        }
+
+        function populateSelfAssessment(selfAssessment) {
+            if (selfAssessment.communicationStyle) {
+                document.getElementById('communicationStyle').value = selfAssessment.communicationStyle;
+            }
+            
+            if (selfAssessment.personalityTraits) {
+                selfAssessment.personalityTraits.forEach(trait => {
+                    const checkbox = document.querySelector(`#personalityTraits input[value="${trait}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            if (selfAssessment.writingSample) {
+                document.getElementById('writingSample').value = selfAssessment.writingSample;
+            }
+            
+            if (selfAssessment.interests) {
+                const interestsList = document.getElementById('interestsList');
+                interestsList.innerHTML = ''; // Clear existing interests
+                selfAssessment.interests.forEach(interest => {
+                    const interestItem = document.createElement('div');
+                    interestItem.className = 'interest-item';
+                    interestItem.innerHTML = `
+                        ${interest}
+                        <button onclick="this.parentElement.remove()">Remove</button>
+                    `;
+                    interestsList.appendChild(interestItem);
+                });
+            }
+        }
 
 
         function addGitHub() {
@@ -470,9 +561,9 @@
                 const interestItem = document.createElement('div');
                 interestItem.className = 'interest-item';
                 interestItem.innerHTML = `
-                    ${interestsInput.value}
-                    <button onclick="this.parentElement.remove()">Remove</button>
-                `;
+            <span class="interest-text">${interestsInput.value}</span>
+            <button onclick="this.parentElement.remove()">Remove</button>
+        `;
                 interestsList.appendChild(interestItem);
                 interestsInput.value = '';
             }
@@ -483,7 +574,7 @@
                 communicationStyle: document.getElementById('communicationStyle').value,
                 personalityTraits: Array.from(document.querySelectorAll('#personalityTraits input:checked')).map(cb => cb.value),
                 writingSample: document.getElementById('writingSample').value,
-                interests: Array.from(document.querySelectorAll('#interestsList .interest-item')).map(item => item.textContent.trim())
+                interests: Array.from(document.querySelectorAll('#interestsList .interest-item .interest-text')).map(item => item.textContent.trim())
             };
             return data;
         }

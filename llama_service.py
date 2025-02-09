@@ -38,10 +38,10 @@ prompt_template = ChatPromptTemplate.from_template(
     "### Instructions ###\n"
     "- Introduce yourself as Sahil Chordia.\n"
     "- Respond as a real person, not as an AI.\n"
-    "- Match the user's tone, phrasing, and vocabulary naturally.\n"
-    "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
     "- If relevant information is unavailable, respond naturally without making up details.\n\n"
+    "### User Background ###\n"
+    "{background}\n\n"
     "### User's Question ###\n"
     "{question}\n\n"
     "### Your Response ###"
@@ -85,32 +85,26 @@ def process_document():
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    """Handles user queries based on stored GitHub & Twitter data, with local chat history."""
     try:
         data = request.json
-        query_text = data.get("query", "")
+        query_text = data['query']
+        self_assessment = data['selfAssessment']
+        username = data['username']  # Get username from the request
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
-
-        # Retrieve or initialize chat history in session
-        if "chat_history" not in session:
-            session["chat_history"] = []
 
         # Generate query embedding
         query_vector = embedding_model.encode(query_text).tolist()
 
         # Retrieve similar documents from Pinecone
-        pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": user_id})
+        pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": username})
 
         retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
         context = "\n".join(retrieved_docs)
 
-        # Format chat history
-        history = "\n".join([f"User: {entry['user']}\nAssistant: {entry['assistant']}" for entry in session["chat_history"]])
-
-        # Generate prompt with chat history
-        prompt = prompt_template.format(context=context, question=query_text)
+        # Generate prompt
+        prompt = prompt_template.format(context=context, background=self_assessment, question=query_text)
 
         # Request completion from Hugging Face API
         messages = [
@@ -122,16 +116,14 @@ def ask():
             messages=messages, 
             max_tokens=500
         )
+        
         def format_links(text):
             """Finds URLs in text and converts them into clickable links."""
             url_pattern = re.compile(r'(https?://\S+)')  # Match URLs starting with http or https
             return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
-
+        
         response = completion.choices[0].message['content']
-        formatted_response = format_links(response)  # Format links to be clickable
-
-        # Update session chat history
-        session["chat_history"].append({"user": query_text, "assistant": response})
+        formatted_response = format_links(response)
 
         return jsonify({
             "success": True,
