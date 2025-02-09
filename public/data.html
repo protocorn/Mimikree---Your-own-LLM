@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Information Box</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #F4F8F9; /* Light background color */
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.9); /* Light form background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .box {
+            margin-top: 20px;
+            border-radius: 10px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8); /* Lighter box background */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h2, h3 {
+            color: #2A3C3F; /* Dark teal for text */
+        }
+        
+        select, textarea, input[type="text"],
+        input[type="file"] {
+            width: 98%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #D1E1E3; /* Light gray border */
+            border-radius: 4px;
+            background-color: #ffffff; /* White background for inputs */
+            color: #2A3C3F; /* Dark text for clarity */
+        }
+        select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%232A3C3F" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+        #personalityTraits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        #personalityTraits label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #D1E1E3;
+            border-radius: 4px;
+            margin-right: 8px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        input[type="checkbox"]:checked {
+            background-color: #5CB85C;
+            border-color: #5CB85C;
+        }
+        
+        input[type="checkbox"]:checked::before {
+            content: "\2713";
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        textarea {
+            width: 95%;
+            min-height: 100px;
+            resize: vertical;
+        }
+        #interestsList {
+            margin-top: 10px;
+        }
+        
+        .interest-item {
+            background-color: #F4F8F9;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .interest-item button {
+            background-color: #FF6B6B;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .interest-item button:hover {
+            background-color: #FF4949;
+        }        
+        
+        button {
+            background-color: #5CB85C; /* Soft green for buttons */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #4CAF50; /* Darker green on hover */
+        }
+        
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .link-item,
+        .image-item,
+        .pdf-item {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border: 1px solid #D1E1E3; /* Subtle border */
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        
+        .predefined-links {
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #E1E1E1;
+            padding-bottom: 15px;
+        }
+        
+        .platform-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .platform-input input {
+            flex: 1;
+        }
+        
+        .platform-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .step-indicator span {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 50%;
+            background-color: #E1E1E1; /* Light gray for inactive steps */
+        }
+        
+        .step-indicator .active-step {
+            background-color: #5CB85C; /* Green for active step */
+            color: white;
+        }
+        
+        .success-message {
+            display: none;
+            color: #5CB85C; /* Green success message */
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .platform-input button {
+            min-width: 50px;
+            max-width: 180px;
+            width: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        #step1 .navigation {
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="step-indicator">
+            <span class="active-step">1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+        </div>
+        <div class="step active" id="step1">
+            <div class="box" id="linksBox">
+                <h2>Social Profiles</h2>
+                <div class="predefined-links">
+                    <div class="platform-input">
+                        <input type="text" id="githubUsername" placeholder="GitHub Username">
+                        <button onclick="addGitHub()">
+                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+                                class="platform-icon" alt="GitHub">
+                            Add GitHub
+                        </button>
+                    </div>
+
+                    <div class="platform-input">
+                        <input type="text" id="linkedinUsername" placeholder="LinkedIn Username/ID">
+                        <button onclick="addLinkedIn()">
+                            <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
+                                class="platform-icon" alt="LinkedIn">
+                            Add LinkedIn
+                        </button>
+                    </div>
+
+                    <div class="platform-input">
+                        <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
+                        <button onclick="addTwitter()">
+                            <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png"
+                                class="platform-icon" alt="Twitter">
+                            Add Twitter
+                        </button>
+                    </div>
+                </div>
+
+                <h3>Other Links</h3>
+                <input type="text" id="linkInput" placeholder="Enter any other link">
+                <button onclick="addLink()">Add Custom Link</button>
+                <div id="linksList"></div>
+            </div>
+
+            <div class="navigation">
+                <button onclick="nextStep(1)">Next</button>
+            </div>
+        </div>
+
+        <div class="step" id="step2">
+
+            <div class="box" id="selfAssessmentBox">
+                <h2>Self-Assessment</h2>
+                <h3>Communication Style</h3>
+                <select id="communicationStyle">
+                    <option value="">Select your communication style</option>
+                    <option value="direct">Direct and straightforward</option>
+                    <option value="diplomatic">Diplomatic and tactful</option>
+                    <option value="casual">Casual and friendly</option>
+                    <option value="formal">Formal and professional</option>
+                </select>
+        
+                <h3>Personality Traits</h3>
+                <div id="personalityTraits">
+                    <label><input type="checkbox" value="extroverted"> Extroverted</label>
+                    <label><input type="checkbox" value="introverted"> Introverted</label>
+                    <label><input type="checkbox" value="analytical"> Analytical</label>
+                    <label><input type="checkbox" value="creative"> Creative</label>
+                    <label><input type="checkbox" value="organized"> Organized</label>
+                    <label><input type="checkbox" value="adaptable"> Adaptable</label>
+                </div>
+        
+                <h3>Writing Style</h3>
+                <textarea id="writingSample" rows="4" placeholder="Provide a short writing sample that reflects your typical style"></textarea>
+        
+                <h3>Interests and Hobbies</h3>
+                <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
+                <button onclick="addInterest()">Add Interest</button>
+                <div id="interestsList"></div>
+            </div>
+        
+            <div class="navigation">
+                <button onclick="prevStep(2)">Back</button>
+                <button onclick="nextStep(2)">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Add PDFs -->
+        <div class="step" id="step3">
+
+            <div class="box" id="pdfBox">
+                <h2>PDF Documents</h2>
+                <input type="file" id="pdfInput" accept=".pdf" multiple>
+                <button onclick="addPDFs()">Add PDFs</button>
+                <div id="pdfList"></div>
+            </div>
+
+            <div class="navigation">
+                <button onclick="prevStep(3)">Back</button>
+                <button onclick="nextStep(3)">Next</button>
+            </div>
+        </div>
+
+        <div class="step" id="step4">
+
+            <div class="submit-section">
+                <button id="submitBtn" onclick="submitData()">Submit All Information</button>
+                <div id="successMessage" class="success-message">✅ Data submitted successfully!</div>
+            </div>
+            <div class="navigation">
+                <button onclick="prevStep(4)">Back</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchUserProfile);
+
+        let currentStep = 1;
+
+        function nextStep(step) {
+            document.getElementById(`step${step}`).classList.remove("active");
+            document.getElementById(`step${step + 1}`).classList.add("active");
+            updateStepIndicator(step + 1);
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step${step}`).classList.remove("active");
+            document.getElementById(`step${step - 1}`).classList.add("active");
+            updateStepIndicator(step - 1);
+        }
+
+        function updateStepIndicator(step) {
+            document.querySelectorAll(".step-indicator span").forEach((el, index) => {
+                el.classList.toggle("active-step", index === step - 1);
+            });
+        }
+
+
+        async function fetchUserProfile() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                console.error("No token found, user not authenticated.");
+                return;
+            }
+        
+            try {
+                const response = await fetch('http://localhost:5000/api/user/profile', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const userData = await response.json();
+                if (userData.socialProfiles) {
+                    populateSocialProfiles(userData.socialProfiles);
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        }
+
+        function populateSocialProfiles(profiles) {
+            if (profiles.github) {
+                document.getElementById('githubUsername').value = profiles.github;
+                const username = profiles.github;
+                if (username) {
+                    addPredefinedLink(`https://github.com/${username}`, 'GitHub Profile');
+                    document.getElementById('githubUsername').value = '';
+                }
+            }
+            if (profiles.linkedin) {
+                document.getElementById('linkedinUsername').value = profiles.linkedin;
+            }
+            if (profiles.twitter) {
+                document.getElementById('twitterUsername').value = profiles.twitter;
+            }
+        }        
+
+
+        function addGitHub() {
+            const username = document.getElementById('githubUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://github.com/${username}`, 'GitHub Profile');
+                document.getElementById('githubUsername').value = '';
+            }
+        }
+
+        function addLinkedIn() {
+            const username = document.getElementById('linkedinUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`${username}`, 'LinkedIn Profile');
+                document.getElementById('linkedinUsername').value = '';
+            }
+        }
+
+        function addTwitter() {
+            const username = document.getElementById('twitterUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://twitter.com/${username}`, 'Twitter Profile');
+                document.getElementById('twitterUsername').value = '';
+            }
+        }
+
+        function addPredefinedLink(url, platform) {
+            const linksList = document.getElementById('linksList');
+            const existing = Array.from(linksList.children).find(item =>
+                item.querySelector('a').href === url
+            );
+
+            if (!existing) {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
+                    <a href="${url}" target="_blank">
+                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+                        ${platform} (${new URL(url).pathname.split('/').pop()})
+                    </a>
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                linksList.appendChild(linkItem);
+            }
+        }
+
+        function getPlatformIcon(platform) {
+            const icons = {
+                'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+                'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
+                'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png'
+            };
+            return icons[platform] || '';
+        }
+
+        function addInterest() {
+            const interestsInput = document.getElementById('interestsInput');
+            const interestsList = document.getElementById('interestsList');
+            if (interestsInput.value) {
+                const interestItem = document.createElement('div');
+                interestItem.className = 'interest-item';
+                interestItem.innerHTML = `
+                    ${interestsInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                interestsList.appendChild(interestItem);
+                interestsInput.value = '';
+            }
+        }
+
+        function collectSelfAssessmentData() {
+            const data = {
+                communicationStyle: document.getElementById('communicationStyle').value,
+                personalityTraits: Array.from(document.querySelectorAll('#personalityTraits input:checked')).map(cb => cb.value),
+                writingSample: document.getElementById('writingSample').value,
+                interests: Array.from(document.querySelectorAll('#interestsList .interest-item')).map(item => item.textContent.trim())
+            };
+            return data;
+        }
+
+        async function submitData() {
+            const data = {
+                socialProfiles: {},
+                customLinks: [],
+                selfAssessment: collectSelfAssessmentData(),
+                pdfs: [],
+            };
+
+            // Collect links
+            document.querySelectorAll('.link-item a').forEach(link => {
+                const url = new URL(link.href);
+                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter) Profile/)?.[0];
+
+                if (platform) {
+                    data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {
+                        url: link.href,
+                        username: url.pathname.split('/').pop()
+                    };
+                } else {
+                    data.customLinks.push(link.href);
+                }
+            });
+
+            // Collect images
+            document.querySelectorAll('.image-item').forEach(item => {
+                data.images.push({
+                    description: item.querySelector('p').textContent,
+                    src: item.querySelector('img').src
+                });
+            });
+
+            // Collect PDFs
+            document.querySelectorAll('.pdf-item p').forEach(pdf => {
+                data.pdfs.push(pdf.textContent);
+            });
+
+            data.selfAssessment = collectSelfAssessmentData();
+
+            const token = localStorage.getItem("token"); // Retrieve token from localStorage
+
+            if (!token) {
+                console.error("No token found, user not authenticated.");
+                return;
+            }
+
+            // Send data to backend
+            try {
+                const response = await fetch('http://localhost:5000/api/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('successMessage').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error submitting data:', error);
+            }
+        }
+        function addLink() {
+            const linkInput = document.getElementById('linkInput');
+            const linksList = document.getElementById('linksList');
+
+            if (linkInput.value) {
+                const url = linkInput.value.startsWith('http') ?
+                    linkInput.value :
+                    `https://${linkInput.value}`;
+
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
+                <a href="${url}" target="_blank">${url}</a>
+                <button onclick="this.parentElement.remove()">Remove</button>
+            `;
+                linksList.appendChild(linkItem);
+                linkInput.value = '';
+            }
+        }
+
+        function addImages() {
+            const imageInput = document.getElementById('imageInput');
+            const imageDescription = document.getElementById('imageDescription');
+            const imagesList = document.getElementById('imagesList');
+            let a = imageInput.files.length;
+
+            if (imageInput.files.length > 0) {
+                for (let file of imageInput.files) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+
+                        imageItem.innerHTML = `
+                            <img src="${e.target.result}" class="image-preview">
+                            <p>${imageDescription.value}</p>
+                            <button onclick="this.parentElement.remove()">Remove</button>
+                        `;
+                        imagesList.appendChild(imageItem);
+                    }
+                    reader.readAsDataURL(file);
+                }
+                a = a - 1;
+            }
+            if (a <= 1) {
+                imageInput.value = '';
+                imageDescription.value = '';
+            }
+        }
+
+        function addPDFs() {
+            const pdfInput = document.getElementById('pdfInput');
+            const pdfList = document.getElementById('pdfList');
+
+            if (pdfInput.files.length > 0) {
+                for (let file of pdfInput.files) {
+                    const pdfItem = document.createElement('div');
+                    pdfItem.className = 'pdf-item';
+                    pdfItem.innerHTML = `
+                        <p>${file.name}</p>
+                        <button onclick="this.parentElement.remove()">Remove</button>
+                    `;
+                    pdfList.appendChild(pdfItem);
+                }
+                pdfInput.value = '';
+            }
+        }
+
+        function addSkill() {
+            const skillInput = document.getElementById('skillInput');
+            const skillsList = document.getElementById('skillsList');
+            if (skillInput.value) {
+                const skillItem = document.createElement('div');
+                skillItem.className = 'link-item';
+                skillItem.innerHTML = `
+                    ${skillInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                skillsList.appendChild(skillItem);
+                skillInput.value = '';
+            }
+        }
+
+        function addEducation() {
+            const educationInput = document.getElementById('educationInput');
+            const educationList = document.getElementById('educationList');
+            if (educationInput.value) {
+                const educationItem = document.createElement('div');
+                educationItem.className = 'link-item';
+                educationItem.innerHTML = `
+                    ${educationInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                educationList.appendChild(educationItem);
+                educationInput.value = '';
+            }
+        }
+
+        function addProject() {
+            const projectInput = document.getElementById('projectInput');
+            const projectsList = document.getElementById('projectsList');
+            if (projectInput.value) {
+                const projectItem = document.createElement('div');
+                projectItem.className = 'link-item';
+                projectItem.innerHTML = `
+                    ${projectInput.value}
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+                projectsList.appendChild(projectItem);
+                projectInput.value = '';
+            }
+        }
+    </script>
+</body>
+
+</html>

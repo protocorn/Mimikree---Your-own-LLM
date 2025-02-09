@@ -1,84 +1,114 @@
+/* Global Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Arial, sans-serif;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f7fa;
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2C3E50;
+    padding: 15px 30px;
+    color: white;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background: #3498DB;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2980B9;
+}
+
+.btn-secondary {
+    background: #E74C3C;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #C0392B;
+}
+
+/* Hero Section */
+.hero {
+    height: 60vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-}
-
-.container {
-    background-color: #ffffff;
-    width: 50%;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
     text-align: center;
-    color: #333;
-}
-
-h2 {
-    color: #555;
-    margin-bottom: 10px;
-}
-
-.section {
-    margin-bottom: 20px;
-}
-
-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: inline-block;
-}
-
-input[type="url"], input[type="file"], textarea {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-textarea {
-    height: 80px;
-    resize: vertical;
-}
-
-button {
-    width: 100%;
-    padding: 15px;
-    background-color: #4CAF50;
+    background: #34495E;
     color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
+    padding: 50px;
 }
 
-button:hover {
-    background-color: #45a049;
+.hero-content h2 {
+    font-size: 2.5rem;
 }
 
-#dynamic-blocks-container .dynamic-block {
-    margin-bottom: 20px;
-}
-
-#add-block-btn {
-    background-color: #ff9800;
+.hero-content p {
     margin-top: 10px;
+    font-size: 1.2rem;
 }
 
-#add-block-btn:hover {
-    background-color: #fb8c00;
+.hero-content .btn {
+    margin-top: 20px;
+}
+
+/* Features Section */
+.features {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 50px;
+}
+
+.feature-card {
+    background: white;
+    padding: 20px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    width: 250px;
+    text-align: center;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+}
+
+.feature-card p {
+    margin-top: 10px;
+    color: #7F8C8D;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    background: #2C3E50;
+    color: white;
+    padding: 15px;
+    margin-top: 30px;
 }
