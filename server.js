@@ -122,9 +122,6 @@ app.post("/api/submit", async (req, res) => {
             documents.push(JSON.stringify(collectedData.twitter));
         }
 
-        for (const doc of documents) {
-            await axios.post('http://localhost:5002/process', { document: doc });
-        }
 
         const token = req.headers.authorization?.split(" ")[1];
         if (token) {
@@ -132,6 +129,10 @@ app.post("/api/submit", async (req, res) => {
             try {
                 decoded = jwt.verify(token, JWT_SECRET_KEY);
                 const username = decoded.username;
+
+                for (const doc of documents) {
+                    await axios.post('http://localhost:5002/process', { document: doc, username: username });
+                }
 
                 if (data.socialProfiles.github) {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.github.username, "github");

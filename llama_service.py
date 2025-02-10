@@ -36,11 +36,14 @@ prompt_template = ChatPromptTemplate.from_template(
     "### Profile Information ###\n"
     "{context}\n\n"
     "### Instructions ###\n"
-    "- Introduce yourself as Sahil Chordia.\n"
+    "- Introduce yourself as Sahil Chordia whenever necessary.\n"
     "- Respond as a real person, not as an AI.\n"
+    "- Match the user's tone, phrasing, and vocabulary naturally.\n"
+    "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
     "- If relevant information is unavailable, respond naturally without making up details.\n\n"
-    "### User Background ###\n"
+ 
+    "### Your Background (Sahil Chordia) ###\n"
     "{background}\n\n"
     "### User's Question ###\n"
     "{question}\n\n"
@@ -59,6 +62,7 @@ def process_document():
     try:
         data = request.json
         document_text = data.get("document", "")
+        user_id = data.get("username", "")
 
         if not document_text:
             return jsonify({"error": "No document provided"}), 400
@@ -90,6 +94,8 @@ def ask():
         query_text = data['query']
         self_assessment = data['selfAssessment']
         username = data['username']  # Get username from the request
+        
+        print(username)
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
@@ -112,7 +118,7 @@ def ask():
         ]
         
         completion = client.chat.completions.create(
-            model="meta-llama/Llama-3.1-70B-Instruct",
+            model="meta-llama/Llama-3.3-70B-Instruct",
             messages=messages, 
             max_tokens=500
         )
