@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Information Box</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <script>
+        // Set a global variable to hold the pdfjsLib after it loads
+        window.pdfjsLib = window.pdfjsLib || {}; // Initialize if not already present
+
+        // Add an event listener to wait for pdf.js to load
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // pdf.js is now loaded, you can use it
+            console.log("pdf.js is loaded");
+        });
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,6 +36,12 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
         }
+
+        .button-holder {
+            max-width: 600px;
+            margin: auto;
+        }
+
 
         .box {
             margin-top: 20px;
@@ -90,8 +108,8 @@
         }
 
         input[type="checkbox"]:checked {
-            background-color: #5CB85C;
-            border-color: #5CB85C;
+            background-color: #007bff;
+            border-color: #007bff;
         }
 
         input[type="checkbox"]:checked::before {
@@ -135,7 +153,7 @@
         }
 
         button {
-            background-color: #5CB85C;
+            background-color: #007bff;
             /* Soft green for buttons */
             color: white;
             border: none;
@@ -269,6 +287,11 @@
 </head>
 
 <body>
+    <div style="margin-bottom:10px" class="button-holder">
+        <button onclick="location.href='/'">
+            Back to Main page
+        </button>
+    </div>
     <div class="container">
         <div class="step-indicator">
             <span class="active-step">1</span>
@@ -282,7 +305,7 @@
                 <div class="predefined-links">
                     <div class="platform-input">
                         <input type="text" id="githubUsername" placeholder="GitHub Username">
-                        <button onclick="addGitHub()">
+                        <button onclick="addGitHub()" style="background-color: #2A3C3F;">
                             <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                                 class="platform-icon" alt="GitHub">
                             Add GitHub
@@ -291,8 +314,8 @@
 
                     <div class="platform-input">
                         <input type="text" id="linkedinUsername" placeholder="LinkedIn Username/ID">
-                        <button onclick="addLinkedIn()">
-                            <img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg"
+                        <button onclick="addLinkedIn()" style="background-color:#0077B5">
+                            <img src="https://static.vecteezy.com/system/resources/previews/018/910/724/non_2x/linkedin-logo-linkedin-symbol-linkedin-icon-free-free-vector.jpg"
                                 class="platform-icon" alt="LinkedIn">
                             Add LinkedIn
                         </button>
@@ -300,27 +323,28 @@
 
                     <div class="platform-input">
                         <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
-                        <button onclick="addTwitter()">
-                            <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png"
+                        <button onclick="addTwitter()" style="background:#000">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png"
                                 class="platform-icon" alt="Twitter">
-                            Add Twitter
+                            Add Twitter (X)
                         </button>
                     </div>
 
                     <div class="platform-input">
-                       
+
                         <input type="text" id="mediumUsername" placeholder="Medium Username">
-                        <button onclick="addMedium()">
-                            <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png"
-                                class="platform-icon" alt="Medium">
+                        <button onclick="addMedium()" style="background:#efefef; color:black;">
+                            <img src="https://www.svgrepo.com/show/354057/medium-icon.svg" class="platform-icon"
+                                alt="Medium">
                             Add Medium
                         </button>
                     </div>
                 </div>
 
-                <h3>Other Links</h3>
+                <!-- <h3>Other Links</h3>
                 <input type="text" id="linkInput" placeholder="Enter any other link">
-                <button onclick="addLink()">Add Custom Link</button>
+                <button onclick="addLink()">Add Custom Link</button>-->
+                <h3>Added Links</h3>
                 <div id="linksList"></div>
             </div>
 
@@ -352,9 +376,10 @@
                     <label><input type="checkbox" value="adaptable"> Adaptable</label>
                 </div>
 
-                <h3>Writing Style</h3>
-                <textarea id="writingSample" rows="4"
-                    placeholder="Provide a short writing sample that reflects your typical style"></textarea>
+                <h3>More About You</h3>
+                <textarea id="writingSample" rows="4" maxlength="500" placeholder="Write something about you..."
+                    oninput="updateCharCount()"></textarea>
+                <p id="charCount" style="margin-top:-8px">Characters remaining: 500</p>
 
                 <h3>Interests and Hobbies</h3>
                 <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
@@ -373,7 +398,7 @@
 
             <div class="box" id="pdfBox">
                 <h2>PDF Documents</h2>
-                <input type="file" id="pdfInput" accept=".pdf" multiple>
+                <input type="file" id="pdfInput" name="pdfInput" accept=".pdf" multiple>
                 <button onclick="addPDFs()">Add PDFs</button>
                 <div id="pdfList"></div>
             </div>
@@ -406,8 +431,17 @@
         </div>
     </div>
 
-
     <script>
+        function checkAuth() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                // Alert the user and redirect to login if no token found
+                alert("You need to be logged in to access this page.");
+                location.href = '/login'; // Redirect to login page
+            }
+        }
+        checkAuth();
+
         document.addEventListener('DOMContentLoaded', fetchUserProfile);
 
         let currentStep = 1;
@@ -430,6 +464,12 @@
             });
         }
 
+        function updateCharCount() {
+            const textarea = document.getElementById('writingSample');
+            const charCount = document.getElementById('charCount');
+            const remaining = 500 - textarea.value.length;
+            charCount.textContent = `Characters remaining: ${remaining}`;
+        }
 
         async function fetchUserProfile() {
             const token = localStorage.getItem("token");
@@ -491,18 +531,18 @@
             if (selfAssessment.communicationStyle) {
                 document.getElementById('communicationStyle').value = selfAssessment.communicationStyle;
             }
-            
+
             if (selfAssessment.personalityTraits) {
                 selfAssessment.personalityTraits.forEach(trait => {
                     const checkbox = document.querySelector(`#personalityTraits input[value="${trait}"]`);
                     if (checkbox) checkbox.checked = true;
                 });
             }
-            
+
             if (selfAssessment.writingSample) {
                 document.getElementById('writingSample').value = selfAssessment.writingSample;
             }
-            
+
             if (selfAssessment.interests) {
                 const interestsList = document.getElementById('interestsList');
                 interestsList.innerHTML = ''; // Clear existing interests
@@ -543,7 +583,7 @@
             }
         }
 
-        
+
         function addMedium() {
             const username = document.getElementById('mediumUsername').value.trim();
             if (username) {
@@ -562,11 +602,13 @@
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
-                    <a href="${url}" target="_blank">
-                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
-                        ${platform} (${new URL(url).pathname.split('/').pop()})
-                    </a>
-                    <button onclick="this.parentElement.remove()">Remove</button>
+                <div style="display: flex;">
+    <a href="${url}" target="_blank">
+        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+        ${platform} (${new URL(url).pathname.split('/').pop()})
+    </a>
+    <button onclick="this.parentElement.remove()" style="margin-left: auto;">Remove</button>
+</div>
                 `;
                 linksList.appendChild(linkItem);
             }
@@ -577,7 +619,7 @@
                 'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
                 'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
                 'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
-                'Medium Profile' : 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
+                'Medium Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
             };
             return icons[platform] || '';
         }
@@ -606,6 +648,52 @@
             };
             return data;
         }
+
+        let pdfTexts = []; // Array to store extracted text
+
+        async function extractTextFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = async (e) => {
+                    try {
+                        // Check if pdfjsLib is defined, if not, wait for it to load.
+                        if (typeof pdfjsLib === 'undefined' || !pdfjsLib.getDocument) {
+                            console.log("pdfjsLib not yet available, waiting...");
+                            const interval = setInterval(() => {
+                                if (typeof pdfjsLib !== 'undefined' && pdfjsLib.getDocument) {
+                                    clearInterval(interval); // Clear the interval once loaded
+                                    console.log("pdfjsLib is now available");
+                                    processPDF(e.target.result);
+                                }
+                            }, 200); // Check every 200ms
+                        } else {
+                            processPDF(e.target.result);
+                        }
+
+                        async function processPDF(result) {
+                            const typedarray = new Uint8Array(result);
+                            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                            let textContent = "";
+
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textLayer = await page.getTextContent();
+                                const strings = textLayer.items.map(item => item.str);
+                                textContent += strings.join(" ") + "\n";
+                            }
+                            resolve(textContent);
+                        }
+
+                    } catch (error) {
+                        reject(error);
+                        console.error("Error extracting text:", error);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
 
         async function submitData() {
             const data = {
@@ -638,12 +726,11 @@
                 });
             });
 
-            // Collect PDFs
-            document.querySelectorAll('.pdf-item p').forEach(pdf => {
-                data.pdfs.push(pdf.textContent);
-            });
+            if (pdfTexts.length > 0) {
+                data.pdfs = pdfTexts;
+            }
 
-            data.selfAssessment = collectSelfAssessmentData();
+
 
             const token = localStorage.getItem("token"); // Retrieve token from localStorage
 
@@ -721,66 +808,35 @@
             }
         }
 
-        function addPDFs() {
+        async function addPDFs() {
             const pdfInput = document.getElementById('pdfInput');
             const pdfList = document.getElementById('pdfList');
 
             if (pdfInput.files.length > 0) {
-                for (let file of pdfInput.files) {
+                for (const file of pdfInput.files) {
                     const pdfItem = document.createElement('div');
                     pdfItem.className = 'pdf-item';
                     pdfItem.innerHTML = `
-                        <p>${file.name}</p>
-                        <button onclick="this.parentElement.remove()">Remove</button>
-                    `;
-                    pdfList.appendChild(pdfItem);
+<div style="display: flex; align-items: center;">  
+    <p style="flex-grow: 1; margin-right: 10px;">${file.name}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
+</div>`;
+                        pdfList.appendChild(pdfItem);
+
+                    try {
+                        const extractedText = await extractTextFromPDF(file);
+                        // Store the extracted text (filename and content)
+                        console.log("Extracted text from", file.name + ":", extractedText);
+
+                        // Store in the array (filename and extracted text)
+                        pdfTexts.push({ filename: file.name, text: extractedText });
+
+                    } catch (error) {
+                        console.error("Error processing PDF:", error);
+                        // Handle the error (e.g., display a message to the user)
+                        pdfItem.innerHTML = `<p style="color:red;">Error processing ${file.name}</p>`; // Indicate error
+                    }
                 }
-                pdfInput.value = '';
-            }
-        }
-
-        function addSkill() {
-            const skillInput = document.getElementById('skillInput');
-            const skillsList = document.getElementById('skillsList');
-            if (skillInput.value) {
-                const skillItem = document.createElement('div');
-                skillItem.className = 'link-item';
-                skillItem.innerHTML = `
-                    ${skillInput.value}
-                    <button onclick="this.parentElement.remove()">Remove</button>
-                `;
-                skillsList.appendChild(skillItem);
-                skillInput.value = '';
-            }
-        }
-
-        function addEducation() {
-            const educationInput = document.getElementById('educationInput');
-            const educationList = document.getElementById('educationList');
-            if (educationInput.value) {
-                const educationItem = document.createElement('div');
-                educationItem.className = 'link-item';
-                educationItem.innerHTML = `
-                    ${educationInput.value}
-                    <button onclick="this.parentElement.remove()">Remove</button>
-                `;
-                educationList.appendChild(educationItem);
-                educationInput.value = '';
-            }
-        }
-
-        function addProject() {
-            const projectInput = document.getElementById('projectInput');
-            const projectsList = document.getElementById('projectsList');
-            if (projectInput.value) {
-                const projectItem = document.createElement('div');
-                projectItem.className = 'link-item';
-                projectItem.innerHTML = `
-                    ${projectInput.value}
-                    <button onclick="this.parentElement.remove()">Remove</button>
-                `;
-                projectsList.appendChild(projectItem);
-                projectInput.value = '';
+                pdfInput.value = ''; // Clear input after processing
             }
         }
     </script>

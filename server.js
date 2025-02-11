@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    name: {type: String, required:true},
     socialProfiles: {
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
@@ -132,8 +133,14 @@ app.post("/api/submit", async (req, res) => {
             collectedData.medium = mediumResponse.data;
             mediumResponse.data.articles.forEach(article =>{
                 documents.push(JSON.stringify(`Medium Aricle \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`));
-            })
-            
+            })  
+        }
+
+        if (data.pdfs) {
+            collectedData.pdfs = data.pdfs;
+            data.pdfs.forEach(pdf =>{
+                documents.push(JSON.stringify(`PDF Name: ${pdf.filename} \n PDF Content: ${pdf.text}`));
+            })  
         }
 
 
@@ -172,6 +179,14 @@ app.post("/api/submit", async (req, res) => {
                         console.error("Error updating self-assessment:", error);
                     }
                 }
+                if (data.pdfs){
+                    try {
+                        await updatePDFs(username, data.pdfs);
+                        console.log(`Updated pdfs for user: ${username}`);
+                    } catch (error) {
+                        console.error("Error updating pdfs:", error);
+                    }
+                }
             }
             catch {
                 console.error("Invalid token");
@@ -199,6 +214,18 @@ async function updateUserSelfAssessment(username, selfAssessmentData) {
         console.log(`Updated self-assessment for user: ${username}`);
     } catch (error) {
         console.error("Error updating self-assessment:", error);
+    }
+}
+
+async function updatePDFs(username, pdfData) {
+    try {
+        await User.updateOne(
+            { username: username },
+            { $set: { pdf: pdfData } }
+        );
+        console.log(`Updated pdfs data for user: ${username}`);
+    } catch (error) {
+        console.error("Error updating pdfs:", error);
     }
 }
 
@@ -284,7 +311,7 @@ app.post("/api/query/username=:username", async (req, res) => {
 
 app.post("/api/signup", async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, name, email, password } = req.body;
 
         const existingUsername = await User.findOne({ username });
         if (existingUsername) {
@@ -301,7 +328,7 @@ app.post("/api/signup", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create a new user
-        const newUser = new User({ username, email, password: hashedPassword });
+        const newUser = new User({ username, name, email, password: hashedPassword });
         await newUser.save();
 
         res.status(201).json({ message: "User created successfully" });

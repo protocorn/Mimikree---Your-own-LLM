@@ -120,7 +120,7 @@ def ask():
         completion = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct",
             messages=messages, 
-            max_tokens=500
+            max_tokens=500,
         )
         
         def format_links(text):

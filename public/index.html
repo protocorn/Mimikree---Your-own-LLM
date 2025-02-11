@@ -1,14 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mimikree - AI Powered Platform</title>
+    <title>Mimikree - Your Personalized AI Assistant</title>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s; /* Added more transitions */
+        }
+
+        .btn-primary {
+            background-color: #333;
+            color: white;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #555;
+            box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #555; /* Slightly darker gray text */
+            border: 1px solid #ddd; /* Subtle border */
+        }
+
+        .btn-secondary:hover {
+            background-color: #f0f0f0; /* A bit more contrast on hover */
+            border-color: #ccc; /* Slightly darker border on hover */
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: #333;
+            color: white;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links button {
+            margin-left: 15px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #6a82fb, #fc5c7d);
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .hero h2 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+        }
+
+        /* Features Section */
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .feature-card {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px;
+            width: 250px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex-grow: 1;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 1em;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+
+        @media (max-width: 768px) {
+            .features {
+                justify-content: center;
+            }
+
+            .feature-card {
+                width: 90%;
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .feature-card {
+                width: 100%;
+            }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: white;
+        }
+    </style>
 </head>
+
 <body>
-    <!-- Navbar -->
     <nav class="navbar">
         <h1 class="logo">Mimikree</h1>
         <div class="nav-links">
@@ -19,38 +156,35 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <header class="hero">
         <div class="hero-content">
             <h2>Unlock the Power of AI</h2>
-            <p>Mimikree is your AI-powered assistant, designed to simplify your work and boost productivity.</p>
+            <p>Transform your data into a smarter, more productive you with Mimikree's personalized AI assistants.</p>
             <div id="unauthenticated-buttons">
                 <button class="btn btn-primary" onclick="location.href='/signup'">Get Started</button>
             </div>
             <div id="authenticated-buttons" style="display:none;">
-                <button class="btn btn-primary">Chat with My Model</button>
-                <button class="btn btn-secondary" onclick="location.href='/add-data'">Add Data to My Model</button>
+                <button class="btn btn-primary" id="chat-button">Chat with Your Model</button>
+                <button id="add-data-button" class="btn btn-secondary" onclick="location.href='/add-data'">Add Data to Your Model</button>
             </div>
         </div>
     </header>
 
-    <!-- Features Section -->
     <section class="features">
         <div class="feature-card">
             <h3>🚀 AI Automation</h3>
-            <p>Automate tasks with AI-powered workflows.</p>
+            <p>Automate tasks and workflows with cutting-edge AI tools.</p>
         </div>
         <div class="feature-card">
             <h3>🔍 Smart Insights</h3>
-            <p>Get data-driven insights in real-time.</p>
+            <p>Get personalized insights that help you make better decisions faster.</p>
         </div>
         <div class="feature-card">
             <h3>📡 Seamless Integration</h3>
-            <p>Connect effortlessly with your favorite tools.</p>
+            <p>Easily connect your data from various sources for a unified AI experience.</p>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
         <p>&copy; 2025 Mimikree. All rights reserved.</p>
     </footer>
@@ -67,10 +201,13 @@
                     document.getElementById("logout-btn").style.display = "inline-block";
                     document.getElementById("unauthenticated-buttons").style.display = "none";
                     document.getElementById("authenticated-buttons").style.display = "block";
-                    const chatButton = document.querySelector('#authenticated-buttons .btn-primary');
-                    chatButton.onclick = function() {
+
+                    const chatButton = document.getElementById('chat-button'); // Get by ID
+                    chatButton.addEventListener('click', function() { // Use event listener
                         location.href = '/query?username=' + decoded.username;
-                    };
+                    });
+
+
                 } catch (error) {
                     console.error("Invalid token");
                     logout();
@@ -86,7 +223,17 @@
             location.reload();
         }
 
+        document.getElementById("add-data-button").addEventListener("click", function(event) {
+            if (!localStorage.getItem("token")) {
+                alert("You need to be logged in to add data to your model.");
+                // Redirect to the login page
+                location.href = '/login';
+                event.preventDefault(); // Prevent the default action (navigating to /add-data)
+            }
+        });
+
         checkAuth();
     </script>
 </body>
+
 </html>
