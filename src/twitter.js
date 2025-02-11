@@ -124,7 +124,7 @@ router.get("/", (req, res) => {
 });
 
 // API endpoint to get the data
-router.post('/scrape', async (req, res) => {
+router.post('/profile', async (req, res) => {
     const { username } = req.body;
     if (!username) {
         return res.status(400).json({ error: "Username is required" });

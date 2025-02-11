@@ -28,7 +28,7 @@
                 <button class="btn btn-primary" onclick="location.href='/signup'">Get Started</button>
             </div>
             <div id="authenticated-buttons" style="display:none;">
-                <button class="btn btn-primary" onclick="location.href='/chat'">Chat with My Model</button>
+                <button class="btn btn-primary">Chat with My Model</button>
                 <button class="btn btn-secondary" onclick="location.href='/add-data'">Add Data to My Model</button>
             </div>
         </div>
@@ -67,6 +67,10 @@
                     document.getElementById("logout-btn").style.display = "inline-block";
                     document.getElementById("unauthenticated-buttons").style.display = "none";
                     document.getElementById("authenticated-buttons").style.display = "block";
+                    const chatButton = document.querySelector('#authenticated-buttons .btn-primary');
+                    chatButton.onclick = function() {
+                        location.href = '/query?username=' + decoded.username;
+                    };
                 } catch (error) {
                     console.error("Invalid token");
                     logout();

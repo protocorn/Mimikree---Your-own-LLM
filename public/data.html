@@ -306,6 +306,16 @@
                             Add Twitter
                         </button>
                     </div>
+
+                    <div class="platform-input">
+                       
+                        <input type="text" id="mediumUsername" placeholder="Medium Username">
+                        <button onclick="addMedium()">
+                            <img src="https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png"
+                                class="platform-icon" alt="Medium">
+                            Add Medium
+                        </button>
+                    </div>
                 </div>
 
                 <h3>Other Links</h3>
@@ -467,6 +477,14 @@
                     document.getElementById('twitterUsername').value = '';
                 }
             }
+            if (profiles.medium) {
+                document.getElementById('mediumUsername').value = profiles.medium;
+                const username = profiles.medium;
+                if (username) {
+                    addPredefinedLink(`https://medium.com/${username}`, 'Medium Profile');
+                    document.getElementById('mediumUsername').value = '';
+                }
+            }
         }
 
         function populateSelfAssessment(selfAssessment) {
@@ -525,6 +543,15 @@
             }
         }
 
+        
+        function addMedium() {
+            const username = document.getElementById('mediumUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://medium.com/@${username}`, 'Medium Profile');
+                document.getElementById('mediumUsername').value = '';
+            }
+        }
+
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
             const existing = Array.from(linksList.children).find(item =>
@@ -549,7 +576,8 @@
             const icons = {
                 'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
                 'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
-                'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png'
+                'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
+                'Medium Profile' : 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
             };
             return icons[platform] || '';
         }
@@ -590,7 +618,7 @@
             // Collect links
             document.querySelectorAll('.link-item a').forEach(link => {
                 const url = new URL(link.href);
-                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter) Profile/)?.[0];
+                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter|Medium) Profile/)?.[0];
 
                 if (platform) {
                     data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {

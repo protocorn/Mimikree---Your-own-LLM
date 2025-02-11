@@ -7,6 +7,7 @@ const axios = require("axios");
 const githubRoutes = require("./src/github");
 const twitterRoutes = require("./src/twitter");
 const linkedinRoutes = require("./src/linkedin");
+const mediumRoutes = require("./src/medium");
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -27,6 +28,7 @@ app.use(cors());
 app.use("/api/github", githubRoutes.router);
 app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
+app.use("/api/medium", mediumRoutes.router);
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -43,7 +45,8 @@ const userSchema = new mongoose.Schema({
     socialProfiles: {
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
-        twitter: { type: String, required: false }
+        twitter: { type: String, required: false },
+        medium : {type: String, required: false }
     },
     selfAssessment: {
         communicationStyle: { type: String, required: false },
@@ -115,12 +118,24 @@ app.post("/api/submit", async (req, res) => {
         }
         // Collect Twitter data
         if (data.socialProfiles.twitter) {
-            const twitterResponse = await axios.post(`http://localhost:5000/api/twitter/scrape`, {
+            const twitterResponse = await axios.post(`http://localhost:5000/api/twitter/profile`, {
                 username: data.socialProfiles.twitter.username
             });
             collectedData.twitter = twitterResponse.data;
             documents.push(JSON.stringify(collectedData.twitter));
         }
+
+        if (data.socialProfiles.medium) {
+            const mediumResponse = await axios.post(`http://localhost:5000/api/medium/profile`, {
+                username: data.socialProfiles.medium.username
+            });
+            collectedData.medium = mediumResponse.data;
+            mediumResponse.data.articles.forEach(article =>{
+                documents.push(JSON.stringify(`Medium Aricle \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`));
+            })
+            
+        }
+
 
 
         const token = req.headers.authorization?.split(" ")[1];
@@ -144,6 +159,9 @@ app.post("/api/submit", async (req, res) => {
 
                 if (data.socialProfiles.twitter) {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "twitter");
+                }
+                if (data.socialProfiles.medium) {
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "medium");
                 }
                 if (data.selfAssessment) {
                     console.log("Received self-assessment data:", data.selfAssessment);
