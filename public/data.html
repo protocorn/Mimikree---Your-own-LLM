@@ -339,6 +339,16 @@
                             Add Medium
                         </button>
                     </div>
+
+                    <div class="platform-input">
+
+                        <input type="text" id="redditUsername" placeholder="Reddit Username">
+                        <button onclick="addReddit()" style="background:#FF4500;">
+                            <img src="https://img.icons8.com/ios_filled/512/FFFFFF/reddit.png" class="platform-icon"
+                                alt="Reddit">
+                            Add Reddit
+                        </button>
+                    </div>
                 </div>
 
                 <!-- <h3>Other Links</h3>
@@ -525,6 +535,14 @@
                     document.getElementById('mediumUsername').value = '';
                 }
             }
+            if (profiles.reddit) {
+                document.getElementById('redditUsername').value = profiles.reddit;
+                const username = profiles.reddit;
+                if (username) {
+                    addPredefinedLink(`https://www.reddit.com/user/${username}`, 'Reddit Profile');
+                    document.getElementById('redditUsername').value = '';
+                }
+            }
         }
 
         function populateSelfAssessment(selfAssessment) {
@@ -591,6 +609,13 @@
                 document.getElementById('mediumUsername').value = '';
             }
         }
+        function addReddit() {
+            const username = document.getElementById('redditUsername').value.trim();
+            if (username) {
+                addPredefinedLink(`https://www.reddit.com/user/${username}`, 'Reddit Profile');
+                document.getElementById('redditUsername').value = '';
+            }
+        }
 
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
@@ -607,7 +632,7 @@
         <img src="${getPlatformIcon(platform)}" class="platform-icon">
         ${platform} (${new URL(url).pathname.split('/').pop()})
     </a>
-    <button onclick="this.parentElement.remove()" style="margin-left: auto;">Remove</button>
+    <button onclick="this.parentElement.parentElement.remove()" style="margin-left: auto;">Remove</button>
 </div>
                 `;
                 linksList.appendChild(linkItem);
@@ -620,6 +645,7 @@
                 'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
                 'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
                 'Medium Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
+                'Reddit Profile': 'https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png',
             };
             return icons[platform] || '';
         }
@@ -706,7 +732,7 @@
             // Collect links
             document.querySelectorAll('.link-item a').forEach(link => {
                 const url = new URL(link.href);
-                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter|Medium) Profile/)?.[0];
+                const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter|Medium|Reddit) Profile/)?.[0];
 
                 if (platform) {
                     data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {

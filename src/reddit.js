@@ -1,5 +1,5 @@
 // reddit.js
-const snoowrap = require('snoowrap');
+/*const snoowrap = require('snoowrap');
 const express = require('express');
 const app = express();
 const port = 3000;
@@ -10,45 +10,70 @@ const {
   REDDIT_CLIENT_SECRET,
   REDDIT_USER_AGENT,
   REDDIT_REDIRECT_URI
-} = require("../config/apiKeys")
+} = require("../config/apiKeys")*/
+const express = require("express");
+const router = express.Router();
 
-// Function to get user posts and comments by username
-async function getUserPostsAndComments(username) {
-    try {
-      const user = await r.getUser(username);
-  
-      // Get user posts (all types)
-      const posts = await user.getSubmitted({ limit: 10 });  // Adjust limit as needed
-      const comments = await user.getComments({ limit: 10 });  // Adjust limit as needed
-  
-      // Map the posts and comments to a desired structure
-      const postsData = posts.map(post => ({
-        type: 'post',
-        title: post.title,
-        url: post.url,
-        score: post.score,
-        subreddit: post.subreddit.display_name,
-        created: post.created_utc
-      }));
-  
-      const commentsData = comments.map(comment => ({
-        type: 'comment',
-        text: comment.body,
-        score: comment.score,
-        subreddit: comment.subreddit.display_name,
-        created: comment.created_utc,
-        parentPost: comment.link_title,
-        postUrl: comment.permalink
-      }));
-  
-      return { posts: postsData, comments: commentsData };
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return { posts: [], comments: [] };
-    }
+const snoowrap = require('snoowrap');
+
+const reddit = new snoowrap({
+  userAgent: 'LLM/1.0.0',  // Set a user agent
+  clientId: 'sDEzkNnfLcmnoaKlxxteHA',
+  clientSecret: '7wIB4OIg5VyKd_JRJMGwCJ5qn-KQXQ',
+  username: 'Apprehensive-Mix3820',
+  password: 'Saahil@2412'
+});
+
+async function getRedditUserData(username) {
+  try {
+    const user = await reddit.getUser(username);
+
+    // Get Recent Posts
+    const posts = await user.getSubmissions({ limit: 10 });
+    const userPosts = posts.map(post => ({
+      title: post.title,
+      subreddit: post.subreddit_name_prefixed,
+      upvotes: post.ups,
+      url: post.url,
+      created_utc: post.created_utc,
+      content: post.selftext || 'No text content',
+    }));
+
+    console.log('Recent Posts:', userPosts);
+
+    return userPosts ;
+  } catch (error) {
+    console.error('Error fetching Reddit data:', error);
   }
-  
-  // Export the function for use in server.js or other files
-  module.exports = {
-    getUserPostsAndComments
-  };
+}
+
+// API Home Route
+router.get("/", (req, res) => {
+  res.json({ message: "Medium API working!" });
+});
+
+
+router.post('/profile', async (req, res) => {
+  const { username } = req.body;
+
+  // Ensure username is provided
+  if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+  }
+
+  try {
+      // Fetch articles from Medium
+      const posts = await getRedditUserData(username);
+
+      return res.json({posts: posts});
+
+  } catch (error) {
+      console.error("Error fetching articles:", error);
+      // Return error if fetching articles fails
+      return res.status(500).json({ error: "Failed to fetch articles from Medium" });
+  }
+});
+
+module.exports = { router };
+// Run the function with a sample username
+  // Change to target username

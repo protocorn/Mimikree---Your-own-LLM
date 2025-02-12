@@ -8,6 +8,7 @@ const githubRoutes = require("./src/github");
 const twitterRoutes = require("./src/twitter");
 const linkedinRoutes = require("./src/linkedin");
 const mediumRoutes = require("./src/medium");
+const redditRoutes = require("./src/reddit");
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -29,6 +30,7 @@ app.use("/api/github", githubRoutes.router);
 app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
+app.use("/api/reddit", redditRoutes.router);
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -47,7 +49,8 @@ const userSchema = new mongoose.Schema({
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
         twitter: { type: String, required: false },
-        medium : {type: String, required: false }
+        medium : {type: String, required: false },
+        reddit : {type: String, required: false }
     },
     selfAssessment: {
         communicationStyle: { type: String, required: false },
@@ -133,6 +136,15 @@ app.post("/api/submit", async (req, res) => {
             collectedData.medium = mediumResponse.data;
             mediumResponse.data.articles.forEach(article =>{
                 documents.push(JSON.stringify(`Medium Aricle \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`));
+            })  
+        }
+        if (data.socialProfiles.reddit) {
+            const redditResponse = await axios.post(`http://localhost:5000/api/reddit/profile`, {
+                username: data.socialProfiles.reddit.username
+            });
+            collectedData.reddit = redditResponse.data;
+            redditResponse.data.posts.forEach(post =>{
+                documents.push(JSON.stringify(`Reddit Post \n Title: ${post.title} \n Link: ${post.url} \n Content: ${post.content}`));
             })  
         }
 
