@@ -165,7 +165,7 @@ app.post("/api/submit", async (req, res) => {
                 const username = decoded.username;
 
                 for (const doc of documents) {
-                    await axios.post('http://localhost:5002/process', { document: doc, username: username });
+                    await axios.post('https://llama-server.fly.dev/process', { document: doc, username: username });
                 }
 
                 if (data.socialProfiles.github) {
@@ -200,8 +200,8 @@ app.post("/api/submit", async (req, res) => {
                     }
                 }
             }
-            catch {
-                console.error("Invalid token");
+            catch (error) {
+                console.error(error);
             }
         }
         else {
@@ -305,11 +305,12 @@ app.post("/api/query/username=:username", async (req, res) => {
         const dataForModel = {
             query: query,
             selfAssessment: user.selfAssessment,
-            username: username
+            username: username,
+            name: user.name
         };
 
         // Send the query to the Flask API (assuming Flask is running on port 5002)
-        const response = await axios.post(`http://localhost:5002/ask`, dataForModel);
+        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
 
         console.log(response.data.response)
 

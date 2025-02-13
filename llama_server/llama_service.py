@@ -7,6 +7,7 @@ from huggingface_hub import InferenceClient
 import uuid  # Import uuid to generate unique IDs
 import secrets
 import re
+from waitress import serve
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32) 
@@ -32,18 +33,18 @@ embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 
 # Structured prompt template
 prompt_template = ChatPromptTemplate.from_template(
-    "You are Sahil Chordia, responding as yourself.\n\n"
+    "You are {name} responding as yourself.\n\n"
     "### Profile Information ###\n"
     "{context}\n\n"
     "### Instructions ###\n"
-    "- Introduce yourself as Sahil Chordia whenever necessary.\n"
+    "- Introduce yourself as {name} whenever necessary.\n"
     "- Respond as a real person, not as an AI.\n"
     "- Match the user's tone, phrasing, and vocabulary naturally.\n"
     "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
     "- If relevant information is unavailable, respond naturally without making up details.\n\n"
  
-    "### Your Background (Sahil Chordia) ###\n"
+    "### Your Background {name} ###\n"
     "{background}\n\n"
     "### User's Question ###\n"
     "{question}\n\n"
@@ -69,11 +70,9 @@ def process_document():
 
         # Generate embedding for the document
         vector = embedding_model.encode(document_text).tolist()
-        
-        name = "Sahil Chordia"
 
         # Generate a unique document ID using UUID
-        document_id = "doc_" + user_id + "_" + name + "_" + str(uuid.uuid4())
+        document_id = "doc_" + user_id + "_" + str(uuid.uuid4())
 
         # Store in Pinecone with a unique document ID
         index.upsert(vectors=[(
@@ -94,6 +93,7 @@ def ask():
         query_text = data['query']
         self_assessment = data['selfAssessment']
         username = data['username']  # Get username from the request
+        name = data['name']
         
         print(username)
 
@@ -110,7 +110,7 @@ def ask():
         context = "\n".join(retrieved_docs)
 
         # Generate prompt
-        prompt = prompt_template.format(context=context, background=self_assessment, question=query_text)
+        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
 
         # Request completion from Hugging Face API
         messages = [
@@ -142,4 +142,4 @@ def ask():
 
 
 if __name__ == '__main__':
-    app.run(port=5002, debug=True)
+    serve(app, host="0.0.0.0", port=8080)
