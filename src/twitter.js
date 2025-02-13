@@ -1,4 +1,4 @@
-require("dotenv").config();
+const dotenv = require("dotenv");
 const express = require("express");
 const router = express.Router();
 
@@ -7,9 +7,12 @@ const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 
 puppeteer.use(StealthPlugin());
 
+const { TWITTER_USERNAME, TWITTER_PASSWORD } = require("../config/apiKeys");
+
 const TWITTER_LOGIN_URL = "https://twitter.com/login";
-TWITTER_USERNAME = "Sahil365132"
-TWITTER_PASSWORD = "Saahil@2412"
+
+const TWITTER_USERNAME1= TWITTER_USERNAME;
+const TWITTER_PASSWORD1 = TWITTER_PASSWORD;
 
 const scrapeTwitterProfile = async (username) => {
     const browser = await puppeteer.launch({ headless: true }); // Set to true for production
@@ -22,15 +25,15 @@ const scrapeTwitterProfile = async (username) => {
         await page.goto(TWITTER_LOGIN_URL, { waitUntil: "networkidle2" });
 
         // Log the environment variables for debugging
-        console.log("Username:", TWITTER_USERNAME);
-        console.log("Password:", TWITTER_PASSWORD);
+        console.log("Username:", TWITTER_USERNAME1);
+        console.log("Password:", TWITTER_PASSWORD1);
 
         // Wait for the username input field
         await page.waitForSelector('input[name="text"]', { visible: true });
         const usernameField = await page.$('input[name="text"]');
         if (usernameField) {
             console.log("Entering username...");
-            await usernameField.type(TWITTER_USERNAME, { delay: 200 });
+            await usernameField.type(TWITTER_USERNAME1, { delay: 200 });
             await page.keyboard.press("Enter");
         } else {
             console.log("Username field not found.");
@@ -42,7 +45,7 @@ const scrapeTwitterProfile = async (username) => {
         const passwordField = await page.$('input[name="password"]');
         if (passwordField) {
             console.log("Entering password...");
-            await passwordField.type(TWITTER_PASSWORD, { delay: 200 });
+            await passwordField.type(TWITTER_PASSWORD1, { delay: 200 });
             await page.keyboard.press("Enter");
         } else {
             console.log("Password field not found.");

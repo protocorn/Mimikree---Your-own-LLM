@@ -1,27 +1,24 @@
-// reddit.js
-/*const snoowrap = require('snoowrap');
-const express = require('express');
-const app = express();
-const port = 3000;
-
-// Reddit OAuth2 parameters from .env file
 const {
   REDDIT_CLIENT_ID,
   REDDIT_CLIENT_SECRET,
   REDDIT_USER_AGENT,
-  REDDIT_REDIRECT_URI
-} = require("../config/apiKeys")*/
+  REDDIT_USERNAME,
+  REDDIT_PASSOWORD
+} = require("../config/apiKeys")
+
 const express = require("express");
 const router = express.Router();
 
 const snoowrap = require('snoowrap');
+const dotenv = require("dotenv");
+dotenv.config();
 
 const reddit = new snoowrap({
-  userAgent: 'LLM/1.0.0',  // Set a user agent
-  clientId: 'sDEzkNnfLcmnoaKlxxteHA',
-  clientSecret: '7wIB4OIg5VyKd_JRJMGwCJ5qn-KQXQ',
-  username: 'Apprehensive-Mix3820',
-  password: 'Saahil@2412'
+  userAgent: REDDIT_USER_AGENT,  // Set a user agent
+  clientId: REDDIT_CLIENT_ID,
+  clientSecret: REDDIT_CLIENT_SECRET,
+  username: REDDIT_USERNAME,
+  password: REDDIT_PASSOWORD
 });
 
 async function getRedditUserData(username) {

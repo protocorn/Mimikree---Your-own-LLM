@@ -8,4 +8,6 @@ module.exports = {
     REDDIT_PASSOWORD:"Saahil@2412",
     REDDIT_USER_AGENT: "LLM/1.0.0",
     REDDIT_REDIRECT_URI: "http://localhost:3000/",
+    TWITTER_USERNAME: "Sahil365132",
+    TWITTER_PASSWORD: "Saahil@2412"
 };
