@@ -353,27 +353,34 @@ app.post("/api/signup", async (req, res) => {
 app.post("/api/login", async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log("Login attempt:", { email, password }); // TEMPORARY DEBUG LOGGING
 
         // Find user by email
         const user = await User.findOne({ email });
+        console.log("User found:", user); // DEBUG LOGGING
+
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
 
         // Compare passwords
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log("Password match:", isMatch); // DEBUG LOGGING
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
 
         // Create and sign JWT token
-        const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET_KEY, { expiresIn: "1h" });
-
-        console.log(token);
-
-        res.json({ message: "Login successful", token });
+        try {
+            const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET_KEY, { expiresIn: "1h" });
+            console.log("JWT Token:", token); //DEBUG LOGGING
+            res.json({ message: "Login successful", token });
+        } catch (jwtError) {
+            console.error("JWT Error:", jwtError); // IMPORTANT: Log JWT signing errors
+            return res.status(500).json({ message: "Internal server error" });
+        }
     } catch (error) {
-        console.error(error);
+        console.error("Login error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
