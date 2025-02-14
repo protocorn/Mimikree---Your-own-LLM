@@ -486,16 +486,45 @@
     <script>
         function checkAuth() {
             const token = localStorage.getItem("token");
+        
             if (!token) {
-                // Alert the user and redirect to login if no token found
-                alert("You need to be logged in to access this page.");
-                location.href = '/login'; // Redirect to login page
+                redirectToLogin("No token found."); // Helper function (see below)
+                return; // Important: Stop further execution
+            }
+        
+            try {
+                const decoded = jwt_decode(token); // Use jwt-decode to decode without verification
+        
+                // Check if the token has expired
+                const currentTime = Date.now() / 1000; // Current time in seconds
+                if (decoded.exp < currentTime) { // decoded.exp is in seconds
+                    localStorage.removeItem("token"); // Remove expired token
+                    redirectToLogin("Token expired.");
+                    return; // Stop further execution
+                }
+        
+                // Token is valid: User is authenticated
+                console.log("Token is valid. User is authenticated.");
+                // You can now safely use the decoded token (e.g., decoded.username)
+                return decoded; // Return the decoded token if needed
+            } catch (error) {
+                console.error("JWT Decode Error:", error);
+                localStorage.removeItem("token"); // Remove the token if there is an error during decoding
+                redirectToLogin("Invalid token.");
+                return; // Stop further execution
             }
         }
         
+        
+        function redirectToLogin(message) {
+            alert(message + " Redirecting to login."); // Optional user feedback
+            location.href = '/login';
+        }
+
+        checkAuth();
+        
 
         document.addEventListener('DOMContentLoaded', fetchUserProfile);
-        document.addEventListener('DOMContentLoaded', checkAuth());
 
         let currentStep = 1;
 
