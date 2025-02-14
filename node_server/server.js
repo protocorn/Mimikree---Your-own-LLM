@@ -180,7 +180,7 @@ app.post("/api/submit", async (req, res) => {
                     await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "twitter");
                 }
                 if (data.socialProfiles.medium) {
-                    await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "medium");
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.medium.username, "medium");
                 }
                 if (data.selfAssessment) {
                     console.log("Received self-assessment data:", data.selfAssessment);
@@ -268,7 +268,7 @@ app.get("/", async (req, res) =>{
 })
 
 app.get("/query/:username", async (req, res) => {
-    const username = req.params.username;
+    const username = req.query.username;
 
     if (!username) {
         return res.status(400).send("Username is required");
@@ -289,39 +289,77 @@ app.get("/query/:username", async (req, res) => {
 });
 
 
-// Add new route to handle user queries
 app.post("/api/query/:username", async (req, res) => {
     try {
-        const { query } = req.body; // Get the user's query
+        const { query } = req.body;
         const { username } = req.params;
 
-        // Validate the query
+        // 1. Input Validation (Crucial)
         if (!query || query.trim().length === 0) {
             return res.status(400).json({ success: false, message: "Query cannot be empty" });
         }
 
-        // Fetch user's selfAssessment data from MongoDB
-        const user = await User.findOne({ username: username });
-        if (!user || !user.selfAssessment) {
-            return res.status(404).json({ success: false, message: "User or self-assessment data not found" });
+        if (!username || username.trim().length === 0) {
+            return res.status(400).json({ success: false, message: "Username cannot be empty" });
         }
 
+        // 2. Authorization (if needed)
+        // If you want to restrict querying to logged-in users or specific roles, 
+        // add authentication middleware here (like the 'authenticate' middleware I suggested earlier).
+
+        // 3. Data Retrieval
+        try {
+            const user = await User.findOne({ username: username });
+            if (!user) {
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+            if (!user.selfAssessment) {  // Check if selfAssessment exists
+                return res.status(404).json({ success: false, message: "User self-assessment data not found" });
+            }
+        } catch (dbError) {
+            console.error("Database error fetching user:", dbError);
+            return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+
+        // 4. Data Preparation for LLM
         const dataForModel = {
             query: query,
             selfAssessment: user.selfAssessment,
             username: username,
-            name: user.name
+            name: user.name // Include name if needed by your LLM
         };
 
-        // Send the query to the Flask API (assuming Flask is running on port 5002)
-        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
+        // 5. LLM Interaction
+        try {
+            const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
 
-        console.log(response.data.response)
+            // 6. Response Handling (Important!)
+            if (!response.data || !response.data.response) { // Check for valid response structure
+                console.error("Invalid response from LLM:", response.data);
+                return res.status(500).json({ success: false, message: "Invalid response from LLM" });
+            }
 
-        // Return the response from the model
-        res.json({ success: true, response: response.data.response });
+            console.log("LLM Response:", response.data.response); // Log the LLM's response
+            res.json({ success: true, response: response.data.response });
+
+        } catch (llmError) {
+            console.error("Error communicating with LLM:", llmError);
+
+            if (llmError.response) { // Check if the error has a response object
+                console.error("LLM Error Response:", llmError.response.data); // Log LLM's error message
+                return res.status(llmError.response.status || 500).json({ // Use LLM's status code if available
+                    success: false,
+                    message: `Error communicating with LLM: ${llmError.response.data.message || "Unknown LLM error"}`
+                });
+            }
+
+            return res.status(500).json({ success: false, message: "Error communicating with LLM" });
+        }
+
     } catch (error) {
-        console.error("Error processing query:", error);
+        console.error("Unexpected error in query route:", error);
         res.status(500).json({ success: false, message: "Server error while processing query" });
     }
 });
