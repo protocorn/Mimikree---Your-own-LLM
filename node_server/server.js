@@ -91,7 +91,7 @@ app.post("/api/submit", async (req, res) => {
 
         // Collect GitHub data
         if (data.socialProfiles.github) {
-            const githubResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/github/profile`, {
+            const githubResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/github/profile`, {
                 username: data.socialProfiles.github.username
             });
             collectedData.github = githubResponse.data;
@@ -108,7 +108,7 @@ app.post("/api/submit", async (req, res) => {
 
 
         if (data.socialProfiles.linkedin) {
-            const linkedinResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/linkedin/profile`, {
+            const linkedinResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/linkedin/profile`, {
                 linkedInUrl: data.socialProfiles.linkedin.url
             });
 
@@ -122,7 +122,7 @@ app.post("/api/submit", async (req, res) => {
         }
         // Collect Twitter data
         if (data.socialProfiles.twitter) {
-            const twitterResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/twitter/profile`, {
+            const twitterResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/twitter/profile`, {
                 username: data.socialProfiles.twitter.username
             });
             collectedData.twitter = twitterResponse.data;
@@ -130,7 +130,7 @@ app.post("/api/submit", async (req, res) => {
         }
 
         if (data.socialProfiles.medium) {
-            const mediumResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/medium/profile`, {
+            const mediumResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/medium/profile`, {
                 username: data.socialProfiles.medium.username
             });
             collectedData.medium = mediumResponse.data;
@@ -139,7 +139,7 @@ app.post("/api/submit", async (req, res) => {
             })  
         }
         if (data.socialProfiles.reddit) {
-            const redditResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/reddit/profile`, {
+            const redditResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/reddit/profile`, {
                 username: data.socialProfiles.reddit.username
             });
             collectedData.reddit = redditResponse.data;
