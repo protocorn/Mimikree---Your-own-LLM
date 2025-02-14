@@ -143,20 +143,26 @@
         .back-to-main button:hover {
             background-color: #0056b3;
         }
+
         .copy-link-container {
             display: flex;
-            align-items: center; /* Vertically align items */
-            margin-top: 1rem; /* Add some spacing */
+            align-items: center;
+            /* Vertically align items */
+            margin-top: 1rem;
+            /* Add some spacing */
         }
 
         .copy-link-display {
-            flex-grow: 1; /* Allow the link to expand */
+            flex-grow: 1;
+            /* Allow the link to expand */
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 0.9rem;
-            overflow-x: auto; /* Handle long URLs */
-            white-space: nowrap; /* Prevent line breaks */
+            overflow-x: auto;
+            /* Handle long URLs */
+            white-space: nowrap;
+            /* Prevent line breaks */
         }
 
         .copy-link-button {
@@ -181,12 +187,14 @@
 </head>
 
 <body>
-        <div class="copy-link-container">
-            <div class="copy-link-display" id="currentLinkDisplay">
-                </div>
-            <button class="copy-link-button" id="copyLinkButton">Copy</button>
+    <div class="container">
+    <div class="copy-link-container">
+        <div class="copy-link-display" id="currentLinkDisplay">
         </div>
-
+        <button class="copy-link-button" id="copyLinkButton">Copy</button>
+    </div>
+    </div>
+    
     <div class="container">
         <div class="back-to-main">
             <button onclick="window.location.href='/'" style="border-radius: 10px;"><-- Back to Main Page</button>
