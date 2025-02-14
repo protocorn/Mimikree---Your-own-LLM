@@ -244,7 +244,7 @@ async function updatePDFs(username, pdfData) {
     try {
         await User.updateOne(
             { username: username },
-            { $set: { pdf: pdfData } }
+            { $set: { pdfs: pdfData } }
         );
         console.log(`Updated pdfs data for user: ${username}`);
     } catch (error) {

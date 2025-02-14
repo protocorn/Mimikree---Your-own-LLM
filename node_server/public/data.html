@@ -549,45 +549,52 @@
             }
         }
 
+        const loadedSocialLinks = {}
+
         function populateSocialProfiles(profiles) {
             if (profiles.github) {
                 document.getElementById('githubUsername').value = profiles.github;
                 const username = profiles.github;
                 if (username) {
-                    addPredefinedLink(`https://github.com/${username}`, 'GitHub Profile');
+                    addPredefinedLinkfromDB(`https://github.com/${username}`, 'GitHub Profile');
                     document.getElementById('githubUsername').value = '';
+                    loadedSocialLinks.github = true;
                 }
             }
             if (profiles.linkedin) {
                 document.getElementById('linkedinUsername').value = profiles.linkedin;
                 const username = profiles.linkedin;
                 if (username) {
-                    addPredefinedLink(`${username}`, 'Linkedin Profile');
+                    addPredefinedLinkfromDB(`${username}`, 'Linkedin Profile');
                     document.getElementById('linkedinUsername').value = '';
+                    loadedSocialLinks.linkedin = true;
                 }
             }
             if (profiles.twitter) {
                 document.getElementById('twitterUsername').value = profiles.twitter;
                 const username = profiles.twitter;
                 if (username) {
-                    addPredefinedLink(`https://twitter.com/${username}`, 'Twitter Profile');
+                    addPredefinedLinkfromDB(`https://twitter.com/${username}`, 'Twitter Profile');
                     document.getElementById('twitterUsername').value = '';
+                    loadedSocialLinks.twitter = true;
                 }
             }
             if (profiles.medium) {
                 document.getElementById('mediumUsername').value = profiles.medium;
                 const username = profiles.medium;
                 if (username) {
-                    addPredefinedLink(`https://medium.com/${username}`, 'Medium Profile');
+                    addPredefinedLinkfromDB(`https://medium.com/${username}`, 'Medium Profile');
                     document.getElementById('mediumUsername').value = '';
+                    loadedSocialLinks.medium = true;
                 }
             }
             if (profiles.reddit) {
                 document.getElementById('redditUsername').value = profiles.reddit;
                 const username = profiles.reddit;
                 if (username) {
-                    addPredefinedLink(`https://www.reddit.com/user/${username}`, 'Reddit Profile');
+                    addPredefinedLinkfromDB(`https://www.reddit.com/user/${username}`, 'Reddit Profile');
                     document.getElementById('redditUsername').value = '';
+                    loadedSocialLinks.reddit = true;
                 }
             }
         }
@@ -686,12 +693,33 @@
             }
         }
 
+        function addPredefinedLinkfromDB(url, platform) {
+            const linksList = document.getElementById('linksList');
+            const existing = Array.from(linksList.children).find(item =>
+                item.querySelector('a').href === url
+            );
+
+            if (!existing) {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
+                <div style="display: flex;">
+    <a href="${url}" target="_blank">
+        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+        ${platform} (${new URL(url).pathname.split('/').pop()})
+    </a>
+</div>
+                `;
+                linksList.appendChild(linkItem);
+            }
+        }
+
         function getPlatformIcon(platform) {
             const icons = {
                 'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
                 'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
                 'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
-                'Medium Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
+                'Medium Profile': 'https://cdn4.iconfinder.com/data/icons/social-media-circle-7/512/Medium_circle-512.png',
                 'Reddit Profile': 'https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png',
             };
             return icons[platform] || '';
@@ -789,10 +817,13 @@
                 const platform = link.textContent.match(/(GitHub|LinkedIn|Twitter|Medium|Reddit) Profile/)?.[0];
 
                 if (platform) {
-                    data.socialProfiles[platform.replace(' Profile', '').toLowerCase()] = {
-                        url: link.href,
-                        username: url.pathname.split('/').pop()
-                    };
+                    const platformName = platform.replace(' Profile', '').toLowerCase();
+                    if (!loadedSocialLinks[platformName]) {  // Check specific platform
+                        data.socialProfiles[platformName] = {
+                            url: link.href,
+                            username: url.pathname.split('/').pop()
+                        };
+                    }
                 } else {
                     data.customLinks.push(link.href);
                 }
