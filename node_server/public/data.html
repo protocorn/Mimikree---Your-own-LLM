@@ -769,7 +769,7 @@
 
             // Send data to backend
             try {
-                const response = await fetch('https://mimikree-your-own-llm-ohdu.vercel.app/api/submit', {
+                const response = await fetch('/api/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

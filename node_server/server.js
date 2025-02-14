@@ -158,6 +158,7 @@ app.post("/api/submit", async (req, res) => {
 
 
         const token = req.headers.authorization?.split(" ")[1];
+        console.log(token);
         if (token) {
             let decoded;
             try {
