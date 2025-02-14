@@ -303,10 +303,6 @@ app.post("/api/query/:username", async (req, res) => {
             return res.status(400).json({ success: false, message: "Username cannot be empty" });
         }
 
-        // 2. Authorization (if needed)
-        // If you want to restrict querying to logged-in users or specific roles, 
-        // add authentication middleware here (like the 'authenticate' middleware I suggested earlier).
-
         // 3. Data Retrieval
         try {
             const user = await User.findOne({ username: username });
@@ -317,26 +313,18 @@ app.post("/api/query/:username", async (req, res) => {
             if (!user.selfAssessment) {  // Check if selfAssessment exists
                 return res.status(404).json({ success: false, message: "User self-assessment data not found" });
             }
-        } catch (dbError) {
-            console.error("Database error fetching user:", dbError);
-            return res.status(500).json({ success: false, message: "Database error" });
-        }
 
+            const dataForModel = {
+                query: query,
+                selfAssessment: user.selfAssessment,
+                username: username,
+                name: user.name // Include name if needed by your LLM
+            };
 
-        // 4. Data Preparation for LLM
-        const dataForModel = {
-            query: query,
-            selfAssessment: user.selfAssessment,
-            username: username,
-            name: user.name // Include name if needed by your LLM
-        };
-
-        // 5. LLM Interaction
-        try {
             const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
 
-            // 6. Response Handling (Important!)
-            if (!response.data || !response.data.response) { // Check for valid response structure
+             // 6. Response Handling (Important!)
+             if (!response.data || !response.data.response) { // Check for valid response structure
                 console.error("Invalid response from LLM:", response.data);
                 return res.status(500).json({ success: false, message: "Invalid response from LLM" });
             }
@@ -344,18 +332,9 @@ app.post("/api/query/:username", async (req, res) => {
             console.log("LLM Response:", response.data.response); // Log the LLM's response
             res.json({ success: true, response: response.data.response });
 
-        } catch (llmError) {
-            console.error("Error communicating with LLM:", llmError);
-
-            if (llmError.response) { // Check if the error has a response object
-                console.error("LLM Error Response:", llmError.response.data); // Log LLM's error message
-                return res.status(llmError.response.status || 500).json({ // Use LLM's status code if available
-                    success: false,
-                    message: `Error communicating with LLM: ${llmError.response.data.message || "Unknown LLM error"}`
-                });
-            }
-
-            return res.status(500).json({ success: false, message: "Error communicating with LLM" });
+        } catch (dbError) {
+            console.error("Database error fetching user:", dbError);
+            return res.status(500).json({ success: false, message: "Database error" });
         }
 
     } catch (error) {
