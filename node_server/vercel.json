@@ -7,10 +7,13 @@
     { "src": "/(.*)", "dest": "server.js" }
   ],
   "functions": {
-  "/api/submit": { 
-    "maxDuration": 60
-  }
-},
+        "src/github.js": { "maxDuration": 60 },
+        "src/linkedin.js": { "maxDuration": 60 },
+        "src/twitter.js": { "maxDuration": 60 },
+        "src/reddit.js": { "maxDuration": 60 },
+        "src/medium.js": { "maxDuration": 60 },
+        "src/server.js": { "maxDuration": 60 }
+  },
   "env": {
     "MONGO_URI": "mongodb+srv://chordiasahil24:RYZSUL4Q19SfRaVg@cluster0.5nrrh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
     "JWT_SECRET_KEY": "your_jwt_secret_key"
