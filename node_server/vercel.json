@@ -9,9 +9,6 @@
   "functions": {
   "/api/submit": { 
     "maxDuration": 60
-  },
-  "src/api/":{
-
   }
 },
   "env": {
