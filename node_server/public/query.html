@@ -30,7 +30,7 @@
         .container {
             max-width: 800px;
             height: 90vh;
-            display: flex; 
+            display: flex;
             flex-direction: column;
             margin: 2rem auto;
             padding: 2rem;
@@ -125,24 +125,32 @@
         .share-link {
             margin-top: 1rem;
             display: flex;
-            align-items: center; /* Vertically center items */
+            align-items: center;
+            /* Vertically center items */
         }
 
         .share-link input {
-            flex-grow: 1; /* Make input expand */
-            border-radius: 8px; /* Square input */
+            flex-grow: 1;
+            /* Make input expand */
+            border-radius: 8px;
+            /* Square input */
             padding: 0.5rem;
             font-size: 0.9rem;
-            margin-right: 0.5rem; /* Space between input and button */
+            margin-right: 0.5rem;
+            /* Space between input and button */
         }
 
         .share-link button {
-            border-radius: 8px; /* Square button */
+            border-radius: 8px;
+            /* Square button */
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
         }
+
         .back-to-main {
-            margin-top: 1rem; /* Space from other elements *//* Center the button */
+            margin-top: 1rem;
+            /* Space from other elements */
+            /* Center the button */
             margin-bottom: 1.5rem;
         }
 
@@ -164,16 +172,18 @@
 
         @media (max-width: 768px) {
             .back-to-main button {
-                 padding: 0.6rem 1.2rem; /* Adjust padding for smaller screens */
-                 font-size: 0.9rem; /* Adjust font size */
-             }
-         }
+                padding: 0.6rem 1.2rem;
+                /* Adjust padding for smaller screens */
+                font-size: 0.9rem;
+                /* Adjust font size */
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="container" >
+    <div class="container">
         <div class="back-to-main">
             <button onclick="window.location.href='/'" style="border-radius: 10px;"><-- Back to Main Page</button>
         </div>
@@ -247,25 +257,27 @@
             }
         });
 
-        const currentLinkInput = document.getElementById('currentLink');
+        /*const currentLinkInput = document.getElementById('currentLink');
         const copyButton = document.getElementById('copyButton');
 
-        currentLinkInput.value = window.location.href; // Set current URL
-
-        copyButton.addEventListener('click', () => {
-            currentLinkInput.select();
-            currentLinkInput.setSelectionRange(0, 99999); /* For mobile devices */
-            navigator.clipboard.writeText(currentLinkInput.value)
-                .then(() => {
-                    copyButton.textContent = 'Copied!';
-                    setTimeout(() => copyButton.textContent = 'Copy Link', 2000); // Reset button text
-                })
-                .catch(err => {
-                    console.error('Failed to copy: ', err);
-                    copyButton.textContent = 'Error';
-                    setTimeout(() => copyButton.textContent = 'Copy Link', 2000);
+        currentLinkInput.value = window.location.href; // Set current URL*/
+        /*
+                copyButton.addEventListener('click', () => {
+                    currentLinkInput.select();
+                    currentLinkInput.setSelectionRange(0, 99999); 
+                    navigator.clipboard.writeText(currentLinkInput.value)
+                        .then(() => {
+                            copyButton.textContent = 'Copied!';
+                            setTimeout(() => copyButton.textContent = 'Copy Link', 2000); // Reset button text
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                            copyButton.textContent = 'Error';
+                            setTimeout(() => copyButton.textContent = 'Copy Link', 2000);
+                        });
+        
                 });
-        });
+                */
     </script>
 </body>
 
