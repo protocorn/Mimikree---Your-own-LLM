@@ -268,7 +268,7 @@ app.get("/", async (req, res) =>{
 })
 
 app.get("/query/:username", async (req, res) => {
-    const username = req.query.username;
+    const username = req.params.username;
 
     if (!username) {
         return res.status(400).send("Username is required");

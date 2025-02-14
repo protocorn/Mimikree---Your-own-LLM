@@ -239,8 +239,15 @@
                     body: JSON.stringify({ query })
                 });
 
-                const data = await response.json();
-                botMessage.innerHTML = data.success ? data.response : "Error: " + data.message;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await response.json();
+                    botMessage.innerHTML = data.success ? data.response : "Error: " + data.message;
+                } else {
+                    const text = await response.text(); // Get the response as plain text
+                    console.error("Non-JSON response:", text);
+                    botMessage.textContent = "Error: Invalid response from server.";
+                }
             } catch (error) {
                 botMessage.textContent = "Error processing query.";
                 console.error("Error:", error);
