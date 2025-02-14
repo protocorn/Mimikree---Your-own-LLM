@@ -492,9 +492,10 @@
                 location.href = '/login'; // Redirect to login page
             }
         }
-        checkAuth();
+        
 
         document.addEventListener('DOMContentLoaded', fetchUserProfile);
+        document.addEventListener('DOMContentLoaded', checkAuth());
 
         let currentStep = 1;
 
