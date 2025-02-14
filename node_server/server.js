@@ -86,144 +86,145 @@ app.post("/api/submit", async (req, res) => {
         console.log("Received Data:", data);
 
         const collectedData = {};
+        let combinedText = "";
         let documents = [];
 
-        // ✅ Respond immediately so Vercel doesn't time out
-        res.json({ success: true, message: "Processing data in the background" });
+        // Collect GitHub data
+        if (data.socialProfiles.github) {
+            const githubResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/github/profile`, {
+                username: data.socialProfiles.github.username
+            });
+            collectedData.github = githubResponse.data;
+            if (githubResponse.data.repositories) {
+                githubResponse.data.repositories.forEach(repo => {
+                    documents.push(`Repository Name: ${repo.name} - Readme.md: ${repo.readme}`);
+                });
+            }
 
-        // ✅ Process social profiles in parallel
-        const socialProfiles = data.socialProfiles || {};
-        const apiRequests = [];
+            documents.push(JSON.stringify(githubResponse.data.profile))
 
-        // 🔹 GitHub Data (Limit repos to 5)
-        if (socialProfiles.github) {
-            apiRequests.push(
-                axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/github/profile`, {
-                    username: socialProfiles.github.username
-                }).then(response => {
-                    collectedData.github = response.data;
-                    if (response.data.repositories) {
-                        response.data.repositories.slice(0, 5).forEach(repo => {
-                            documents.push(`Repository Name: ${repo.name} - Readme.md: ${repo.readme || "No README available"}`);
-                        });
-                    }
-                    documents.push(JSON.stringify(response.data.profile));
-                }).catch(err => console.error("GitHub API Error:", err.message))
-            );
+            combinedText += `GitHub Profile: ${JSON.stringify(collectedData.github)} `;
         }
 
-        // 🔹 LinkedIn Data
-        if (socialProfiles.linkedin) {
-            apiRequests.push(
-                axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/linkedin/profile`, {
-                    linkedInUrl: socialProfiles.linkedin.url
-                }).then(response => {
-                    collectedData.linkedin = response.data.profile;
-                    documents.push(JSON.stringify(response.data.profile));
-                }).catch(err => console.error("LinkedIn API Error:", err.message))
-            );
+
+        if (data.socialProfiles.linkedin) {
+            const linkedinResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/linkedin/profile`, {
+                linkedInUrl: data.socialProfiles.linkedin.url
+            });
+
+            collectedData.linkedin = linkedinResponse.data.profile;
+
+
+            // Store LinkedIn data in Pinecone
+            documents.push(JSON.stringify(linkedinResponse.data.profile));
+
+            combinedText += `LinkedIn Profile: ${JSON.stringify(collectedData.linkedin)} `;
+        }
+        // Collect Twitter data
+        if (data.socialProfiles.twitter) {
+            const twitterResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/twitter/profile`, {
+                username: data.socialProfiles.twitter.username
+            });
+            collectedData.twitter = twitterResponse.data;
+            documents.push(JSON.stringify(collectedData.twitter));
         }
 
-        // 🔹 Twitter Data
-        if (socialProfiles.twitter) {
-            apiRequests.push(
-                axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/twitter/profile`, {
-                    username: socialProfiles.twitter.username
-                }).then(response => {
-                    collectedData.twitter = response.data;
-                    documents.push(JSON.stringify(response.data));
-                }).catch(err => console.error("Twitter API Error:", err.message))
-            );
+        if (data.socialProfiles.medium) {
+            const mediumResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/medium/profile`, {
+                username: data.socialProfiles.medium.username
+            });
+            collectedData.medium = mediumResponse.data;
+            mediumResponse.data.articles.forEach(article =>{
+                documents.push(JSON.stringify(`Medium Aricle \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`));
+            })  
+        }
+        if (data.socialProfiles.reddit) {
+            const redditResponse = await axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/reddit/profile`, {
+                username: data.socialProfiles.reddit.username
+            });
+            collectedData.reddit = redditResponse.data;
+            redditResponse.data.posts.forEach(post =>{
+                documents.push(JSON.stringify(`Reddit Post \n Title: ${post.title} \n Link: ${post.url} \n Content: ${post.content}`));
+            })  
         }
 
-        // 🔹 Medium Data
-        if (socialProfiles.medium) {
-            apiRequests.push(
-                axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/medium/profile`, {
-                    username: socialProfiles.medium.username
-                }).then(response => {
-                    collectedData.medium = response.data;
-                    response.data.articles.forEach(article => {
-                        documents.push(`Medium Article \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`);
-                    });
-                }).catch(err => console.error("Medium API Error:", err.message))
-            );
-        }
-
-        // 🔹 Reddit Data
-        if (socialProfiles.reddit) {
-            apiRequests.push(
-                axios.post(`https://mimikree-your-own-llm-ohdu.vercel.app/api/reddit/profile`, {
-                    username: socialProfiles.reddit.username
-                }).then(response => {
-                    collectedData.reddit = response.data;
-                    response.data.posts.forEach(post => {
-                        documents.push(`Reddit Post \n Title: ${post.title} \n Link: ${post.url} \n Content: ${post.content}`);
-                    });
-                }).catch(err => console.error("Reddit API Error:", err.message))
-            );
-        }
-
-        // 🔹 Process PDFs
         if (data.pdfs) {
             collectedData.pdfs = data.pdfs;
-            data.pdfs.forEach(pdf => {
-                documents.push(`PDF Name: ${pdf.filename} \n PDF Content: ${pdf.text}`);
-            });
+            data.pdfs.forEach(pdf =>{
+                documents.push(JSON.stringify(`PDF Name: ${pdf.filename} \n PDF Content: ${pdf.text}`));
+            })  
         }
 
-        // ✅ Fetch all APIs in parallel
-        await Promise.all(apiRequests);
 
-        // ✅ Process Data for Llama Model
+
         const token = req.headers.authorization?.split(" ")[1];
+        console.log(token);
         if (token) {
             let decoded;
             try {
                 decoded = jwt.verify(token, JWT_SECRET_KEY);
                 const username = decoded.username;
 
-                // 🔹 Send documents to Llama Model in parallel
-                await Promise.all(documents.map(doc => 
-                    axios.post('https://llama-server.fly.dev/process', { document: doc, username })
-                ));
+                for (const doc of documents) {
+                    await axios.post('https://llama-server.fly.dev/process', { document: doc, username: username });
+                }
 
-                // 🔹 Update user profiles in parallel
-                const updateProfileRequests = [];
-                if (socialProfiles.github) {
-                    updateProfileRequests.push(updateUserSocialMediaProfile(username, socialProfiles.github.username, "github"));
+                if (data.socialProfiles.github) {
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.github.username, "github");
                 }
-                if (socialProfiles.linkedin) {
-                    updateProfileRequests.push(updateUserSocialMediaProfile(username, socialProfiles.linkedin.url, "linkedin"));
+
+                if (data.socialProfiles.linkedin) {
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.linkedin.url, "linkedin");
                 }
-                if (socialProfiles.twitter) {
-                    updateProfileRequests.push(updateUserSocialMediaProfile(username, socialProfiles.twitter.username, "twitter"));
+
+                if (data.socialProfiles.twitter) {
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.twitter.username, "twitter");
                 }
-                if (socialProfiles.medium) {
-                    updateProfileRequests.push(updateUserSocialMediaProfile(username, socialProfiles.medium.username, "medium"));
+                if (data.socialProfiles.medium) {
+                    await updateUserSocialMediaProfile(username, data.socialProfiles.medium.username, "medium");
                 }
                 if (data.selfAssessment) {
-                    updateProfileRequests.push(updateUserSelfAssessment(username, data.selfAssessment));
+                    console.log("Received self-assessment data:", data.selfAssessment);
+                    try {
+                        await updateUserSelfAssessment(username, data.selfAssessment);
+                        console.log(`Updated self-assessment for user: ${username}`);
+                    } catch (error) {
+                        console.error("Error updating self-assessment:", error);
+                    }
                 }
-                if (data.pdfs) {
-                    updateProfileRequests.push(updatePDFs(username, data.pdfs));
+                if (data.pdfs){
+                    try {
+                        await updatePDFs(username, data.pdfs);
+                        console.log(`Updated pdfs for user: ${username}`);
+                    } catch (error) {
+                        console.error("Error updating pdfs:", error);
+                    }
                 }
-
-                await Promise.all(updateProfileRequests);
-                console.log("✅ User profiles and data updated successfully");
-
-            } catch (error) {
-                console.error("JWT Verification Error:", error.message);
             }
-        } else {
-            console.error("Unauthorized: No token provided");
+            catch (error) {
+                console.error(error);
+            }
+        }
+        else {
+            return res.status(401).json({ success: false, message: "Unauthorized: No token provided" });
         }
 
+
+        res.json({ success: true, message: "Data sent successfully" });
+
     } catch (error) {
-        console.error("Error in /api/submit:", error);
+        console.error("Error in /api/submit:", error); // Log the full error object
+        if (error.response) { // Check for error from external API calls
+            console.error("API Error Response:", error.response.data); // Log API error details
+            console.error("API Error Status:", error.response.status); // Log API error status
+            res.status(error.response.status || 500).json({ success: false, message: `API Error: ${error.response.data.message || "An error occurred"}` }); // Send API error to client
+        } else if (error.message) { // Check if it is a normal error
+            res.status(500).json({ success: false, message: error.message }); // Send normal error to the client
+        } else {
+            res.status(500).json({ success: false, message: "Server error" }); // Send generic error to the client
+        }
     }
 });
-
 
 async function updateUserSelfAssessment(username, selfAssessmentData) {
     try {
