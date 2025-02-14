@@ -1,6 +1,8 @@
 const axios = require("axios");
-const { GITHUB_API_URL, GITHUB_TOKEN, USER_AGENT } = require("../config/apiKeys");
-
+//const { GITHUB_API_URL, GITHUB_TOKEN, USER_AGENT } = require("../config/apiKeys");
+const GITHUB_API_URL= "https://api.github.com/";
+const GITHUB_TOKEN = "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"; // Replace with actual token
+const USER_AGENT = "protocorn";
 // Fetch GitHub Profile
 const getGitHubProfile = async (username) => {
     try {
