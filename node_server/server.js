@@ -290,7 +290,7 @@ app.get("/query", async (req, res) => {
 
 
 // Add new route to handle user queries
-app.post("/api/query/username=:username", async (req, res) => {
+app.post("/api/query/:username", async (req, res) => {
     try {
         const { query } = req.body; // Get the user's query
         const { username } = req.params;
