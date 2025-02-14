@@ -57,7 +57,8 @@ const userSchema = new mongoose.Schema({
         personalityTraits: [{ type: String }],
         writingSample: { type: String, required: false },
         interests: [{ type: String }]
-    }
+    },
+    pdfs : [{type:String}]
 });
 
 const User = mongoose.model('User', userSchema);

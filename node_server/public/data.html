@@ -291,15 +291,19 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
-            z-index: 9999; /* Ensure it's on top */
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent black overlay */
+            z-index: 9999;
+            /* Ensure it's on top */
             justify-content: center;
             align-items: center;
         }
 
         .loader {
-            border: 16px solid #f3f3f3; /* Light grey */
-            border-top: 16px solid #3498db; /* Blue */
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid #3498db;
+            /* Blue */
             border-radius: 50%;
             width: 120px;
             height: 120px;
@@ -319,7 +323,7 @@
 </head>
 
 <body>
-      <div id="loading-overlay">
+    <div id="loading-overlay">
         <div class="loader"></div>
     </div>
 
@@ -469,7 +473,8 @@
             <div class="submit-section">
                 <button id="submitBtn" style="width: 100%; margin-top:10px;" onclick="submitData()">Submit All
                     Information</button>
-                <div id="successMessage" class="success-message">✅ Data submitted successfully!</div>
+                <div id="successMessage" class="success-message">✅ Data submitted successfully! Go & test your Model !!
+                </div>
             </div>
             <div class="navigation">
                 <button onclick="prevStep(4)">Back</button>
@@ -554,6 +559,11 @@
             }
             if (profiles.linkedin) {
                 document.getElementById('linkedinUsername').value = profiles.linkedin;
+                const username = profiles.github;
+                if (username) {
+                    addPredefinedLink(`${username}`, 'Linkedin Profile');
+                    document.getElementById('linkedinUsername').value = '';
+                }
             }
             if (profiles.twitter) {
                 document.getElementById('twitterUsername').value = profiles.twitter;
@@ -604,7 +614,7 @@
                     const interestItem = document.createElement('div');
                     interestItem.className = 'interest-item';
                     interestItem.innerHTML = `
-                        ${interest}
+                        <span class="interest-text>${interest}</span>
                         <button onclick="this.parentElement.remove()">Remove</button>
                     `;
                     interestsList.appendChild(interestItem);
@@ -765,6 +775,13 @@
                 pdfs: [],
             };
 
+            const termsAgreement = document.getElementById('termsAgreement');
+
+            if (!termsAgreement.checked) {
+                alert("Please agree to the Privacy Policy and Terms of Service before submitting.");
+                return; // Stop submission if not checked
+            }
+
             // Collect links
             document.querySelectorAll('.link-item a').forEach(link => {
                 const url = new URL(link.href);
@@ -839,7 +856,7 @@
                 if (result.success) {
                     document.getElementById('successMessage').style.display = 'block';
                 }
-                else{
+                else {
                     alert("Submission failed. Please try again.");
                 }
             } catch (error) {
