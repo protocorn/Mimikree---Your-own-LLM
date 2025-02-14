@@ -354,7 +354,7 @@
                     </div>
 
                     <div class="platform-input">
-                        <input type="text" id="linkedinUsername" placeholder="LinkedIn Username/ID">
+                        <input type="text" id="linkedinUsername" placeholder="(https://wwww.linkedin.com/in/profile-name)">
                         <button onclick="addLinkedIn()" style="background-color:#0077B5">
                             <img src="https://static.vecteezy.com/system/resources/previews/018/910/724/non_2x/linkedin-logo-linkedin-symbol-linkedin-icon-free-free-vector.jpg"
                                 class="platform-icon" alt="LinkedIn">
@@ -596,7 +596,7 @@
                 document.getElementById('linkedinUsername').value = profiles.linkedin;
                 const username = profiles.linkedin;
                 if (username) {
-                    addPredefinedLinkfromDB(`${username}`, 'Linkedin Profile');
+                    addPredefinedLinkfromDB(`${username}`, 'LinkedIn Profile');
                     document.getElementById('linkedinUsername').value = '';
                     loadedSocialLinks.linkedin = true;
                 }
@@ -748,7 +748,7 @@
         function getPlatformIcon(platform) {
             const icons = {
                 'GitHub Profile': 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
-                'LinkedIn Profile': 'https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg',
+                'LinkedIn Profile': 'https://cdn-icons-png.flaticon.com/512/174/174857.png',
                 'Twitter Profile': 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
                 'Medium Profile': 'https://cdn4.iconfinder.com/data/icons/social-media-circle-7/512/Medium_circle-512.png',
                 'Reddit Profile': 'https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png',

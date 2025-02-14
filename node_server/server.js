@@ -80,6 +80,9 @@ app.get('/login', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.get('/privacy-policy', async (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "privacy.html"));
+});
 
 // Route to handle form submission
 app.post("/api/submit", async (req, res) => {

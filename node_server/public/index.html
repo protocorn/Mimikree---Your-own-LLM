@@ -195,7 +195,7 @@
             if (token) {
                 try {
                     const decoded = jwt_decode(token);
-                    document.getElementById("username-display").textContent = `Welcome, ${decoded.username}!`;
+                    document.getElementById("username-display").textContent = `Welcome, ${decoded.name}!`;
                     document.getElementById("login-btn").style.display = "none";
                     document.getElementById("signup-btn").style.display = "none";
                     document.getElementById("logout-btn").style.display = "inline-block";
