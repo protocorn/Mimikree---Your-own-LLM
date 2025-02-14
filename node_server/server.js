@@ -203,6 +203,7 @@ app.post("/api/submit", async (req, res) => {
             }
             catch (error) {
                 console.error(error);
+                return res.status(401).json({ success: false, message: error});
             }
         }
         else {
