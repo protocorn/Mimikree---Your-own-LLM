@@ -212,8 +212,16 @@ app.post("/api/submit", async (req, res) => {
         res.json({ success: true, message: "Data sent successfully" });
 
     } catch (error) {
-        console.error("Error processing data:", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        console.error("Error in /api/submit:", error); // Log the full error object
+        if (error.response) { // Check for error from external API calls
+            console.error("API Error Response:", error.response.data); // Log API error details
+            console.error("API Error Status:", error.response.status); // Log API error status
+            res.status(error.response.status || 500).json({ success: false, message: `API Error: ${error.response.data.message || "An error occurred"}` }); // Send API error to client
+        } else if (error.message) { // Check if it is a normal error
+            res.status(500).json({ success: false, message: error.message }); // Send normal error to the client
+        } else {
+            res.status(500).json({ success: false, message: "Server error" }); // Send generic error to the client
+        }
     }
 });
 
