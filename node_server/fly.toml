@@ -1,0 +1,27 @@
+# fly.toml app configuration file generated for mimikree on 2025-02-14T00:00:40-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'mimikree'
+primary_region = 'iad'
+
+[build]
+  builder = 'paketobuildpacks/builder:full'
+
+[processes]
+  app = 'node server.js'
+
+[[services]]
+  protocol = ''
+  internal_port = 3000
+  processes = ['app']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
