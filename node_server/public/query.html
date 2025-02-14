@@ -227,8 +227,7 @@
             chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const username = urlParams.get('username');
+                const username = window.location.pathname.split('/').pop();
                 console.log(username);
 
                 // Send request to backend
