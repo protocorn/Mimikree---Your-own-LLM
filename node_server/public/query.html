@@ -221,7 +221,7 @@
                 const username = urlParams.get('username');
 
                 // Send request to backend
-                const response = await fetch(`/api/query/username=${encodeURIComponent(username)}`, {
+                const response = await fetch(`https://mimikree-your-own-llm-ohdu.vercel.app/api/query/username=${encodeURIComponent(username)}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"

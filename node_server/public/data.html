@@ -489,7 +489,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:5000/api/user/profile', {
+                const response = await fetch('https://mimikree-your-own-llm-ohdu.vercel.app/api/user/profile', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -767,7 +767,7 @@
 
             // Send data to backend
             try {
-                const response = await fetch('http://localhost:5000/api/submit', {
+                const response = await fetch('https://mimikree-your-own-llm-ohdu.vercel.app/api/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
