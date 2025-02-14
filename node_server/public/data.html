@@ -744,6 +744,8 @@
                 }
             });
 
+            data.selfAssessment = collectSelfAssessmentData();
+
             // Collect images
             document.querySelectorAll('.image-item').forEach(item => {
                 data.images.push({
