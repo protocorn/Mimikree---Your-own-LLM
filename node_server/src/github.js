@@ -114,6 +114,7 @@ router.post("/profile", async (req, res) => {
 
         // Combine profile and repos data into one object
         const result = {
+            success:true,
             profile: profileData,
             repositories: reposData,
         };
