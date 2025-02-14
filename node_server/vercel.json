@@ -1,15 +1,18 @@
 {
   "version": 2,
   "routes": [
-    { "src": "/(.*)", "dest": "server.js" }
+    { "src": "/github", "dest": "/src/github.js" },
+    { "src": "/linkedin", "dest": "/src/linkedin.js" },
+    { "src": "/twitter", "dest": "/src/twitter.js" },
+    { "src": "/reddit", "dest": "/src/reddit.js" },
+    { "src": "/medium", "dest": "/src/medium.js" }
   ],
   "functions": {
-        "src/github.js": { "maxDuration": 60 },
-        "src/linkedin.js": { "maxDuration": 60 },
-        "src/twitter.js": { "maxDuration": 60 },
-        "src/reddit.js": { "maxDuration": 60 },
-        "src/medium.js": { "maxDuration": 60 },
-        "src/server.js": { "maxDuration": 60 }
+    "src/github.js": { "maxDuration": 60 },
+    "src/linkedin.js": { "maxDuration": 60 },
+    "src/twitter.js": { "maxDuration": 60 },
+    "src/reddit.js": { "maxDuration": 60 },
+    "src/medium.js": { "maxDuration": 60 }
   },
   "env": {
     "MONGO_URI": "mongodb+srv://chordiasahil24:RYZSUL4Q19SfRaVg@cluster0.5nrrh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
