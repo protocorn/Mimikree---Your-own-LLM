@@ -610,14 +610,14 @@
 
             if (selfAssessment.interests) {
                 const interestsList = document.getElementById('interestsList');
-                interestsList.innerHTML = ''; // Clear existing interests
+                interestsList.innerHTML = '';
                 selfAssessment.interests.forEach(interest => {
                     const interestItem = document.createElement('div');
                     interestItem.className = 'interest-item';
                     interestItem.innerHTML = `
-                        <span class="interest-text>${interest}</span>
-                        <button onclick="this.parentElement.remove()">Remove</button>
+                        <span class="interest-text"></span> <button onclick="this.parentElement.remove()">Remove</button>
                     `;
+                    interestItem.querySelector('.interest-text').textContent = interest; // Use textContent
                     interestsList.appendChild(interestItem);
                 });
             }
