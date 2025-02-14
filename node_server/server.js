@@ -263,6 +263,10 @@ async function updateUserSocialMediaProfile(userId, profileData, platform) {
     }
 }
 
+app.get("/", async (req, res) =>{
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+})
+
 app.get("/query", async (req, res) => {
     const username = req.query.username;
 
