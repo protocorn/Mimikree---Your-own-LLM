@@ -121,32 +121,6 @@
             }
         }
 
-        /* Share Link Styles */
-        .share-link {
-            margin-top: 1rem;
-            display: flex;
-            align-items: center;
-            /* Vertically center items */
-        }
-
-        .share-link input {
-            flex-grow: 1;
-            /* Make input expand */
-            border-radius: 8px;
-            /* Square input */
-            padding: 0.5rem;
-            font-size: 0.9rem;
-            margin-right: 0.5rem;
-            /* Space between input and button */
-        }
-
-        .share-link button {
-            border-radius: 8px;
-            /* Square button */
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
-
         .back-to-main {
             margin-top: 1rem;
             /* Space from other elements */
@@ -169,6 +143,31 @@
         .back-to-main button:hover {
             background-color: #0056b3;
         }
+        .copy-link-container {
+            display: flex;
+            align-items: center; /* Vertically align items */
+            margin-top: 1rem; /* Add some spacing */
+        }
+
+        .copy-link-display {
+            flex-grow: 1; /* Allow the link to expand */
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            overflow-x: auto; /* Handle long URLs */
+            white-space: nowrap; /* Prevent line breaks */
+        }
+
+        .copy-link-button {
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
         @media (max-width: 768px) {
             .back-to-main button {
@@ -182,6 +181,12 @@
 </head>
 
 <body>
+    <div class="container">
+        <div class="copy-link-container">
+            <div class="copy-link-display" id="currentLinkDisplay">
+                </div>
+            <button class="copy-link-button" id="copyLinkButton">Copy</button>
+        </div>
 
     <div class="container">
         <div class="back-to-main">
@@ -194,12 +199,30 @@
             <button id="submitButton">Send</button>
         </div>
     </div>
-    <!--<div class="share-link">
-        <input type="text" id="currentLink" value="" readonly>
-        <button id="copyButton">Copy Link</button>-->
     </div>
 
     <script>
+        const currentLinkDisplay = document.getElementById('currentLinkDisplay');
+        currentLinkDisplay.textContent = window.location.href;
+
+        // Copy link functionality
+        const copyLinkButton = document.getElementById('copyLinkButton');
+        copyLinkButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    copyLinkButton.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyLinkButton.textContent = 'Copy';
+                    }, 2000); // Reset button text after 2 seconds
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    copyLinkButton.textContent = 'Error';
+                    setTimeout(() => {
+                        copyLinkButton.textContent = 'Copy';
+                    }, 2000);
+                });
+        });
         document.getElementById("submitButton").addEventListener("click", async function () {
             const queryInput = document.getElementById("queryInput");
             const query = queryInput.value.trim();
@@ -263,28 +286,6 @@
                 document.getElementById("submitButton").click();
             }
         });
-
-        /*const currentLinkInput = document.getElementById('currentLink');
-        const copyButton = document.getElementById('copyButton');
-
-        currentLinkInput.value = window.location.href; // Set current URL*/
-        /*
-                copyButton.addEventListener('click', () => {
-                    currentLinkInput.select();
-                    currentLinkInput.setSelectionRange(0, 99999); 
-                    navigator.clipboard.writeText(currentLinkInput.value)
-                        .then(() => {
-                            copyButton.textContent = 'Copied!';
-                            setTimeout(() => copyButton.textContent = 'Copy Link', 2000); // Reset button text
-                        })
-                        .catch(err => {
-                            console.error('Failed to copy: ', err);
-                            copyButton.textContent = 'Error';
-                            setTimeout(() => copyButton.textContent = 'Copy Link', 2000);
-                        });
-        
-                });
-                */
     </script>
 </body>
 
