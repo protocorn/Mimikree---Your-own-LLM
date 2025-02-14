@@ -79,6 +79,27 @@
         .input-box {
             display: flex;
             gap: 0.5rem;
+            flex-direction: column; /* Stack input and button vertically */
+        }
+        #queryInput {
+            flex: 1; /* Allow input to grow */
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px; /* Slightly less rounded */
+            font-size: 1rem;
+            resize: vertical; /* Allow vertical resizing */
+            min-height: 40px; /* Set a minimum height */
+            max-height: 100px; /* Set a maximum height */
+            overflow-y: auto; /* Enable scrollbar if content exceeds max-height */
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+        }
+
+        .input-box button {
+            /* Styles for the button */
+            align-self: flex-end; /* Align button to the right */
+            margin-top: 0.5rem; /* Space between input and button */
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
         }
 
         input {
@@ -244,6 +265,7 @@
 
             // Clear input and disable button
             queryInput.value = "";
+            queryInput.style.height = "40px";
             submitButton.disabled = true;
 
             // Show "loading" message
@@ -285,10 +307,16 @@
         });
 
         // Allow Enter key to send messages
-        document.getElementById("queryInput").addEventListener("keypress", function (event) {
-            if (event.key === "Enter") {
+        document.getElementById("queryInput").addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
+                event.preventDefault(); // Prevent new line in textarea
                 document.getElementById("submitButton").click();
             }
+        });
+
+                document.getElementById("queryInput").addEventListener("input", function() {
+            this.style.height = "auto"; // Reset height to recalculate
+            this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
         });
     </script>
 </body>
