@@ -132,11 +132,40 @@
                 font-size: 20px; /* Smaller header on very small screens */
             }
         }
+        .back-to-main {
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center; /* Center the button */
+        }
+
+        .back-to-main button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .back-to-main button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .back-to-main button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 
 <body>
     <section class="container forms">
+        <div class="back-to-main">  <button onclick="window.location.href='/'">← Back to Main Page</button>
+        </div>
         <div class="form signup">
             <div class="form-content">
                 <header>Signup</header>
