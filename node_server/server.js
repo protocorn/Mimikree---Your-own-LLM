@@ -66,7 +66,25 @@ const User = mongoose.model('User', userSchema);
 // JWT Secret Key (stored in .env file for security)
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-app.get('/add-data', async (req, res) => {
+function authenticateToken(req, res, next) {
+    const token = req.headers.authorization?.split(" ");
+
+    if (!token) {
+        return res.redirect('/login'); // Redirect to login if no token
+    }
+
+    jwt.verify(token, JWT_SECRET_KEY, (err, user) => {
+        if (err) {
+            console.error("JWT Verification Error:", err);
+            return res.redirect('/login'); // Redirect to login if token is invalid
+        }
+        req.user = user; // Store user data in the request object
+        next(); // Continue to the next middleware/route handler
+    });
+}
+
+// Apply the middleware to the /add-data route
+app.get('/add-data', authenticateToken, async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "data.html"));
 });
 
