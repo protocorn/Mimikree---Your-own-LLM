@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Interface</title>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --primary-color: #007bff;
@@ -79,7 +80,8 @@
         .input-box {
             display: flex;
             gap: 0.5rem;
-            flex-direction: row; /* Changed to row */
+            flex-direction: row;
+            /* Changed to row */
             align-items: center;
         }
 
@@ -188,22 +190,31 @@
         }
 
         #queryInput {
-            flex: 1; /* Allow input to grow */
+            flex: 1;
+            /* Allow input to grow */
             padding: 0.8rem;
             border: 1px solid #ddd;
-            border-radius: 8px; /* Slightly less rounded */
+            border-radius: 8px;
+            /* Slightly less rounded */
             font-size: 1rem;
-            resize: vertical; /* Allow vertical resizing */
-            min-height: 40px; /* Set a minimum height */
-            max-height: 100px; /* Set a maximum height */
-            overflow-y: auto; /* Enable scrollbar if content exceeds max-height */
-            box-sizing: border-box; /* Include padding and border in element's total width and height */
+            resize: vertical;
+            /* Allow vertical resizing */
+            min-height: 40px;
+            /* Set a minimum height */
+            max-height: 100px;
+            /* Set a maximum height */
+            overflow-y: auto;
+            /* Enable scrollbar if content exceeds max-height */
+            box-sizing: border-box;
+            /* Include padding and border in element's total width and height */
         }
 
         .input-box button {
             /* Styles for the button */
-            align-self: flex-end; /* Align button to the right */
-            margin-top: 0.5rem; /* Space between input and button */
+            align-self: flex-end;
+            /* Align button to the right */
+            margin-top: 0.5rem;
+            /* Space between input and button */
             padding: 0.6rem 1.2rem;
             border-radius: 20px;
         }
@@ -221,7 +232,8 @@
         <div class="input-box">
             <textarea id="queryInput" placeholder="Enter your query" required></textarea>
             <button id="submitButton">Send</button>
-        </div> <div class="copy-link-container">
+        </div>
+        <div class="copy-link-container">
             <div class="copy-link-display" id="currentLinkDisplay">
             </div>
             <button class="copy-link-button" id="copyLinkButton">Copy</button>
@@ -302,7 +314,14 @@
                 const contentType = response.headers.get("content-type");
                 if (contentType && contentType.includes("application/json")) {
                     const data = await response.json();
-                    botMessage.innerHTML = data.success ? data.response : "Error: " + data.message;
+
+                    if (data.success) {
+                        const markdownText = data.response; // Get the LLM's response (may contain Markdown)
+                        const html = marked.parse(markdownText); // Parse Markdown to HTML
+                        botMessage.innerHTML = html; // Set the HTML content
+                    } else {
+                        botMessage.textContent = "Error: " + data.message;
+                    }
                 } else {
                     const text = await response.text(); // Get the response as plain text
                     console.error("Non-JSON response:", text);
@@ -325,7 +344,7 @@
             }
         });
 
-                document.getElementById("queryInput").addEventListener("input", function() {
+        document.getElementById("queryInput").addEventListener("input", function () {
             this.style.height = "auto"; // Reset height to recalculate
             this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
         });

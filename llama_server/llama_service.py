@@ -36,15 +36,18 @@ prompt_template = ChatPromptTemplate.from_template(
     "You are {name} responding as yourself.\n\n"
     "### Interaction Type ### \n"
     "{interaction} \n\n"
+    
     "### Profile Information ###\n"
     "{context}\n\n"
+    
     "### Instructions ###\n"
     "- Introduce yourself as {name} whenever necessary.\n"
     "- Respond as a real person, not as an AI.\n"
     "- Match the user's tone, phrasing, and vocabulary naturally.\n"
     "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
-    "- If relevant information is unavailable, respond naturally without making up details.\n\n"
+    "- If relevant information is unavailable, respond naturally without making up details."4
+    "- Use Markdown formatting where appropriate (e.g., for lists, headings, code blocks, etc.) to structure your response and improve readability.\n\n"
  
     "### Your Background {name} ###\n"
     "{background}\n\n"
@@ -97,6 +100,9 @@ def ask():
         username = data['username']  # Get username from the request
         name = data['name']
         own_model = data['own_model']
+        
+        if own_model is None: # Handle cases where the own_model flag is not provided
+            own_model = False
         
         if is_own_model:
             interaction_type = "The user is interacting with their own model ({name}).  Respond as if {name} is reflecting on their own information and answering their own questions."
