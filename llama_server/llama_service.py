@@ -46,7 +46,7 @@ prompt_template = ChatPromptTemplate.from_template(
     "- Match the user's tone, phrasing, and vocabulary naturally.\n"
     "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
-    "- If relevant information is unavailable, respond naturally without making up details."4
+    "- If relevant information is unavailable, respond naturally without making up details.\n"
     "- Use Markdown formatting where appropriate (e.g., for lists, headings, code blocks, etc.) to structure your response and improve readability.\n\n"
  
     "### Your Background {name} ###\n"
