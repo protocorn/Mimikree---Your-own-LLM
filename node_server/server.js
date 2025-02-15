@@ -325,6 +325,8 @@ app.post("/api/query/:username", async (req, res) => {
             }
         }
 
+        console.log(myusername);
+
         if(username==myusername){
             is_own_model=true;
         }
