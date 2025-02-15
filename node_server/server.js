@@ -309,6 +309,26 @@ app.post("/api/query/:username", async (req, res) => {
         const { query } = req.body;
         const { username } = req.params;
 
+        let myusername;
+        let is_own_model = false;
+
+        const token = req.headers.authorization?.split(" ")[1];
+        console.log(token);
+        if (token) {
+            let decoded;
+            try {
+                decoded = jwt.verify(token, JWT_SECRET_KEY);
+                myusername = decoded.username;
+            }
+            catch (error){
+                console.log(error);
+            }
+        }
+
+        if(username==myusername){
+            is_own_model=true;
+        }
+
         // 1. Input Validation (Crucial)
         if (!query || query.trim().length === 0) {
             return res.status(400).json({ success: false, message: "Query cannot be empty" });
@@ -333,7 +353,8 @@ app.post("/api/query/:username", async (req, res) => {
                 query: query,
                 selfAssessment: user.selfAssessment,
                 username: username,
-                name: user.name // Include name if needed by your LLM
+                name: user.name, // Include name if needed by your LLM
+                own_model: is_own_model
             };
 
             const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);

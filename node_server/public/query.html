@@ -278,6 +278,13 @@
             chatBox.appendChild(botMessage);
             chatBox.scrollTop = chatBox.scrollHeight;
 
+            const token = localStorage.getItem("token"); // Retrieve token from localStorage
+
+            if (!token) {
+                console.error("No token found, user not authenticated.");
+                return;
+            }
+
             try {
                 const username = window.location.pathname.split('/').pop();
                 console.log(username);
@@ -286,7 +293,8 @@
                 const response = await fetch(`https://mimikree-your-own-llm.vercel.app/api/query/${username}`, {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
                     },
                     body: JSON.stringify({ query })
                 });

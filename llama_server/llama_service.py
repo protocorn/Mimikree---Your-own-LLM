@@ -34,6 +34,8 @@ embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 # Structured prompt template
 prompt_template = ChatPromptTemplate.from_template(
     "You are {name} responding as yourself.\n\n"
+    "### Interaction Type ### \n"
+    "{interaction} \n\n"
     "### Profile Information ###\n"
     "{context}\n\n"
     "### Instructions ###\n"
@@ -94,6 +96,12 @@ def ask():
         self_assessment = data['selfAssessment']
         username = data['username']  # Get username from the request
         name = data['name']
+        own_model = data['own_model']
+        
+        if is_own_model:
+            interaction_type = "The user is interacting with their own model ({name}).  Respond as if {name} is reflecting on their own information and answering their own questions."
+        else:
+            interaction_type = "The user is interacting with {name}'s model. Respond as {name}."
         
         print(username)
 
@@ -110,7 +118,7 @@ def ask():
         context = "\n".join(retrieved_docs)
 
         # Generate prompt
-        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
+        prompt = prompt_template.format(context=context,interatcion= interaction_type, background=self_assessment, name=name, question=query_text)
 
         # Request completion from Hugging Face API
         messages = [
@@ -120,7 +128,7 @@ def ask():
         completion = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct",
             messages=messages, 
-            max_tokens=500,
+            max_tokens=2048,
         )
         
         def format_links(text):
