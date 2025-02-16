@@ -203,6 +203,33 @@
         <p>Developed by Sahil Chordia</p>
     </footer>
 
+    <style>
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            margin: 20px auto; /* Center horizontally and add margin top/bottom */
+            max-width: 90%; /* Occupy maximum 90% in large screen */
+            width: 100%; /* Occupy full width in small screens */
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (min-width: 768px) { /* Adjust breakpoint as needed */
+            .video-container {
+                max-width: 70%; /* Further reduce width in larger screens */
+                margin: 40px auto; /* Increase margin in larger screens */
+            }
+        }
+    </style>
+
     <script>
         function checkAuth() {
             const token = localStorage.getItem("token");
