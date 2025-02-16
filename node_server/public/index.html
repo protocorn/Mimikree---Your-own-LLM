@@ -23,7 +23,8 @@
             border-radius: 8px;
             font-size: 16px;
             margin: 10px;
-            transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s; /* Added more transitions */
+            transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
+            /* Added more transitions */
         }
 
         .btn-primary {
@@ -39,13 +40,17 @@
 
         .btn-secondary {
             background-color: white;
-            color: #555; /* Slightly darker gray text */
-            border: 1px solid #ddd; /* Subtle border */
+            color: #555;
+            /* Slightly darker gray text */
+            border: 1px solid #ddd;
+            /* Subtle border */
         }
 
         .btn-secondary:hover {
-            background-color: #f0f0f0; /* A bit more contrast on hover */
-            border-color: #ccc; /* Slightly darker border on hover */
+            background-color: #f0f0f0;
+            /* A bit more contrast on hover */
+            border-color: #ccc;
+            /* Slightly darker border on hover */
         }
 
         /* Navbar */
@@ -165,10 +170,18 @@
             </div>
             <div id="authenticated-buttons" style="display:none;">
                 <button class="btn btn-primary" id="chat-button">Chat with Your Model</button>
-                <button id="add-data-button" class="btn btn-secondary" onclick="location.href='/add-data'">Add Data to Your Model</button>
+                <button id="add-data-button" class="btn btn-secondary" onclick="location.href='/add-data'">Add Data to
+                    Your Model</button>
             </div>
         </div>
     </header>
+
+    <div class="video-container"> <iframe width="560" height="315"
+            src="https://www.youtube.com/embed/NORujHdIocM?si=3ss534jZKdf28RBP" title="YouTube video player" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen>
+        </iframe>
+    </div>
 
     <section class="features">
         <div class="feature-card">
@@ -204,7 +217,7 @@
                     document.getElementById("authenticated-buttons").style.display = "block";
 
                     const chatButton = document.getElementById('chat-button'); // Get by ID
-                    chatButton.addEventListener('click', function() { // Use event listener
+                    chatButton.addEventListener('click', function () { // Use event listener
                         location.href = '/query/' + decoded.username;
                     });
 
@@ -224,7 +237,7 @@
             location.reload();
         }
 
-        document.getElementById("add-data-button").addEventListener("click", function(event) {
+        document.getElementById("add-data-button").addEventListener("click", function (event) {
             if (!localStorage.getItem("token")) {
                 alert("You need to be logged in to add data to your model.");
                 // Redirect to the login page
