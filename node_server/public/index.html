@@ -204,30 +204,10 @@
     </footer>
 
     <style>
-        You are absolutely right! My apologies for the oversight. The aspect ratio is maintained by the padding-bottom trick, but because we're changing the max-width of the container, the height needs to adjust accordingly.  Here's the corrected and improved approach:
-
-HTML
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    </head>
-<body>
-    <section class="features">
-        <div class="feature-card">
-            <h3>Featured Video</h3>
-            <div class="video-container">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/YOUR_YOUTUBE_VIDEO_ID" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-            </div>
-        </div>
-    </section>
-
-    <style>
-        /* ... (your existing CSS) ... */
 
         .video-container {
             position: relative;
-            width: 100%; /* Occupy full width in small screens */
+            width: 100%; 
             max-width: 90%; /* Occupy maximum 90% in large screen */
             margin: 20px auto; /* Center horizontally and add margin top/bottom */
         }
