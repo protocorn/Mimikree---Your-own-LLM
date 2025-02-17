@@ -44,13 +44,13 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    name: {type: String, required:true},
+    name: { type: String, required: true },
     socialProfiles: {
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
         twitter: { type: String, required: false },
-        medium : {type: String, required: false },
-        reddit : {type: String, required: false }
+        medium: { type: String, required: false },
+        reddit: { type: String, required: false }
     },
     selfAssessment: {
         communicationStyle: { type: String, required: false },
@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema({
         writingSample: { type: String, required: false },
         interests: [{ type: String }]
     },
-    pdfs : [{type:String}]
+    pdfs: [String]
 });
 
 const User = mongoose.model('User', userSchema);
@@ -139,25 +139,25 @@ app.post("/api/submit", async (req, res) => {
                 username: data.socialProfiles.medium.username
             });
             collectedData.medium = mediumResponse.data;
-            mediumResponse.data.articles.forEach(article =>{
+            mediumResponse.data.articles.forEach(article => {
                 documents.push(JSON.stringify(`Medium Aricle \n Title: ${article.title} \n Link: ${article.link} \n Content: ${article.content}`));
-            })  
+            })
         }
         if (data.socialProfiles.reddit) {
             const redditResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/reddit/profile`, {
                 username: data.socialProfiles.reddit.username
             });
             collectedData.reddit = redditResponse.data;
-            redditResponse.data.posts.forEach(post =>{
+            redditResponse.data.posts.forEach(post => {
                 documents.push(JSON.stringify(`Reddit Post \n Title: ${post.title} \n Link: ${post.url} \n Content: ${post.content}`));
-            })  
+            })
         }
 
         if (data.pdfs) {
             collectedData.pdfs = data.pdfs;
-            data.pdfs.forEach(pdf =>{
+            data.pdfs.forEach(pdf => {
                 documents.push(JSON.stringify(`PDF Name: ${pdf.filename} \n PDF Content: ${pdf.text}`));
-            })  
+            })
         }
 
 
@@ -197,9 +197,12 @@ app.post("/api/submit", async (req, res) => {
                         console.error("Error updating self-assessment:", error);
                     }
                 }
-                if (data.pdfs){
+                if (data.pdfs) {
                     try {
-                        await updatePDFs(username, data.pdfs);
+                        collectedData.pdfs = data.pdfs.map(pdf => pdf.filename); // Extract filenames
+                        for (const pdf of data.pdfs) {
+                            await updatePDFs(username, pdf.filename); // Use extracted filename
+                        }
                         console.log(`Updated pdfs for user: ${username}`);
                     } catch (error) {
                         console.error("Error updating pdfs:", error);
@@ -208,7 +211,7 @@ app.post("/api/submit", async (req, res) => {
             }
             catch (error) {
                 console.error(error);
-                return res.status(401).json({ success: false, message: error});
+                return res.status(401).json({ success: false, message: error });
             }
         }
         else {
@@ -244,18 +247,17 @@ async function updateUserSelfAssessment(username, selfAssessmentData) {
     }
 }
 
-async function updatePDFs(username, pdfData) {
+async function updatePDFs(username, pdfFilename) { // Renamed for clarity
     try {
         await User.updateOne(
             { username: username },
-            { $set: { pdfs: pdfData } }
+            { $push: { pdfs: pdfFilename } } // Use $push to add to the array
         );
-        console.log(`Updated pdfs data for user: ${username}`);
+        console.log(`Added PDF ${pdfFilename} for user: ${username}`); // More accurate log
     } catch (error) {
         console.error("Error updating pdfs:", error);
     }
 }
-
 
 async function updateUserSocialMediaProfile(userId, profileData, platform) {
     try {
@@ -278,7 +280,7 @@ async function updateUserSocialMediaProfile(userId, profileData, platform) {
     }
 }
 
-app.get("/", async (req, res) =>{
+app.get("/", async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 })
 
@@ -361,8 +363,8 @@ app.post("/api/query/:username", async (req, res) => {
 
             const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
 
-             // 6. Response Handling (Important!)
-             if (!response.data || !response.data.response) { // Check for valid response structure
+            // 6. Response Handling (Important!)
+            if (!response.data || !response.data.response) { // Check for valid response structure
                 console.error("Invalid response from LLM:", response.data);
                 return res.status(500).json({ success: false, message: "Invalid response from LLM" });
             }
