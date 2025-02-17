@@ -673,9 +673,10 @@
                 const pdfItem = document.createElement('div');
                 pdfItem.className = 'pdf-item';
                 pdfItem.innerHTML = `
-<div style="display: flex; align-items: center;">  
-<p style="flex-grow: 1; margin-right: 10px;">${pdf}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
-</div>`;
+                <div style="display: flex; align-items: center;">  
+                <p style="flex-grow: 1; margin-right: 10px;"></p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>`;
+                pdfItem.querySelector('p').textContent = pdf;
                 pdfList.appendChild(pdfItem);
                 pdfInput.value = ''; // Clear input after processing
             })
