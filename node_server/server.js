@@ -463,7 +463,8 @@ app.get("/api/user/profile", async (req, res) => {
 
         res.json({
             socialProfiles: user.socialProfiles,
-            selfAssessment: user.selfAssessment
+            selfAssessment: user.selfAssessment,
+            pdfs: user.pdfs
         });
     } catch (error) {
         console.error("Error fetching user profile:", error);
