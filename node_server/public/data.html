@@ -674,7 +674,7 @@
                 pdfItem.className = 'pdf-item';
                 pdfItem.innerHTML = `
 <div style="display: flex; align-items: center;">  
-<p style="flex-grow: 1; margin-right: 10px;">${pdf.filename}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
+<p style="flex-grow: 1; margin-right: 10px;">${pdf}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
 </div>`;
                 pdfList.appendChild(pdfItem);
                 pdfInput.value = ''; // Clear input after processing
