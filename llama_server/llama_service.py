@@ -117,15 +117,11 @@ def ask():
         # Generate query embedding
         query_vector = embedding_model.encode(query_text).tolist()
 
-        # First, retrieve a larger number of results (e.g., 10)
-        results = index.query(vector=query_vector, top_k=10, include_metadata=True, filter={"user_id": username})
+        # Retrieve similar documents from Pinecone
+        
+        pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": username})
 
-        # Filter results based on confidence score (e.g., only keep those above 0.7)
-        filtered_results = [match for match in results["matches"] if match["score"] > 0.7]
-
-        # Dynamically set top_k based on filtered results (up to a max of 5)
-        retrieved_docs = [match["metadata"]["text"] for match in filtered_results[:5]]  # Only take the top 5
-
+        retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
         context = "\n".join(retrieved_docs)
 
         # Generate prompt
