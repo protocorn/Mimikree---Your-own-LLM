@@ -118,7 +118,11 @@ def ask():
         query_vector = embedding_model.encode(query_text).tolist()
 
         # Retrieve similar documents from Pinecone
-        pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": username})
+        results = index.query(vector=query_vector, top_k=10, include_metadata=True, filter={"user_id": username})
+        filtered_results = [match for match in results["matches"] if match["score"] > 0.7]  # Adjust threshold
+        top_k = min(len(filtered_results), 5)  # Ensure you don't retrieve too many
+
+        pinecone_results = index.query(vector=query_vector, top_k=top_k, include_metadata=True, filter={"user_id": username})
 
         retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
         context = "\n".join(retrieved_docs)
