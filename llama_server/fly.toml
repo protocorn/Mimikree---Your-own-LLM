@@ -15,6 +15,6 @@ primary_region = 'iad'
 
 [[vm]]
   memory = '2gb'  # Increase memory
-  cpu_kind = 'dedicated'  # Switch to dedicated CPU
+  cpu_kind = 'shared'  # Switch to dedicated CPU
   cpus = 2  # Consider increasing CPU cores if possible
 
