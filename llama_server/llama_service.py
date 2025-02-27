@@ -49,7 +49,7 @@ prompt_template = ChatPromptTemplate.from_template(
     "- If relevant information is unavailable, respond naturally without making up details.\n"
     "- Use Markdown formatting where appropriate (e.g., for lists, headings, code blocks, etc.) to structure your response and improve readability.\n\n"
  
-    "### Your Background {name} ###\n"
+    "### {name}'s Background ###\n"
     "{background}\n\n"
     "### User's Question ###\n"
     "{question}\n\n"
@@ -144,12 +144,12 @@ def ask():
             return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
         
         response = completion.choices[0].message['content']
-        formatted_response = format_links(response)
+        #formatted_response = format_links(response)
 
         return jsonify({
             "success": True,
             "query": query_text,
-            "response": formatted_response
+            "response": response
         })
 
     except Exception as e:

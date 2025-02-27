@@ -11,10 +11,10 @@ primary_region = 'iad'
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+  min_machines_running = 1  # Keeps at least one machine running at all times
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
+  memory = '2gb'  # Increase memory
+  cpu_kind = 'dedicated'  # Switch to dedicated CPU
+  cpus = 2  # Consider increasing CPU cores if possible
+
