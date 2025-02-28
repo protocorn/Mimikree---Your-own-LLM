@@ -296,6 +296,7 @@
 
                 console.log(`Connecting to EventSource for username: ${username}, query: ${query}`); // Debug connection
                 const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/api/query/${username}?query=${encodedQuery}`);
+                console.log("EventSource URL:", source);
                 console.log(username);
                 source.onmessage = (event) => {
                     console.log("Received message from server:", event.data); 
