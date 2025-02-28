@@ -307,10 +307,17 @@
                 };
 
                 source.onerror = (error) => {
-                    console.error("EventSource failed:", error);
-                    botMessage.textContent = "Error processing query.";
+                    console.error("EventSource error:", error);
+                    botMessage.textContent = "Error processing query. Please try again.";
                     source.close();
                     submitButton.disabled = false;
+                    //attempt to reconnect.
+                    setTimeout(function(){document.getElementById("submitButton").click();}, 5000);
+
+                };
+
+                source.onclose = () => {
+                    console.log("EventSource closed.");
                 };
 
             } catch (error) {
