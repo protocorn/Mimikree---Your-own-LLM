@@ -22,19 +22,19 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static("public"));
 app.use(cors({
     origin: '*', // Be more specific in production
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization']
-  }));
-
+}));
 // API routes
 app.use("/api/github", githubRoutes.router);
 app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
 app.use("/api/reddit", redditRoutes.router);
+
+app.use(express.static("public"));
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
