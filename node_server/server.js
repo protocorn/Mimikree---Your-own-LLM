@@ -314,22 +314,30 @@ app.get("/api/query/:username", async (req, res) => {
         const { username } = req.params;
         const query = req.query.query;
 
+        console.log("Received request:", { username, query }); // Debug request parameters
+
         if (!query || query.trim().length === 0) {
+            console.error("Query is empty");
             return res.status(400).send("Query cannot be empty");
         }
 
         if (!username || username.trim().length === 0) {
+            console.error("Username is empty");
             return res.status(400).send("Username cannot be empty");
         }
 
         const user = await User.findOne({ username: username });
         if (!user) {
+            console.error(`User not found: ${username}`);
             return res.status(404).send("User not found");
         }
 
         if (!user.selfAssessment) {
+            console.error(`Self-assessment data missing for user: ${username}`);
             return res.status(404).send("User self-assessment data not found");
         }
+
+        console.log("User and self-assessment data found:", user);
 
         const dataForModel = {
             query: query,
@@ -342,15 +350,17 @@ app.get("/api/query/:username", async (req, res) => {
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-        console.log("SSE Headers Set"); // Add logging
+        console.log("SSE Headers Set");
 
+        // Make a request to the LLama server
         const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel, { responseType: 'stream' });
+        console.log("LLama server responded successfully");
 
         response.data.pipe(res);
 
         response.data.on('error', (streamError) => {
             console.error('Error in axios stream:', streamError);
-            res.write(`data: ${JSON.stringify({ error: 'Error streaming response from LLM.' })}\n\n`); // Send error to client
+            res.write(`data: ${JSON.stringify({ error: 'Error streaming response from LLM.' })}\n\n`);
             res.end();
         });
 
@@ -360,11 +370,12 @@ app.get("/api/query/:username", async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Unexpected error in query route:", error);
-        res.write(`data: ${JSON.stringify({ error: 'Server error.' })}\n\n`); // Send error to client
+        console.error("Unexpected error in /api/query route:", error);
+        res.write(`data: ${JSON.stringify({ error: 'Server error.' })}\n\n`);
         res.status(500).send("Server error");
     }
 });
+
 
 app.post("/api/signup", async (req, res) => {
     try {

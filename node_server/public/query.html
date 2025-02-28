@@ -293,9 +293,12 @@
             try {
                 const username = window.location.pathname.split('/').pop();
                 const encodedQuery = encodeURIComponent(query); // Encode the query
+
+                console.log(`Connecting to EventSource for username: ${username}, query: ${query}`); // Debug connection
                 const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/api/query/${username}?query=${encodedQuery}`);
                 console.log(username);
                 source.onmessage = (event) => {
+                    console.log("Received message from server:", event.data); 
                     const chunk = event.data;
                     if (chunk === "[DONE]") {
                         source.close();
@@ -312,7 +315,7 @@
                     source.close();
                     submitButton.disabled = false;
                     //attempt to reconnect.
-                    setTimeout(function(){document.getElementById("submitButton").click();}, 5000);
+                    setTimeout(function () { document.getElementById("submitButton").click(); }, 5000);
 
                 };
 
