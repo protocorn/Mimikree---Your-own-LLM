@@ -362,6 +362,7 @@ app.post("/api/query/:username", async (req, res) => {
             };
 
             const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel,{responseType: 'stream'});
+            res.setHeader('Content-Type', 'text/event-stream');
             response.data.pipe(res); 
             
             /*/ 6. Response Handling (Important!)
