@@ -143,26 +143,41 @@ def ask():
             {"role": "user", "content": prompt}
         ]
         
-        completion = client.chat.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct",
-            messages=messages, 
-            max_tokens=1024,
-        )
-        
+        def generate():
+            completion_stream = client.chat.completions.create(
+                model="meta-llama/Llama-3.3-70B-Instruct",
+                messages=messages,
+                max_tokens=1024,
+                stream=True,  # Enable streaming
+            )
+            for chunk in completion_stream:
+                if chunk.choices[0].delta.content is not None:
+                    yield chunk.choices[0].delta.content
+
         def format_links(text):
-            """Finds URLs in text and converts them into clickable links."""
-            url_pattern = re.compile(r'(https?://\S+)')  # Match URLs starting with http or https
+            url_pattern = re.compile(r'(https?://\S+)')
             return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
-        
-        response = completion.choices[0].message['content']
-        #formatted_response = format_links(response)
+
+        def full_response():
+            full_text = ""
+            completion_stream = client.chat.completions.create(
+                model="meta-llama/Llama-3.3-70B-Instruct",
+                messages=messages,
+                max_tokens=1024,
+                stream=True,  # Enable streaming
+            )
+            for chunk in completion_stream:
+                if chunk.choices[0].delta.content is not None:
+                    full_text += chunk.choices[0].delta.content
+            return full_text
+
+        response = full_response()
         session['history'].append({'query': query_text, 'response': response})
 
-        return jsonify({
-            "success": True,
-            "query": query_text,
-            "response": response
-        })
+        if len(session['history']) > 5:
+            session['history'] = session['history'][-5:]
+
+        return Response(generate(), mimetype='text/event-stream') #stream the response.
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
