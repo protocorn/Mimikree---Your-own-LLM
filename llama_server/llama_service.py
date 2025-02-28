@@ -144,28 +144,28 @@ def ask():
         ]
         
         def generate():
-        try:
-            completion_stream = client.chat.completions.create(
-                model="meta-llama/Llama-3.3-70B-Instruct",
-                messages=messages,
-                max_tokens=1024,
-                stream=True,
-            )
-            full_text = ""
-            for chunk in completion_stream:
-                if chunk.choices[0].delta.content is not None:
-                    content = chunk.choices[0].delta.content
-                    full_text += content
-                    yield f"data: {content}\n\n"
-            
-            # After streaming is complete, update the session history
-            session['history'].append({'query': query_text, 'response': full_text})
-            if len(session['history']) > 5:
-                session['history'] = session['history'][-5:]
-        except Exception as e:
-            yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
+            try:
+                completion_stream = client.chat.completions.create(
+                    model="meta-llama/Llama-3.3-70B-Instruct",
+                    messages=messages,
+                    max_tokens=1024,
+                    stream=True,
+                )
+                full_text = ""
+                for chunk in completion_stream:
+                    if chunk.choices[0].delta.content is not None:
+                        content = chunk.choices[0].delta.content
+                        full_text += content
+                        yield f"data: {content}\n\n"
+                
+                # After streaming is complete, update the session history
+                session['history'].append({'query': query_text, 'response': full_text})
+                if len(session['history']) > 5:
+                    session['history'] = session['history'][-5:]
+            except Exception as e:
+                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
 
-    return Response(generate(), mimetype='text/event-stream')
+        return Response(generate(), mimetype='text/event-stream')
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
