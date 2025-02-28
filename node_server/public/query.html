@@ -292,7 +292,8 @@
 
             try {
                 const username = window.location.pathname.split('/').pop();
-                const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/api/query/${username}`);
+                const encodedQuery = encodeURIComponent(query); // Encode the query
+                const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/api/query/${username}?query=${encodedQuery}`);
                 console.log(username);
                 source.onmessage = (event) => {
                     const chunk = event.data;
@@ -311,21 +312,6 @@
                     source.close();
                     submitButton.disabled = false;
                 };
-
-                // Send request to backend
-                // Send query to server
-                fetch(`https://mimikree-your-own-llm.vercel.app/api/query/${username}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ query })
-                }).catch(error => {
-                    console.error("Fetch failed:", error);
-                    botMessage.textContent = "Error sending query.";
-                    source.close();
-                    submitButton.disabled = false;
-                });
 
             } catch (error) {
                 botMessage.textContent = "Error processing query.";
