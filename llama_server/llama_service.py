@@ -144,43 +144,28 @@ def ask():
         ]
         
         def generate():
-            try:
+        try:
             completion_stream = client.chat.completions.create(
                 model="meta-llama/Llama-3.3-70B-Instruct",
                 messages=messages,
                 max_tokens=1024,
                 stream=True,
             )
-            for chunk in completion_stream:
-                if chunk.choices[0].delta.content is not None:
-                    yield f"data: {chunk.choices[0].delta.content}\n\n" #format data for eventsource
-            except Exception as e:
-                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n" #send error to client
-
-        def format_links(text):
-            url_pattern = re.compile(r'(https?://\S+)')
-            return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
-
-        def full_response():
             full_text = ""
-            completion_stream = client.chat.completions.create(
-                model="meta-llama/Llama-3.3-70B-Instruct",
-                messages=messages,
-                max_tokens=1024,
-                stream=True,  # Enable streaming
-            )
             for chunk in completion_stream:
                 if chunk.choices[0].delta.content is not None:
-                    full_text += chunk.choices[0].delta.content
-            return full_text
+                    content = chunk.choices[0].delta.content
+                    full_text += content
+                    yield f"data: {content}\n\n"
+            
+            # After streaming is complete, update the session history
+            session['history'].append({'query': query_text, 'response': full_text})
+            if len(session['history']) > 5:
+                session['history'] = session['history'][-5:]
+        except Exception as e:
+            yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
 
-        response = full_response()
-        session['history'].append({'query': query_text, 'response': response})
-
-        if len(session['history']) > 5:
-            session['history'] = session['history'][-5:]
-
-        return Response(generate(), mimetype='text/event-stream') #stream the response.
+    return Response(generate(), mimetype='text/event-stream')
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
