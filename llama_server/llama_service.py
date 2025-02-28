@@ -18,6 +18,8 @@ pc = Pinecone(api_key="pcsk_7Y7zWN_6eRYCU5oqR1jqwLAiQSv416HtB792Q3fC2HP7YQ1uNGWQ
 index_name = "user-embeddings"
 user_id = "1234(test)"
 
+session={}
+
 # Create index if it doesn't exist
 if index_name not in pc.list_indexes().names():
     pc.create_index(index_name, dimension=768, metric="cosine", spec=ServerlessSpec(
@@ -51,7 +53,11 @@ prompt_template = ChatPromptTemplate.from_template(
  
     "### {name}'s Background ###\n"
     "{background}\n\n"
-    "### User's Question ###\n"
+    
+    "### Chat with User Until Now ###\n"
+    "{conversation}\n\n"
+    
+    "### User's Current Question ###\n"
     "{question}\n\n"
     "### Your Response ###"
 )
@@ -113,6 +119,11 @@ def ask():
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
+    
+        if 'history' not in session:
+            session['history'] = []  # Initialize history if not present
+        
+        current_chat = "\n".join([f"User: {msg['query']}\nAI: {msg['response']}" for msg in session['history']])
 
         # Generate query embedding
         query_vector = embedding_model.encode(query_text).tolist()
@@ -125,7 +136,7 @@ def ask():
         context = "\n".join(retrieved_docs)
 
         # Generate prompt
-        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
+        prompt = prompt_template.format(context=context, background=self_assessment, conversation=current_chat, name=name, question=query_text)
 
         # Request completion from Hugging Face API
         messages = [
@@ -145,6 +156,7 @@ def ask():
         
         response = completion.choices[0].message['content']
         #formatted_response = format_links(response)
+        session['history'].append({'query': query_text, 'response': response})
 
         return jsonify({
             "success": True,
