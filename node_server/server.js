@@ -364,7 +364,6 @@ app.post("/api/query/:username", async (req, res) => {
             const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel,{responseType: 'stream'});
             response.data.pipe(res); 
             
-
             /*/ 6. Response Handling (Important!)
             /if (!response.data || !response.data.response) { // Check for valid response structure
                 console.error("Invalid response from LLM:", response.data);
