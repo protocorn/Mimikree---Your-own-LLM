@@ -144,15 +144,18 @@ def ask():
         ]
         
         def generate():
+            try:
             completion_stream = client.chat.completions.create(
                 model="meta-llama/Llama-3.3-70B-Instruct",
                 messages=messages,
                 max_tokens=1024,
-                stream=True,  # Enable streaming
+                stream=True,
             )
             for chunk in completion_stream:
                 if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
+                    yield f"data: {chunk.choices[0].delta.content}\n\n" #format data for eventsource
+            except Exception as e:
+                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n" #send error to client
 
         def format_links(text):
             url_pattern = re.compile(r'(https?://\S+)')

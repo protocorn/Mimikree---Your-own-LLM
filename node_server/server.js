@@ -334,16 +334,20 @@ app.get("/api/query/:username", async (req, res) => {
             name: user.name,
         };
 
-        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel, { responseType: 'stream' });
-
-        // Set the Content-Type header
+        // Set SSE headers
         res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        console.log("SSE Headers Set"); // Add logging
+
+        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel, { responseType: 'stream' });
 
         response.data.pipe(res);
 
         response.data.on('error', (streamError) => {
             console.error('Error in axios stream:', streamError);
-            res.status(500).send('Error streaming response from LLM.');
+            res.write(`data: ${JSON.stringify({ error: 'Error streaming response from LLM.' })}\n\n`); // Send error to client
+            res.end();
         });
 
         req.on('close', () => {
@@ -351,9 +355,10 @@ app.get("/api/query/:username", async (req, res) => {
             response.data.destroy();
         });
 
-    } catch (dbError) {
-        console.error("Database error fetching user:", dbError);
-        return res.status(500).send("Database error");
+    } catch (error) {
+        console.error("Unexpected error in query route:", error);
+        res.write(`data: ${JSON.stringify({ error: 'Server error.' })}\n\n`); // Send error to client
+        res.status(500).send("Server error");
     }
 });
 
