@@ -143,29 +143,29 @@ def ask():
             {"role": "user", "content": prompt}
         ]
         
-        def generate():
-            try:
-                completion_stream = client.chat.completions.create(
-                    model="meta-llama/Llama-3.3-70B-Instruct",
-                    messages=messages,
-                    max_tokens=1024,
-                    stream=True,
-                )
-                full_text = ""
-                for chunk in completion_stream:
-                    if chunk.choices[0].delta.content is not None:
-                        content = chunk.choices[0].delta.content
-                        full_text += content
-                        yield f"data: {content}\n\n"
-                
-                # After streaming is complete, update the session history
-                session['history'].append({'query': query_text, 'response': full_text})
-                if len(session['history']) > 5:
-                    session['history'] = session['history'][-5:]
-            except Exception as e:
-                yield f"data: {{\"error\": \"{str(e)}\"}}\n\n"
+        completion = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct",
+            messages=messages, 
+            max_tokens=1024,
+        )
+        
+        def format_links(text):
+            """Finds URLs in text and converts them into clickable links."""
+            url_pattern = re.compile(r'(https?://\S+)')  # Match URLs starting with http or https
+            return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
+        
+        response = completion.choices[0].message['content']
+        #formatted_response = format_links(response)
+        session['history'].append({'query': query_text, 'response': response})
 
-        return Response(generate(), mimetype='text/event-stream')
+        if len(session['history']) > 5:
+            session['history'] = session['history'][-5:]
+            
+        return jsonify({
+            "success": True,
+            "query": query_text,
+            "response": response
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

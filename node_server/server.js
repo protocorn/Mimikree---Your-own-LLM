@@ -22,19 +22,15 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json());
-app.use(cors({
-    origin: '*', // Be more specific in production
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(express.static("public"));
+app.use(cors());
+
 // API routes
 app.use("/api/github", githubRoutes.router);
 app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
 app.use("/api/reddit", redditRoutes.router);
-
-app.use(express.static("public"));
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -309,74 +305,83 @@ app.get("/query/:username", async (req, res) => {
     }
 });
 
-app.get("/api/query/:username", async (req, res) => {
-    console.log("ENTERING /api/query/:username HANDLER");
+
+app.post("/api/query/:username", async (req, res) => {
     try {
+        const { query } = req.body;
         const { username } = req.params;
-        const query = req.query.query;
 
-        console.log("Received request:", { username, query }); // Debug request parameters
+        //let myusername;
+        //let is_own_model = false;
 
+        /*const token = req.headers.authorization?.split(" ")[1];
+        console.log(token);
+        if (token) {
+            let decoded;
+            try {
+                decoded = jwt.verify(token, JWT_SECRET_KEY);
+                myusername = decoded.username;
+            }
+            catch (error){
+                console.log(error);
+            }
+        }*/
+
+        //console.log(myusername);
+
+        /*if(username==myusername){
+            is_own_model=true;
+        }*/
+
+        // 1. Input Validation (Crucial)
         if (!query || query.trim().length === 0) {
-            console.error("Query is empty");
-            return res.status(400).send("Query cannot be empty");
+            return res.status(400).json({ success: false, message: "Query cannot be empty" });
         }
 
         if (!username || username.trim().length === 0) {
-            console.error("Username is empty");
-            return res.status(400).send("Username cannot be empty");
+            return res.status(400).json({ success: false, message: "Username cannot be empty" });
         }
 
-        const user = await User.findOne({ username: username });
-        if (!user) {
-            console.error(`User not found: ${username}`);
-            return res.status(404).send("User not found");
+        // 3. Data Retrieval
+        try {
+            const user = await User.findOne({ username: username });
+            if (!user) {
+                return res.status(404).json({ success: false, message: "User not found" });
+            }
+
+            if (!user.selfAssessment) {  // Check if selfAssessment exists
+                return res.status(404).json({ success: false, message: "User self-assessment data not found" });
+            }
+
+            const dataForModel = {
+                query: query,
+                selfAssessment: user.selfAssessment,
+                username: username,
+                name: user.name, // Include name if needed by your LLM
+                //own_model: true,
+            };
+
+            const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
+
+            // 6. Response Handling (Important!)
+            if (!response.data || !response.data.response) { // Check for valid response structure
+                console.error("Invalid response from LLM:", response.data);
+                return res.status(500).json({ success: false, message: "Invalid response from LLM" });
+            }
+
+            console.log("LLM Response:", response.data.response); // Log the LLM's response
+            res.json({ success: true, response: response.data.response });
+
+        } catch (dbError) {
+            console.error("Database error fetching user:", dbError);
+            return res.status(500).json({ success: false, message: "Database error" });
         }
-
-        if (!user.selfAssessment) {
-            console.error(`Self-assessment data missing for user: ${username}`);
-            return res.status(404).send("User self-assessment data not found");
-        }
-
-        console.log("User and self-assessment data found:", user);
-
-        const dataForModel = {
-            query: query,
-            selfAssessment: user.selfAssessment,
-            username: username,
-            name: user.name,
-        };
-
-        // Set SSE headers
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
-        res.setHeader('Connection', 'keep-alive');
-        console.log("SSE Headers Set");
-
-        // Make a request to the LLama server
-        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel, { responseType: 'stream' });
-        console.log("LLama server responded successfully");
-
-        response.data.pipe(res);
-
-        response.data.on('error', (streamError) => {
-            console.error('Error in axios stream:', streamError);
-            res.write(`data: ${JSON.stringify({ error: 'Error streaming response from LLM.' })}\n\n`);
-            res.end();
-        });
-
-        req.on('close', () => {
-            console.log('Client disconnected during stream.');
-            response.data.destroy();
-        });
 
     } catch (error) {
-        console.error("Unexpected error in /api/query route:", error);
-        res.write(`data: ${JSON.stringify({ error: 'Server error.' })}\n\n`);
-        res.status(500).send("Server error");
+        console.error("Unexpected error in query route:", error);
+        res.status(500).json({ success: false, message: "Server error while processing query" });
     }
 });
-
 
 app.post("/api/signup", async (req, res) => {
     try {
