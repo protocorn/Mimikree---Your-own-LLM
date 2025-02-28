@@ -310,6 +310,7 @@ app.get("/query/:username", async (req, res) => {
 });
 
 app.get("/api/query/:username", async (req, res) => {
+    console.log("ENTERING /api/query/:username HANDLER");
     try {
         const { username } = req.params;
         const query = req.query.query;
