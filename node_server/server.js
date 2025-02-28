@@ -305,6 +305,57 @@ app.get("/query/:username", async (req, res) => {
     }
 });
 
+app.get("/api/query/:username", async (req, res) => {
+    try {
+        const { username } = req.params;
+        const query = req.query.query;
+
+        if (!query || query.trim().length === 0) {
+            return res.status(400).send("Query cannot be empty");
+        }
+
+        if (!username || username.trim().length === 0) {
+            return res.status(400).send("Username cannot be empty");
+        }
+
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        if (!user.selfAssessment) {
+            return res.status(404).send("User self-assessment data not found");
+        }
+
+        const dataForModel = {
+            query: query,
+            selfAssessment: user.selfAssessment,
+            username: username,
+            name: user.name,
+        };
+
+        const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel, { responseType: 'stream' });
+
+        // Set the Content-Type header
+        res.setHeader('Content-Type', 'text/event-stream');
+
+        response.data.pipe(res);
+
+        response.data.on('error', (streamError) => {
+            console.error('Error in axios stream:', streamError);
+            res.status(500).send('Error streaming response from LLM.');
+        });
+
+        req.on('close', () => {
+            console.log('Client disconnected during stream.');
+            response.data.destroy();
+        });
+
+    } catch (dbError) {
+        console.error("Database error fetching user:", dbError);
+        return res.status(500).send("Database error");
+    }
+});
 
 app.post("/api/query/:username", async (req, res) => {
     try {

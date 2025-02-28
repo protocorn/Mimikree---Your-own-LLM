@@ -292,7 +292,7 @@
 
             try {
                 const username = window.location.pathname.split('/').pop();
-                const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/query/${username}`);
+                const source = new EventSource(`https://mimikree-your-own-llm.vercel.app/api/query/${username}`);
                 console.log(username);
                 source.onmessage = (event) => {
                     const chunk = event.data;
