@@ -339,6 +339,7 @@
             <span>2</span>
             <span>3</span>
             <span>4</span>
+            <span>5</span>
         </div>
         <div class="step active" id="step1">
             <div class="box" id="linksBox">
@@ -462,6 +463,21 @@
         </div>
 
         <div class="step" id="step4">
+
+            <div class="box" id="imageBox">
+                <h2>Images</h2>
+                <input type="file" id="imageInput" accept="image/*" multiple>
+                <input type="text" id="imageDescription" placeholder="Image description">
+                <button onclick="addImages()">Add Images</button>
+                <div id="imagesList"></div>
+              </div>
+              <div class="navigation">
+                <button onclick="prevStep(4)">Back</button>
+                <button onclick="nextStep(4)">Next</button>
+              </div>
+        </div>
+
+        <div class="step" id="step5">
             <h2>Final Submission</h2>
             <div class="warning-message">
                 <p><strong>Warning:</strong> Data once added cannot be deleted individually. You can only delete your
@@ -479,7 +495,7 @@
                 </div>
             </div>
             <div class="navigation">
-                <button onclick="prevStep(4)">Back</button>
+                <button onclick="prevStep(5)">Back</button>
             </div>
         </div>
     </div>
@@ -723,6 +739,32 @@
             }
         }
 
+        function addImages() {
+            const imageInput = document.getElementById('imageInput');
+            const imageDescription = document.getElementById('imageDescription');
+            const imagesList = document.getElementById('imagesList');
+          
+            if (imageInput.files.length > 0) {
+              for (let file of imageInput.files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                  const imageItem = document.createElement('div');
+                  imageItem.className = 'image-item';
+                  imageItem.innerHTML = `
+                    <img src="${e.target.result}" class="image-preview">
+                    <p>${imageDescription.value}</p>
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                  `;
+                  imagesList.appendChild(imageItem);
+                }
+                reader.readAsDataURL(file);
+              }
+              imageInput.value = '';
+              imageDescription.value = '';
+            }
+          }
+          
+
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
             const existing = Array.from(linksList.children).find(item =>
@@ -854,6 +896,7 @@
                 customLinks: [],
                 selfAssessment: collectSelfAssessmentData(),
                 pdfs: [],
+                images:[]
             };
 
             const termsAgreement = document.getElementById('termsAgreement');

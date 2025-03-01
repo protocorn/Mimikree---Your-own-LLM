@@ -13,6 +13,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const cloudinary = require('cloudinary').v2;
 
 dotenv.config();
 
@@ -21,9 +22,16 @@ const app = express();
 const PORT = 3000;
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static("public"));
 app.use(cors());
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // API routes
 app.use("/api/github", githubRoutes.router);
@@ -58,7 +66,8 @@ const userSchema = new mongoose.Schema({
         writingSample: { type: String, required: false },
         interests: [{ type: String }]
     },
-    pdfs: [String]
+    pdfs: [String],
+    images: [{ url: String, description: String }],
 });
 
 const User = mongoose.model('User', userSchema);
@@ -67,7 +76,7 @@ const User = mongoose.model('User', userSchema);
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const envd = process.env.NODE_ENV || "production"; // Default to production
-const config = require("./config")[envd]; 
+const config = require("./config")[envd];
 
 
 app.get('/add-data', async (req, res) => {
@@ -161,6 +170,7 @@ app.post("/api/submit", async (req, res) => {
             data.pdfs.forEach(pdf => {
                 documents.push(JSON.stringify(`PDF Name: ${pdf.filename} \n PDF Content: ${pdf.text}`));
             })
+
         }
 
 
@@ -211,6 +221,23 @@ app.post("/api/submit", async (req, res) => {
                         console.error("Error updating pdfs:", error);
                     }
                 }
+                if (data.images && data.images.length > 0) {
+                    for (const image of data.images) {
+                        try {
+                            const result = await cloudinary.uploader.upload(image.src, {
+                                public_id: `user_${username}_${Date.now()}`,
+                            });
+                            const imageUrl = result.secure_url;
+                            //const caption = await generateImageCaption(imageUrl);
+                            await updateUserImages(username, imageUrl, image.description);
+                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description},Caption: ${caption}`});
+        
+                            console.log(`Image uploaded: ${imageUrl}`);
+                        } catch (uploadError) {
+                            console.error("Error uploading image:", uploadError);
+                        }
+                    }
+                }
             }
             catch (error) {
                 console.error(error);
@@ -237,6 +264,39 @@ app.post("/api/submit", async (req, res) => {
         }
     }
 });
+
+async function updateUserImages(username, imageUrl, imageDescription) {
+    try {
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            console.log(`User not found: ${username}`);
+            return;
+        }
+
+        if (!user.images) {
+            user.images = [];
+        }
+
+        user.images.push({ url: imageUrl, description: imageDescription });
+        await user.save();
+
+        console.log(`Image URL added for user: ${username}`);
+    } catch (error) {
+        console.error("Error updating images:", error);
+    }
+}
+
+async function generateImageCaption(imageUrl) {
+    try {
+        // Replace with your actual AI captioning logic
+        // This is just an example using a hypothetical captioning service
+        const response = await axios.post(`${config.llamaServer}/caption`, { image_url: imageUrl }); 
+        return response.data.caption;
+    } catch (error) {
+        console.error("Error generating caption:", error);
+        return "No caption available"; // Or handle the error as you prefer
+    }
+}
 
 async function updateUserSelfAssessment(username, selfAssessmentData) {
     try {
@@ -313,7 +373,6 @@ app.post("/api/query/:username", async (req, res) => {
     try {
         const { query } = req.body;
         const { username } = req.params;
-
         //let myusername;
         //let is_own_model = false;
 

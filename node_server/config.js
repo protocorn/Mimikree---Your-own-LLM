@@ -5,7 +5,7 @@ module.exports = {
       llamaServer: "https://llama-server.fly.dev",
     },
     test: {
-      nodeServer: "http://localhost:3001", // Example: Local GitHub API
-      llamaServer: "http://localhost:3002" // Example: Local LLM server
+      nodeServer: "http://localhost:3000", // Example: Local GitHub API
+      llamaServer: "http://localhost:8080" // Example: Local LLM server
     }
   };

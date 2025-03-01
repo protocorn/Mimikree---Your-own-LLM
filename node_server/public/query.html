@@ -276,7 +276,7 @@
             userMessage.className = "message user-message";
             userMessage.textContent = query;
             chatBox.appendChild(userMessage);
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+            chatBox.scrollTop = chatBox.scrollHeight;
 
             // Clear input and disable button
             queryInput.value = "";
@@ -308,9 +308,31 @@
                     const data = await response.json();
 
                     if (data.success) {
-                        const markdownText = data.response; // Get the LLM's response (may contain Markdown)
-                        const html = marked.parse(markdownText); // Parse Markdown to HTML
-                        botMessage.innerHTML = html; // Set the HTML content
+                        let responseText = data.response;
+                        botMessage.innerHTML = ""; // Clear "Thinking..."
+
+                        const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
+                        let match;
+                        let lastIndex = 0;
+
+                        while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                            // Add text before the image
+                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+
+                            // Create and append the image
+                            const img = document.createElement("img");
+                            img.src = match[0];
+                            img.style.maxWidth = "100%";
+                            img.style.maxHeight = "500px"; // Limit image height to prevent overflow
+                            img.style.display = "block";
+                            img.style.borderRadius = "8px"; // Ensure images are block-level
+                            img.alt = "Bot generated image";
+                            botMessage.appendChild(img);
+                            lastIndex = cloudinaryUrlRegex.lastIndex;
+                        }
+
+                        // Add any remaining text after the last image
+                        botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
                     } else {
                         botMessage.textContent = "Error: " + data.message;
                     }
