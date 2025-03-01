@@ -525,7 +525,8 @@ app.get("/api/user/profile", async (req, res) => {
         res.json({
             socialProfiles: user.socialProfiles,
             selfAssessment: user.selfAssessment,
-            pdfs: user.pdfs
+            pdfs: user.pdfs,
+            images: user.images
         });
     } catch (error) {
         console.error("Error fetching user profile:", error);

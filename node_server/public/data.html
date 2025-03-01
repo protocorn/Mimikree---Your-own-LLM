@@ -470,11 +470,11 @@
                 <input type="text" id="imageDescription" placeholder="Image description">
                 <button onclick="addImages()">Add Images</button>
                 <div id="imagesList"></div>
-              </div>
-              <div class="navigation">
+            </div>
+            <div class="navigation">
                 <button onclick="prevStep(4)">Back</button>
                 <button onclick="nextStep(4)">Next</button>
-              </div>
+            </div>
         </div>
 
         <div class="step" id="step5">
@@ -594,6 +594,9 @@
                 if (userData.pdfs) {
                     populatePdfs(userData.pdfs);
                 }
+                if (userData.images) {
+                    populateImages(userData.images);
+                }
             } catch (error) {
                 console.error('Error fetching user profile:', error);
                 location.href = '/login';
@@ -698,6 +701,23 @@
             })
         }
 
+        function populateImages(images) {
+            const imagesList = document.getElementById('imagesList');
+            imagesList.innerHTML = ''; // Clear existing images
+        
+            images.forEach(image => {
+                const imageItem = document.createElement('div');
+                imageItem.className = 'image-item';
+        
+                imageItem.innerHTML = `
+                    <img src="${image.url}" class="image-preview">
+                    <p>${image.description}</p>
+                    <button onclick="this.parentElement.remove()">Remove</button>
+                `;
+        
+                imagesList.appendChild(imageItem);
+            });
+        }
 
         function addGitHub() {
             const username = document.getElementById('githubUsername').value.trim();
@@ -743,27 +763,59 @@
             const imageInput = document.getElementById('imageInput');
             const imageDescription = document.getElementById('imageDescription');
             const imagesList = document.getElementById('imagesList');
-          
+
             if (imageInput.files.length > 0) {
-              for (let file of imageInput.files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                  const imageItem = document.createElement('div');
-                  imageItem.className = 'image-item';
-                  imageItem.innerHTML = `
+                for (let file of imageInput.files) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+                        imageItem.innerHTML = `
                     <img src="${e.target.result}" class="image-preview">
                     <p>${imageDescription.value}</p>
                     <button onclick="this.parentElement.remove()">Remove</button>
                   `;
-                  imagesList.appendChild(imageItem);
+                        imagesList.appendChild(imageItem);
+                    }
+                    reader.readAsDataURL(file);
                 }
-                reader.readAsDataURL(file);
-              }
-              imageInput.value = '';
-              imageDescription.value = '';
+                imageInput.value = '';
+                imageDescription.value = '';
             }
-          }
-          
+        }
+
+        function addImages() {
+            const imageInput = document.getElementById('imageInput');
+            const imagesList = document.getElementById('imagesList');
+
+            if (imageInput.files.length > 0) {
+                // Capture the description once, before the loop starts.
+                const imageDescription = document.getElementById('imageDescription').value;
+
+                for (let file of imageInput.files) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const imageItem = document.createElement('div');
+                        imageItem.className = 'image-item';
+
+                        imageItem.innerHTML = `
+                            <img src="${e.target.result}" class="image-preview">
+                            <p>${imageDescription}</p>
+                        `;
+                        imagesList.appendChild(imageItem);
+
+                        // Clear input only after the last file is processed.
+                        if (file === imageInput.files[imageInput.files.length - 1]) {
+                            imageInput.value = '';
+                            document.getElementById('imageDescription').value = '';
+                        }
+
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
 
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
@@ -896,7 +948,7 @@
                 customLinks: [],
                 selfAssessment: collectSelfAssessmentData(),
                 pdfs: [],
-                images:[]
+                images: []
             };
 
             const termsAgreement = document.getElementById('termsAgreement');
@@ -1014,36 +1066,6 @@
             `;
                 linksList.appendChild(linkItem);
                 linkInput.value = '';
-            }
-        }
-
-        function addImages() {
-            const imageInput = document.getElementById('imageInput');
-            const imageDescription = document.getElementById('imageDescription');
-            const imagesList = document.getElementById('imagesList');
-            let a = imageInput.files.length;
-
-            if (imageInput.files.length > 0) {
-                for (let file of imageInput.files) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imageItem = document.createElement('div');
-                        imageItem.className = 'image-item';
-
-                        imageItem.innerHTML = `
-                            <img src="${e.target.result}" class="image-preview">
-                            <p>${imageDescription.value}</p>
-                            <button onclick="this.parentElement.remove()">Remove</button>
-                        `;
-                        imagesList.appendChild(imageItem);
-                    }
-                    reader.readAsDataURL(file);
-                }
-                a = a - 1;
-            }
-            if (a <= 1) {
-                imageInput.value = '';
-                imageDescription.value = '';
             }
         }
 
