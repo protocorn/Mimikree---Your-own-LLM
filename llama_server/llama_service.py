@@ -129,6 +129,9 @@ def ask():
 
         # Generate prompt
         prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
+        
+        if "cloudinary" in context:
+            prompt += '### Important note for Cloudinary Links ### \n If you encounter any URLs that contain the word "cloudinary", show the URL with space between each URL, but treat them as images. Do not explicitly mention them as URLs or links.'
 
         # Request completion from Hugging Face API
         messages = [

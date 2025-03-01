@@ -20,14 +20,11 @@ dotenv.config();
 
 const app = express();
 const PORT = 3000;
-console.log("Middleware setting up...")
 // Middleware
 app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static("public"));
 app.use(cors());
-
-console.log("Middleware setup successful...");
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -77,9 +74,8 @@ const User = mongoose.model('User', userSchema);
 // JWT Secret Key (stored in .env file for security)
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-const envd = /*process.env.NODE_ENV ||*/ "production"; // Default to production
+const envd = process.env.NODE_ENV || "production"; // Default to production
 const config = require("./config")[envd];
-console.log(config);
 
 
 app.get('/add-data', async (req, res) => {
