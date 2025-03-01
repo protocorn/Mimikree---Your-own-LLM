@@ -66,6 +66,9 @@ const User = mongoose.model('User', userSchema);
 // JWT Secret Key (stored in .env file for security)
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
+const envd = process.env.NODE_ENV || "production"; // Default to production
+const config = require("./config")[envd]; 
+
 
 app.get('/add-data', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "data.html"));
@@ -96,7 +99,7 @@ app.post("/api/submit", async (req, res) => {
 
         // Collect GitHub data
         if (data.socialProfiles.github) {
-            const githubResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/github/profile`, {
+            const githubResponse = await axios.post(`${config.nodeServer}/api/github/profile`, {
                 username: data.socialProfiles.github.username
             });
             collectedData.github = githubResponse.data;
@@ -113,7 +116,7 @@ app.post("/api/submit", async (req, res) => {
 
 
         if (data.socialProfiles.linkedin) {
-            const linkedinResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/linkedin/profile`, {
+            const linkedinResponse = await axios.post(`${config.nodeServer}/api/linkedin/profile`, {
                 linkedInUrl: data.socialProfiles.linkedin.url
             });
 
@@ -127,7 +130,7 @@ app.post("/api/submit", async (req, res) => {
         }
         // Collect Twitter data
         if (data.socialProfiles.twitter) {
-            const twitterResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/twitter/profile`, {
+            const twitterResponse = await axios.post(`${config.nodeServer}/api/twitter/profile`, {
                 username: data.socialProfiles.twitter.username
             });
             collectedData.twitter = twitterResponse.data;
@@ -135,7 +138,7 @@ app.post("/api/submit", async (req, res) => {
         }
 
         if (data.socialProfiles.medium) {
-            const mediumResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/medium/profile`, {
+            const mediumResponse = await axios.post(`${config.nodeServer}/api/medium/profile`, {
                 username: data.socialProfiles.medium.username
             });
             collectedData.medium = mediumResponse.data;
@@ -144,7 +147,7 @@ app.post("/api/submit", async (req, res) => {
             })
         }
         if (data.socialProfiles.reddit) {
-            const redditResponse = await axios.post(`https://mimikree-your-own-llm.vercel.app/api/reddit/profile`, {
+            const redditResponse = await axios.post(`${config.nodeServer}/api/reddit/profile`, {
                 username: data.socialProfiles.reddit.username
             });
             collectedData.reddit = redditResponse.data;
@@ -171,7 +174,7 @@ app.post("/api/submit", async (req, res) => {
                 const username = decoded.username;
 
                 for (const doc of documents) {
-                    await axios.post('https://llama-server.fly.dev/process', { document: doc, username: username });
+                    await axios.post(`${config.llamaServer}/process`, { document: doc, username: username });
                 }
 
                 if (data.socialProfiles.github) {
@@ -361,7 +364,7 @@ app.post("/api/query/:username", async (req, res) => {
                 //own_model: true,
             };
 
-            const response = await axios.post(`https://llama-server.fly.dev/ask`, dataForModel);
+            const response = await axios.post(`${config.llamaServer}/ask`, dataForModel);
 
             // 6. Response Handling (Important!)
             if (!response.data || !response.data.response) { // Check for valid response structure

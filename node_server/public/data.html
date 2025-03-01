@@ -562,7 +562,7 @@
             }
 
             try {
-                const response = await fetch('https://mimikree-your-own-llm.vercel.app/api/user/profile', {
+                const response = await fetch('/api/user/profile', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -918,7 +918,7 @@
 
             // Send data to backend
             try {
-                const response = await fetch('https://mimikree-your-own-llm.vercel.app/api/submit', {
+                const response = await fetch('/api/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
