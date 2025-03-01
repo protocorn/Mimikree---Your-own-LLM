@@ -604,6 +604,7 @@
         }
 
         const loadedSocialLinks = {}
+        let loadedImageUrls = []
 
         function populateSocialProfiles(profiles) {
             if (profiles.github) {
@@ -704,17 +705,19 @@
         function populateImages(images) {
             const imagesList = document.getElementById('imagesList');
             imagesList.innerHTML = ''; // Clear existing images
-        
+            loadedImageUrls = []; // Reset the loaded images array
+    
             images.forEach(image => {
                 const imageItem = document.createElement('div');
                 imageItem.className = 'image-item';
-        
+    
                 imageItem.innerHTML = `
                     <img src="${image.url}" class="image-preview">
                     <p>${image.description}</p>
                 `;
-        
+    
                 imagesList.appendChild(imageItem);
+                loadedImageUrls.push(image.url); // Add URL to loaded URLs
             });
         }
 
@@ -758,30 +761,6 @@
             }
         }
 
-        function addImages() {
-            const imageInput = document.getElementById('imageInput');
-            const imageDescription = document.getElementById('imageDescription');
-            const imagesList = document.getElementById('imagesList');
-
-            if (imageInput.files.length > 0) {
-                for (let file of imageInput.files) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const imageItem = document.createElement('div');
-                        imageItem.className = 'image-item';
-                        imageItem.innerHTML = `
-                    <img src="${e.target.result}" class="image-preview">
-                    <p>${imageDescription.value}</p>
-                    <button onclick="this.parentElement.remove()">Remove</button>
-                  `;
-                        imagesList.appendChild(imageItem);
-                    }
-                    reader.readAsDataURL(file);
-                }
-                imageInput.value = '';
-                imageDescription.value = '';
-            }
-        }
 
         function addImages() {
             const imageInput = document.getElementById('imageInput');
@@ -979,10 +958,13 @@
 
             // Collect images
             document.querySelectorAll('.image-item').forEach(item => {
-                data.images.push({
-                    description: item.querySelector('p').textContent,
-                    src: item.querySelector('img').src
-                });
+                const imageUrl = item.querySelector('img').src;
+                if (!loadedImageUrls.includes(imageUrl)) { // Check if image is not loaded
+                    data.images.push({
+                        description: item.querySelector('p').textContent,
+                        src: imageUrl
+                    });
+                }
             });
 
             if (pdfTexts.length > 0) {
