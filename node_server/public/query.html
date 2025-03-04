@@ -10,9 +10,13 @@
     <style>
         :root {
             --primary-color: #007bff;
+            --primary-light: #e6f2ff;
+            --primary-dark: #0056b3;
             --secondary-color: #e9ecef;
             --text-color: #333;
             --background-color: #f4f4f9;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
         }
 
         * {
@@ -36,7 +40,7 @@
             margin: 2rem auto;
             padding: 2rem;
             background: white;
-            border-radius: 12px;
+            border-radius: var(--border-radius);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
@@ -127,10 +131,7 @@
         }
 
         .back-to-main {
-            margin-top: 1rem;
-            /* Space from other elements */
-            /* Center the button */
-            margin-bottom: 1.5rem;
+            margin: 0;
         }
 
         .back-to-main button {
@@ -184,7 +185,7 @@
             .back-to-main button {
                 padding: 0.6rem 1.2rem;
                 /* Adjust padding for smaller screens */
-                font-size: 0.9rem;
+                font-size: 1.2rem;
                 /* Adjust font size */
             }
         }
@@ -218,16 +219,353 @@
             padding: 0.6rem 1.2rem;
             border-radius: 20px;
         }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .rating-toggle {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--primary-light);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .rating-toggle:hover {
+            background-color: #d9e9ff;
+        }
+
+        .rating-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .rating-toggle.active .rating-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .rating-container {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border: 1px solid #eaeaea;
+            transition: all var(--transition-speed) ease;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .rating-container.visible {
+            max-height: 200px;
+            opacity: 1;
+            margin-bottom: 1rem;
+            pointer-events: auto;
+        }
+
+        .rating-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .rating-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .rating-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .rating-container h3 {
+            margin: 0;
+            color: #444;
+            font-size: 0.95rem;
+            white-space: nowrap;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .star {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #ddd;
+            transition: color var(--transition-speed), transform 0.1s;
+            line-height: 1;
+        }
+
+        .star:hover {
+            transform: scale(1.1);
+        }
+
+        .star:hover,
+        .star.active {
+            color: #FFD700;
+        }
+
+        .rating-feedback {
+            font-size: 0.85rem;
+            color: #666;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .average-rating {
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            color: #555;
+            gap: 0.25rem;
+        }
+
+        .average-stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .average-stars .star {
+            font-size: 1rem;
+            cursor: default;
+        }
+
+        .average-stars .star-filled {
+            color: #FFD700;
+        }
+
+        .average-stars .star-half {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .average-stars .star-half:before {
+            content: "★";
+            position: absolute;
+            color: #FFD700;
+            width: 50%;
+            overflow: hidden;
+        }
+
+        .average-stars .star-half:after {
+            content: "★";
+            color: #ddd;
+        }
+
+        .rating-count {
+            font-size: 0.75rem;
+            color: #777;
+        }
+
+        .rating-success {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            background-color: #4caf50;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: all var(--transition-speed);
+            z-index: 10;
+        }
+
+        .rating-success.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(calc(100% + 8px));
+        }
+
+        #queryInput {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 100px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .input-box button {
+            align-self: flex-end;
+            margin-top: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+        }
+
+        .copy-link-container {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .copy-link-display {
+            flex-grow: 1;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .copy-link-button {
+            padding: 0.5rem 1rem;
+            margin-left: 0.5rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0.5rem;
+                padding: 0.8rem;
+            }
+            
+            .chat-box {
+                height: 350px; /* Slightly smaller for mobile */
+            }
+            
+            .header-container {
+                flex-direction: row; /* Change from column to row */
+                justify-content: space-between; /* Distribute space between items */
+                align-items: center; /* Vertically center items */
+                gap: 0.5rem;
+            }
+            
+            .rating-toggle {
+                width: auto;
+                justify-content: space-between;
+            }
+            
+            .rating-container {
+                width: 100%;
+                pointer-events: none;
+            }
+            
+            .rating-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+            
+            .rating-left, .rating-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .rating-right {
+                justify-content: flex-start;
+            }
+            
+            .rating-feedback {
+                min-width: 80px; /* More space for feedback text */
+            }
+            .container h1 {
+                font-size: 1.5rem; /* Smaller heading */
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 380px) {
+            .rating-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .rating-stars {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .star {
+                font-size: 1.8rem; /* Larger stars for better touch targets */
+            }
+            
+            .rating-feedback {
+                margin-top: 0.25rem;
+                text-align: left;
+            }
+            
+            .back-to-main button, .rating-toggle, .input-box button {
+                padding: 0.5rem 1rem; /* Smaller buttons */
+                font-size: 0.9rem;
+            }
+            
+            .container h1 {
+                font-size: 1.5rem; /* Smaller heading */
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <div class="container">
-        <div class="back-to-main">
-            <button onclick="window.location.href='/'" style="border-radius: 10px;">← Back to Main Page</button>
+        <div class="header-container">
+            <div class="back-to-main">
+                <button onclick="window.location.href='/'">← Back to Main Page</button>
+            </div>
+            
+            <!-- New Rating Toggle Button -->
+            <div class="rating-toggle" id="ratingToggle">
+                <span>Ratings</span>
+                <span class="rating-toggle-icon">▼</span>
+            </div>
         </div>
-        <h1>Chat Interface</h1>
+        
+        <!-- Rating container with improved animation -->
+        <div class="rating-container" id="ratingContainer">
+            <div class="rating-success" id="ratingSuccess">Thank you for your rating!</div>
+            <div class="rating-content">
+                <div class="rating-left">
+                    <h3>Rate this Model:</h3>
+                    <div class="rating-stars" id="ratingStars">
+                        <span class="star" data-rating="1">★</span>
+                        <span class="star" data-rating="2">★</span>
+                        <span class="star" data-rating="3">★</span>
+                        <span class="star" data-rating="4">★</span>
+                        <span class="star" data-rating="5">★</span>
+                    </div>
+                    <div class="rating-feedback" id="ratingFeedback"></div>
+                </div>
+                <div class="rating-right">
+                    <div class="average-rating" id="averageRatingDisplay">
+                        <div class="average-stars" id="averageStars"></div>
+                        <span id="averageNumber"></span>
+                        <span class="rating-count" id="ratingCount"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h1></h1>
         <div class="chat-box" id="chatBox"></div>
         <div class="input-box">
             <textarea id="queryInput" placeholder="Enter your query" required></textarea>
@@ -262,6 +600,14 @@
                         copyLinkButton.textContent = 'Copy';
                     }, 2000);
                 });
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            const username = window.location.pathname.split('/').pop();
+            if (username) {
+                document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
+            } else {
+                document.querySelector('h1').innerHTML = "Chat with AI"; //Or some other default text.
+            }
         });
         document.getElementById("submitButton").addEventListener("click", async function () {
             const queryInput = document.getElementById("queryInput");
@@ -362,6 +708,198 @@
             this.style.height = "auto"; // Reset height to recalculate
             this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
         });
+        const ratingToggle = document.getElementById('ratingToggle');
+        const ratingContainer = document.getElementById('ratingContainer');
+
+        // Function to update rating visibility with animation
+        function updateRatingVisibility(show) {
+            if (show) {
+                ratingContainer.classList.add('visible');
+                ratingToggle.classList.add('active');
+                localStorage.setItem("ratingVisible", "true");
+                ratingContainer.style.pointerEvents = "auto"; // Add this line
+            } else {
+                ratingContainer.classList.remove('visible');
+                ratingToggle.classList.remove('active');
+                localStorage.setItem("ratingVisible", "false");
+                ratingContainer.style.pointerEvents = "none"; // Add this line
+            }
+        }
+        
+        // Load rating visibility state from local storage
+        const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
+        updateRatingVisibility(isRatingVisible);
+        
+        // Toggle rating visibility on button click
+        ratingToggle.addEventListener('click', () => {
+            const isCurrentlyVisible = ratingContainer.classList.contains('visible');
+            updateRatingVisibility(!isCurrentlyVisible);
+        });
+
+        const ratingStars = document.getElementById("ratingStars");
+        const ratingFeedback = document.getElementById("ratingFeedback");
+        const ratingSuccess = document.getElementById("ratingSuccess");
+        const averageRatingDisplay = document.getElementById("averageRatingDisplay");
+        const averageStars = document.getElementById("averageStars");
+        const averageNumber = document.getElementById("averageNumber");
+        const ratingCount = document.getElementById("ratingCount");
+        const username = window.location.pathname.split('/').pop();
+
+        const feedbackTexts = [
+            "",
+            "Poor",
+            "Below Average",
+            "Average",
+            "Good",
+            "Excellent"
+        ];
+
+        ratingStars.addEventListener("mouseover", (event) => {
+            if (event.target.classList.contains("star")) {
+                const rating = parseInt(event.target.dataset.rating);
+                const stars = ratingStars.querySelectorAll(".star");
+
+                // Reset all stars
+                stars.forEach(star => star.classList.remove("active"));
+
+                // Highlight stars up to the hovered one
+                for (let i = 0; i < rating; i++) {
+                    stars[i].classList.add("active");
+                }
+
+                // Show feedback text
+                ratingFeedback.textContent = feedbackTexts[rating];
+            }
+        });
+
+        // Reset stars when not hovering over the rating container
+        ratingStars.addEventListener("mouseleave", () => {
+            const stars = ratingStars.querySelectorAll(".star");
+            stars.forEach(star => star.classList.remove("active"));
+            ratingFeedback.textContent = "";
+        });
+
+        // Handle rating submission
+        ratingStars.addEventListener("click", async (event) => {
+            if (event.target.classList.contains("star")) {
+                const rating = parseInt(event.target.dataset.rating);
+
+                try {
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                        alert("You must be logged in to rate.");
+                        location.href = '/login';
+                        return;
+                    }
+
+                    const response = await fetch(`/api/rate/${username}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ rating }),
+                    });
+
+                    const data = await response.json();
+                    if (response.ok) {
+                        // Show success message
+                        ratingSuccess.classList.add("visible");
+                        setTimeout(() => {
+                            ratingSuccess.classList.remove("visible");
+                        }, 2000);
+
+                        await fetchAverageRating(); // Refresh average rating
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error("Error rating:", error);
+                    alert("An error occurred while rating.");
+                }
+            }
+        });
+
+        // Function to render star rating
+        function renderStarRating(container, rating, size = "1rem") {
+            container.innerHTML = ""; // Clear previous stars
+
+            // Calculate full and partial stars
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+
+            // Add full stars
+            for (let i = 0; i < fullStars; i++) {
+                const star = document.createElement("span");
+                star.className = "star star-filled";
+                star.style.fontSize = size;
+                star.style.cursor = "default";
+                star.textContent = "★";
+                container.appendChild(star);
+            }
+
+            // Add half star if needed
+            if (hasHalfStar) {
+                const halfStar = document.createElement("span");
+                halfStar.className = "star star-half";
+                halfStar.style.fontSize = size;
+                halfStar.style.cursor = "default";
+                container.appendChild(halfStar);
+            }
+
+            // Add empty stars
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                const star = document.createElement("span");
+                star.className = "star";
+                star.style.fontSize = size;
+                star.style.cursor = "default";
+                star.textContent = "★";
+                container.appendChild(star);
+            }
+        }
+
+        async function fetchAverageRating() {
+            try {
+                const targetUsername = window.location.pathname.split('/').pop();
+                const response = await fetch(`/api/user/profile/${targetUsername}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let totalRating = 0;
+
+                    if (data.ratings && data.ratings.length > 0) {
+                        data.ratings.forEach(rating => {
+                            totalRating += rating.rating;
+                        });
+
+                        const averageRating = totalRating / data.ratings.length;
+
+                        // Update the average rating display
+                        renderStarRating(averageStars, averageRating, "0.9rem");
+                        averageNumber.textContent = `${averageRating.toFixed(1)}`;
+                        ratingCount.textContent = `(${data.ratings.length})`;
+                    } else {
+                        averageStars.innerHTML = "";
+                        averageNumber.textContent = "No ratings";
+                        ratingCount.textContent = "";
+                    }
+                } else {
+                    console.log("Error fetching profile");
+                }
+            } catch (error) {
+                console.error("Error fetching average rating:", error);
+                averageNumber.textContent = "Error";
+            }
+        }
+
+        fetchAverageRating(); // Fetch rating on page load
     </script>
 </body>
 

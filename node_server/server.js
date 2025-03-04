@@ -67,6 +67,10 @@ const userSchema = new mongoose.Schema({
     },
     pdfs: [String],
     images: [{ url: String, description: String }],
+    ratings: [{
+        rater: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        rating: { type: Number, min: 1, max: 5 }
+    }]
 });
 
 const User = mongoose.model('User', userSchema);
@@ -229,7 +233,7 @@ app.post("/api/submit", async (req, res) => {
                             const imageUrl = result.secure_url;
                             //const caption = await generateImageCaption(imageUrl);
                             await updateUserImages(username, imageUrl, image.description);
-                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description},Caption: ${caption}`});
+                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description}`,  username: username});
         
                             console.log(`Image uploaded: ${imageUrl}`);
                         } catch (uploadError) {
@@ -526,10 +530,81 @@ app.get("/api/user/profile", async (req, res) => {
             socialProfiles: user.socialProfiles,
             selfAssessment: user.selfAssessment,
             pdfs: user.pdfs,
-            images: user.images
+            images: user.images,
+            ratings: user.ratings
         });
     } catch (error) {
         console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.post("/api/rate/:username", async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ message: "No token provided" });
+        }
+
+        const decoded = jwt.verify(token, JWT_SECRET_KEY);
+        const raterUser = await User.findOne({ username: decoded.username });
+
+        if (!raterUser) {
+            return res.status(404).json({ message: "Rater user not found" });
+        }
+
+        const { username } = req.params;
+        const { rating } = req.body;
+
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ message: "Invalid rating" });
+        }
+
+        const ratedUser = await User.findOne({ username: username });
+
+        if (!ratedUser) {
+            return res.status(404).json({ message: "Rated user not found" });
+        }
+
+        // Corrected duplicate rating check:
+        const existingRating = ratedUser.ratings.find(r => r.rater.toString() === raterUser._id.toString());
+        if (existingRating) {
+            return res.status(400).json({ message: "You have already rated this model." });
+        }
+
+        ratedUser.ratings.push({
+            rater: raterUser._id,
+            rating: rating,
+        });
+
+        await ratedUser.save();
+
+        res.json({ message: "Rating submitted successfully" });
+    } catch (error) {
+        console.error("Error rating user:", error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: "Invalid token" });
+        }
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+app.get("/api/user/profile/:username", async (req, res) => {
+    try {
+        const { username } = req.params;
+
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Return only the ratings
+        res.json({
+            ratings: user.ratings,
+        });
+    } catch (error) {
+        console.error("Error fetching user ratings:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });

@@ -706,16 +706,16 @@
             const imagesList = document.getElementById('imagesList');
             imagesList.innerHTML = ''; // Clear existing images
             loadedImageUrls = []; // Reset the loaded images array
-    
+
             images.forEach(image => {
                 const imageItem = document.createElement('div');
                 imageItem.className = 'image-item';
-    
+
                 imageItem.innerHTML = `
                     <img src="${image.url}" class="image-preview">
                     <p>${image.description}</p>
                 `;
-    
+
                 imagesList.appendChild(imageItem);
                 loadedImageUrls.push(image.url); // Add URL to loaded URLs
             });
@@ -779,6 +779,7 @@
                         imageItem.innerHTML = `
                             <img src="${e.target.result}" class="image-preview">
                             <p>${imageDescription}</p>
+                            <button onclick="this.parentElement.remove()">Remove</button>
                         `;
                         imagesList.appendChild(imageItem);
 
@@ -970,7 +971,6 @@
             if (pdfTexts.length > 0) {
                 data.pdfs = pdfTexts;
             }
-
 
 
             const token = localStorage.getItem("token"); // Retrieve token from localStorage

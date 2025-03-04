@@ -9,6 +9,7 @@ import secrets
 import re
 from waitress import serve
 
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32) 
 
@@ -99,59 +100,36 @@ def ask():
         data = request.json
         query_text = data['query']
         self_assessment = data['selfAssessment']
-        username = data['username']  # Get username from the request
+        username = data['username']
         name = data['name']
-        #own_model = data['own_model']
-        
-        '''if own_model is None: # Handle cases where the own_model flag is not provided
-            own_model = False
-        
-        if is_own_model:
-            interaction_type = "The user is interacting with their own model ({name}).  Respond as if {name} is reflecting on their own information and answering their own questions."
-        else:
-            interaction_type = "The user is interacting with {name}'s model. Respond as {name}."'''
-        
-        print(username)
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
-
 
         # Generate query embedding
         query_vector = embedding_model.encode(query_text).tolist()
 
         # Retrieve similar documents from Pinecone
-        
         pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": username})
-
         retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
         context = "\n".join(retrieved_docs)
-
-        # Generate prompt
-        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
         
+        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
+
         if "cloudinary" in context:
             prompt += '### Important note for Cloudinary Links ### \n If you encounter any URLs that contain the word "cloudinary", show the URL with space between each URL, but treat them as images. Do not explicitly mention them as URLs or links.'
 
         # Request completion from Hugging Face API
-        messages = [
-            {"role": "user", "content": prompt}
-        ]
-        
+        messages = [{"role": "user", "content": prompt}]
+
         completion = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct",
-            messages=messages, 
+            messages=messages,
             max_tokens=1024,
         )
-        
-        def format_links(text):
-            """Finds URLs in text and converts them into clickable links."""
-            url_pattern = re.compile(r'(https?://\S+)')  # Match URLs starting with http or https
-            return url_pattern.sub(r'<a href="\1" target="_blank">\1</a>', text)
-        
+
         response = completion.choices[0].message['content']
-        #formatted_response = format_links(response)
-            
+
         return jsonify({
             "success": True,
             "query": query_text,
@@ -160,7 +138,6 @@ def ask():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+    
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
