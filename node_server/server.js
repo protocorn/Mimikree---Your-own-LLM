@@ -44,7 +44,19 @@ mongoose.connect(process.env.MONGO_URI, {
     useUnifiedTopology: true,
 })
     .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => console.log("MongoDB connection error:", err));
+    .catch((err) => {
+        console.error("Initial MongoDB connection error:", err);
+        // Attempt to reconnect after a delay (e.g., 5 seconds)
+        setTimeout(() => {
+            mongoose.connect(process.env.MONGO_URI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            })
+                .then(() => console.log("Reconnected to MongoDB"))
+                .catch((reconnectErr) => console.error("Failed to reconnect:", reconnectErr));
+        }, 5000);
+    });
+
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -233,8 +245,8 @@ app.post("/api/submit", async (req, res) => {
                             const imageUrl = result.secure_url;
                             //const caption = await generateImageCaption(imageUrl);
                             await updateUserImages(username, imageUrl, image.description);
-                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description}`,  username: username});
-        
+                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description}`, username: username });
+
                             console.log(`Image uploaded: ${imageUrl}`);
                         } catch (uploadError) {
                             console.error("Error uploading image:", uploadError);
@@ -293,7 +305,7 @@ async function generateImageCaption(imageUrl) {
     try {
         // Replace with your actual AI captioning logic
         // This is just an example using a hypothetical captioning service
-        const response = await axios.post(`${config.llamaServer}/caption`, { image_url: imageUrl }); 
+        const response = await axios.post(`${config.llamaServer}/caption`, { image_url: imageUrl });
         return response.data.caption;
     } catch (error) {
         console.error("Error generating caption:", error);
