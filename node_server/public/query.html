@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --primary-color: #007bff;
+            --primary-color: #4d68ff;
             --primary-light: #e6f2ff;
             --primary-dark: #0056b3;
             --secondary-color: #e9ecef;
@@ -174,7 +174,7 @@
         .copy-link-button {
             padding: 0.5rem 1rem;
             margin-left: 0.5rem;
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 4px;
@@ -435,7 +435,7 @@
         .copy-link-button {
             padding: 0.5rem 1rem;
             margin-left: 0.5rem;
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             border: none;
             border-radius: 4px;
@@ -522,6 +522,85 @@
             .container h1 {
                 font-size: 1.5rem; /* Smaller heading */
             }
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+        }
+
+        .typing-indicator-text {
+            margin-right: 10px;
+            font-weight: 500;
+        }
+
+        .typing-dots {
+            display: flex;
+            align-items: center;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            border-radius: 50%;
+            background-color: #666;
+            animation: pulse 1.5s infinite;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+            0%, 50%, 100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            25% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            animation: progress-animation 10s ease-in-out;
+        }
+
+        @keyframes progress-animation {
+            0% { width: 5%; }
+            10% { width: 15%; }
+            25% { width: 30%; }
+            50% { width: 45%; }
+            75% { width: 65%; }
+            90% { width: 80%; }
+            97% { width: 90%; }
+            100% { width: 95%; }
+        }
+
+        .ai-status {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
         }
     </style>
 </head>
@@ -632,9 +711,60 @@
             // Show "loading" message
             const botMessage = document.createElement("div");
             botMessage.className = "message bot-message";
-            botMessage.textContent = "Thinking...";
+
+            // Create the loading indicator with text and dots
+            const loadingIndicator = document.createElement("div");
+            loadingIndicator.className = "typing-indicator";
+            
+            const indicatorText = document.createElement("span");
+            indicatorText.className = "typing-indicator-text";
+            indicatorText.textContent = "Thinking";
+            loadingIndicator.appendChild(indicatorText);
+            
+            const typingDots = document.createElement("div");
+            typingDots.className = "typing-dots";
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement("div");
+                dot.className = "dot";
+                typingDots.appendChild(dot);
+            }
+            
+            loadingIndicator.appendChild(typingDots);
+            botMessage.appendChild(loadingIndicator);
+            
+            // Add progress bar
+            const progressContainer = document.createElement("div");
+            progressContainer.className = "progress-bar-container";
+            
+            const progressBar = document.createElement("div");
+            progressBar.className = "progress-bar";
+            progressContainer.appendChild(progressBar);
+            botMessage.appendChild(progressContainer);
+            
+            // Add AI status
+            const aiStatus = document.createElement("div");
+            aiStatus.className = "ai-status";
+            aiStatus.textContent = "Processing query...";
+            botMessage.appendChild(aiStatus);
+            
             chatBox.appendChild(botMessage);
             chatBox.scrollTop = chatBox.scrollHeight;
+
+                 // Start randomized status updates
+                 const statusMessages = [
+                 "Analyzing question...",
+                 "Retrieving information...",
+                 "Generating response...",
+                 "Formulating answer...",
+                 "Processing query...",
+                 "Creating thoughtful reply...",
+                 "Almost there..."
+             ];
+             
+             let statusInterval = setInterval(() => {
+                 const randomIndex = Math.floor(Math.random() * statusMessages.length);
+                 aiStatus.textContent = statusMessages[randomIndex];
+             }, 2500);
 
             try {
                 const username = window.location.pathname.split('/').pop();

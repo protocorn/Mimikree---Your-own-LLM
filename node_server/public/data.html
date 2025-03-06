@@ -18,6 +18,17 @@
         });
     </script>
     <style>
+        :root {
+            --primary-color: #4d68ff;
+            --primary-light: #e6f2ff;
+            --primary-dark: #0056b3;
+            --secondary-color: #e9ecef;
+            --text-color: #333;
+            --background-color: #f4f4f9;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -108,8 +119,8 @@
         }
 
         input[type="checkbox"]:checked {
-            background-color: #007bff;
-            border-color: #007bff;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         input[type="checkbox"]:checked::before {
@@ -153,7 +164,7 @@
         }
 
         button {
-            background-color: #007bff;
+            background-color: var(--primary-color);
             /* Soft green for buttons */
             color: white;
             border: none;
@@ -164,7 +175,7 @@
         }
 
         button:hover {
-            background-color: #4CAF50;
+            background-color: var(--primary-dark);
             /* Darker green on hover */
         }
 
@@ -291,23 +302,60 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* Semi-transparent black overlay */
+            background-color: rgba(0, 0, 0, 0.7);
             z-index: 9999;
-            /* Ensure it's on top */
             justify-content: center;
             align-items: center;
+            backdrop-filter: blur(3px);
         }
 
-        .loader {
-            border: 16px solid #f3f3f3;
-            /* Light grey */
-            border-top: 16px solid #3498db;
-            /* Blue */
+        .loading-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .spinner {
+            margin: 0 auto 20px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
             border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            animation: spin 2s linear infinite;
+            width: 60px;
+            height: 60px;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .progress-container {
+            height: 8px;
+            background-color: #f3f3f3;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        #loading-text {
+            margin: 10px 0;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        #loading-percentage {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 5px 0;
         }
 
         @keyframes spin {
@@ -324,10 +372,15 @@
 
 <body>
     <div id="loading-overlay">
-        <div class="loader"></div>
-        <h3>Please wait while we process your data...</h3>
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <p id="loading-text">Processing your data...</p>
+            <p id="loading-percentage">0%</p>
+        </div>
     </div>
-
     <div style="margin-bottom:10px" class="button-holder">
         <button onclick="location.href='/'">
             ← Back to Main page
@@ -501,6 +554,44 @@
     </div>
 
     <script>
+        function showLoading(message = "Processing your data...") {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const loadingText = document.getElementById('loading-text');
+            const progressBar = document.getElementById('progress-bar');
+            const loadingPercentage = document.getElementById('loading-percentage');
+
+            // Reset progress
+            progressBar.style.width = '0%';
+            loadingPercentage.textContent = '0%';
+
+            // Set message
+            loadingText.textContent = message;
+
+            // Display the overlay
+            loadingOverlay.style.display = 'flex';
+
+            // Disable all buttons
+            document.querySelectorAll('button').forEach(button => {
+                button.disabled = true;
+            });
+
+            return {
+                // Update progress (value from 0 to 100)
+                updateProgress: function (percent) {
+                    const value = Math.min(Math.max(percent, 0), 100);
+                    progressBar.style.width = `${value}%`;
+                    loadingPercentage.textContent = `${Math.round(value)}%`;
+                },
+                // Hide loading overlay
+                hideLoading: function () {
+                    loadingOverlay.style.display = 'none';
+                    // Re-enable all buttons
+                    document.querySelectorAll('button').forEach(button => {
+                        button.disabled = false;
+                    });
+                }
+            };
+        }
         function checkAuth() {
             const token = localStorage.getItem("token");
 
@@ -972,13 +1063,34 @@
                 data.pdfs = pdfTexts;
             }
 
+            const loader = showLoading("Uploading your information...");
+
 
             const token = localStorage.getItem("token"); // Retrieve token from localStorage
 
             if (!token) {
                 console.error("No token found, user not authenticated.");
+                loader.hideLoading();
                 return;
             }
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 5;
+                loader.updateProgress(progress);
+
+                // Change message based on progress
+                if (progress === 30) {
+                    document.getElementById('loading-text').textContent = "Processing documents...";
+                } else if (progress === 60) {
+                    document.getElementById('loading-text').textContent = "Finalizing submission...";
+                }
+
+                if (progress >= 95) {
+                    clearInterval(progressInterval);
+                }
+            }, 200);
+
             const submitBtn = document.getElementById('submitBtn');
             const loadingOverlay = document.getElementById('loading-overlay');
             const successMessage = document.getElementById('successMessage');
@@ -1013,13 +1125,21 @@
                     throw new Error("Invalid JSON response from server.");
                 }
 
-                if (result.success) {
-                    document.getElementById('successMessage').style.display = 'block';
-                }
-                else {
-                    alert("Submission failed. Please try again.");
-                }
+                clearInterval(progressInterval);
+                loader.updateProgress(100);
+
+                setTimeout(() => {
+                    loader.hideLoading();
+
+                    if (result.success) {
+                        document.getElementById('successMessage').style.display = 'block';
+                    } else {
+                        alert("Submission failed. Please try again.");
+                    }
+                }, 500);
             } catch (error) {
+                clearInterval(progressInterval);
+                loader.hideLoading();
                 console.error('Error submitting data:', error);
                 alert("An error occurred during submission. Please try again.");
             }
