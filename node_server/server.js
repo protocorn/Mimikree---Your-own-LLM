@@ -597,7 +597,9 @@ app.post("/api/rate/:username", async (req, res) => {
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({ message: "Invalid token" });
         }
-        res.status(500).json({ message: "Internal server error" });
+        else{
+            res.status(500).json({ message: "Try Logging in again" });
+        }
     }
 });
 
