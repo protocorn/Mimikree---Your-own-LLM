@@ -23,7 +23,7 @@ const PORT = 3000;
 // Middleware
 app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
 
 cloudinary.config({
