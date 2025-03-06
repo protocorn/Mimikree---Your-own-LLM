@@ -1,7 +1,7 @@
 // config.js
 module.exports = {
     production: {
-      nodeServer: "https://mimikree-your-own-llm.vercel.app",
+      nodeServer: "https://mimikree.com",
       llamaServer: "https://llama-server.fly.dev",
     },
     test: {
