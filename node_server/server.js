@@ -388,27 +388,27 @@ app.post("/api/query/:username", async (req, res) => {
     try {
         const { query } = req.body;
         const { username } = req.params;
-        //let myusername;
-        //let is_own_model = false;
-
-        /*const token = req.headers.authorization?.split(" ")[1];
+        let myusername;
+        let is_own_model = false;
+        const token = req.headers.authorization?.split(" ")[1];
         console.log(token);
         if (token) {
             let decoded;
             try {
                 decoded = jwt.verify(token, JWT_SECRET_KEY);
                 myusername = decoded.username;
+                console.log(myusername);
+                console.log(username);
+                if(username==myusername){
+                    is_own_model=true;
+                }
             }
             catch (error){
                 console.log(error);
             }
-        }*/
+        }
 
-        //console.log(myusername);
-
-        /*if(username==myusername){
-            is_own_model=true;
-        }*/
+       
 
         // 1. Input Validation (Crucial)
         if (!query || query.trim().length === 0) {
@@ -435,7 +435,7 @@ app.post("/api/query/:username", async (req, res) => {
                 selfAssessment: user.selfAssessment,
                 username: username,
                 name: user.name, // Include name if needed by your LLM
-                //own_model: true,
+                own_model: is_own_model,
             };
 
             const response = await axios.post(`${config.llamaServer}/ask`, dataForModel);

@@ -228,6 +228,7 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+
         .rating-toggle {
             position: relative;
             display: flex;
@@ -447,51 +448,59 @@
                 margin: 0.5rem;
                 padding: 0.8rem;
             }
-            
+
             .chat-box {
-                height: 350px; /* Slightly smaller for mobile */
+                height: 350px;
+                /* Slightly smaller for mobile */
             }
-            
+
             .header-container {
-                flex-direction: row; /* Change from column to row */
-                justify-content: space-between; /* Distribute space between items */
-                align-items: center; /* Vertically center items */
+                flex-direction: row;
+                /* Change from column to row */
+                justify-content: space-between;
+                /* Distribute space between items */
+                align-items: center;
+                /* Vertically center items */
                 gap: 0.5rem;
             }
-            
+
             .rating-toggle {
                 width: auto;
                 justify-content: space-between;
             }
-            
+
             .rating-container {
                 width: 100%;
                 pointer-events: none;
             }
-            
+
             .rating-content {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.75rem;
             }
-            
-            .rating-left, .rating-right {
+
+            .rating-left,
+            .rating-right {
                 width: 100%;
                 justify-content: space-between;
             }
-            
+
             .rating-right {
                 justify-content: flex-start;
             }
-            
+
             .rating-feedback {
-                min-width: 80px; /* More space for feedback text */
+                min-width: 80px;
+                /* More space for feedback text */
             }
+
             .container h1 {
-                font-size: 1.5rem; /* Smaller heading */
+                font-size: 1.5rem;
+                /* Smaller heading */
             }
         }
-        
+
         /* Extra small devices */
         @media (max-width: 500px) {
             .rating-left {
@@ -499,30 +508,36 @@
                 align-items: flex-start;
                 gap: 0.5rem;
             }
-            
+
             .rating-stars {
                 width: 100%;
                 justify-content: space-between;
             }
-            
+
             .star {
-                font-size: 1.8rem; /* Larger stars for better touch targets */
+                font-size: 1.8rem;
+                /* Larger stars for better touch targets */
             }
-            
+
             .rating-feedback {
                 margin-top: 0.25rem;
                 text-align: left;
             }
-            
-            .back-to-main button, .rating-toggle, .input-box button {
-                padding: 0.5rem 1rem; /* Smaller buttons */
+
+            .back-to-main button,
+            .rating-toggle,
+            .input-box button {
+                padding: 0.5rem 1rem;
+                /* Smaller buttons */
                 font-size: 0.7rem;
             }
-            
+
             .container h1 {
-                font-size: 1.5rem; /* Smaller heading */
+                font-size: 1.5rem;
+                /* Smaller heading */
             }
         }
+
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -557,10 +572,14 @@
         }
 
         @keyframes pulse {
-            0%, 50%, 100% {
+
+            0%,
+            50%,
+            100% {
                 transform: scale(1);
                 opacity: 0.7;
             }
+
             25% {
                 transform: scale(1.2);
                 opacity: 1;
@@ -586,14 +605,37 @@
         }
 
         @keyframes progress-animation {
-            0% { width: 5%; }
-            10% { width: 15%; }
-            25% { width: 30%; }
-            50% { width: 45%; }
-            75% { width: 65%; }
-            90% { width: 80%; }
-            97% { width: 90%; }
-            100% { width: 95%; }
+            0% {
+                width: 5%;
+            }
+
+            10% {
+                width: 15%;
+            }
+
+            25% {
+                width: 30%;
+            }
+
+            50% {
+                width: 45%;
+            }
+
+            75% {
+                width: 65%;
+            }
+
+            90% {
+                width: 80%;
+            }
+
+            97% {
+                width: 90%;
+            }
+
+            100% {
+                width: 95%;
+            }
         }
 
         .ai-status {
@@ -612,14 +654,14 @@
             <div class="back-to-main">
                 <button onclick="window.location.href='/'">← Back to Main Page</button>
             </div>
-            
+
             <!-- New Rating Toggle Button -->
             <div class="rating-toggle" id="ratingToggle">
                 <span>Ratings</span>
                 <span class="rating-toggle-icon">▼</span>
             </div>
         </div>
-        
+
         <!-- Rating container with improved animation -->
         <div class="rating-container" id="ratingContainer">
             <div class="rating-success" id="ratingSuccess">Thank you for your rating!</div>
@@ -681,11 +723,42 @@
                 });
         });
         document.addEventListener('DOMContentLoaded', () => {
-            const username = window.location.pathname.split('/').pop();
-            if (username) {
-                document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
+            const urlUsername = window.location.pathname.split('/').pop();
+            
+            // Check if we're viewing our own AI
+            const currentUserToken = localStorage.getItem("token");
+            
+            if (currentUserToken) {
+                // Decode the JWT token to get current user info
+                try {
+                    const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
+                    const currentUsername = tokenData.username;
+                    
+                    if (urlUsername && currentUsername && urlUsername === currentUsername) {
+                        // This is the user's own AI
+                        document.querySelector('h1').innerHTML = "Chat with Your AI";
+                    } else if (urlUsername) {
+                        // This is someone else's AI
+                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                    } else {
+                        document.querySelector('h1').innerHTML = "Chat with AI";
+                    }
+                } catch (error) {
+                    console.error("Error parsing token:", error);
+                    // Fallback to original behavior
+                    if (urlUsername) {
+                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                    } else {
+                        document.querySelector('h1').innerHTML = "Chat with AI";
+                    }
+                }
             } else {
-                document.querySelector('h1').innerHTML = "Chat with AI"; //Or some other default text.
+                // No token (user not logged in), use original behavior
+                if (urlUsername) {
+                    document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                } else {
+                    document.querySelector('h1').innerHTML = "Chat with AI";
+                }
             }
         });
         document.getElementById("submitButton").addEventListener("click", async function () {
@@ -715,12 +788,12 @@
             // Create the loading indicator with text and dots
             const loadingIndicator = document.createElement("div");
             loadingIndicator.className = "typing-indicator";
-            
+
             const indicatorText = document.createElement("span");
             indicatorText.className = "typing-indicator-text";
             indicatorText.textContent = "Thinking";
             loadingIndicator.appendChild(indicatorText);
-            
+
             const typingDots = document.createElement("div");
             typingDots.className = "typing-dots";
             for (let i = 0; i < 3; i++) {
@@ -728,95 +801,114 @@
                 dot.className = "dot";
                 typingDots.appendChild(dot);
             }
-            
+
             loadingIndicator.appendChild(typingDots);
             botMessage.appendChild(loadingIndicator);
-            
+
             // Add progress bar
             const progressContainer = document.createElement("div");
             progressContainer.className = "progress-bar-container";
-            
+
             const progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
             progressContainer.appendChild(progressBar);
             botMessage.appendChild(progressContainer);
-            
+
             // Add AI status
             const aiStatus = document.createElement("div");
             aiStatus.className = "ai-status";
             aiStatus.textContent = "Processing query...";
             botMessage.appendChild(aiStatus);
-            
+
             chatBox.appendChild(botMessage);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-                 // Start randomized status updates
-                 const statusMessages = [
-                 "Analyzing question...",
-                 "Retrieving information...",
-                 "Generating response...",
-                 "Formulating answer...",
-                 "Processing query...",
-                 "Creating thoughtful reply...",
-                 "Almost there..."
-             ];
-             
-             let statusInterval = setInterval(() => {
-                 const randomIndex = Math.floor(Math.random() * statusMessages.length);
-                 aiStatus.textContent = statusMessages[randomIndex];
-             }, 2500);
+            // Start randomized status updates
+            const statusMessages = [
+                "Analyzing question...",
+                "Retrieving information...",
+                "Generating response...",
+                "Formulating answer...",
+                "Processing query...",
+                "Creating thoughtful reply...",
+                "Almost there..."
+            ];
+
+            let statusInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * statusMessages.length);
+                aiStatus.textContent = statusMessages[randomIndex];
+            }, 2500);
 
             try {
                 const username = window.location.pathname.split('/').pop();
                 console.log(username);
 
-                // Send request to backend
-                const response = await fetch(`/api/query/${username}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ query })
-                });
+                const token = localStorage.getItem("token");
+                let response = null; // Declare response outside if/else
 
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await response.json();
+                if (!token) {
+                    response = await fetch(`/api/query/${username}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ query })
+                    });
+                } else {
+                    response = await fetch(`/api/query/${username}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ query })
+                    });
+                }
 
-                    if (data.success) {
-                        let responseText = data.response;
-                        botMessage.innerHTML = ""; // Clear "Thinking..."
+                if (response) { // Check if response is not null before using it.
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.includes("application/json")) {
+                        const data = await response.json();
 
-                        const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
-                        let match;
-                        let lastIndex = 0;
+                        if (data.success) {
+                            let responseText = data.response;
+                            botMessage.innerHTML = ""; // Clear "Thinking..."
 
-                        while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
-                            // Add text before the image
-                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
+                            let match;
+                            let lastIndex = 0;
 
-                            // Create and append the image
-                            const img = document.createElement("img");
-                            img.src = match[0];
-                            img.style.maxWidth = "100%";
-                            img.style.maxHeight = "500px"; // Limit image height to prevent overflow
-                            img.style.display = "block";
-                            img.style.borderRadius = "8px"; // Ensure images are block-level
-                            img.alt = "Bot generated image";
-                            botMessage.appendChild(img);
-                            lastIndex = cloudinaryUrlRegex.lastIndex;
+                            while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                                // Add text before the image
+                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+
+                                // Create and append the image
+                                const img = document.createElement("img");
+                                img.src = match[0];
+                                img.style.maxWidth = "100%";
+                                img.style.maxHeight = "500px"; // Limit image height to prevent overflow
+                                img.style.display = "block";
+                                img.style.borderRadius = "8px"; // Ensure images are block-level
+                                img.alt = "Bot generated image";
+                                botMessage.appendChild(img);
+                                lastIndex = cloudinaryUrlRegex.lastIndex;
+                            }
+
+                            // Add any remaining text after the last image
+                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
+                        } else {
+                            botMessage.textContent = "Error: " + data.message;
                         }
-
-                        // Add any remaining text after the last image
-                        botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
                     } else {
-                        botMessage.textContent = "Error: " + data.message;
+                        const text = await response.text(); // Get the response as plain text
+                        console.error("Non-JSON response:", text);
+                        botMessage.textContent = "Error: Invalid response from server.";
                     }
                 } else {
-                    const text = await response.text(); // Get the response as plain text
-                    console.error("Non-JSON response:", text);
-                    botMessage.textContent = "Error: Invalid response from server.";
+                    console.error("Response was null, fetch failed.");
+                    botMessage.textContent = "Error: Fetch request failed.";
                 }
+
             } catch (error) {
                 botMessage.textContent = "Error processing query.";
                 console.error("Error:", error);
@@ -855,11 +947,11 @@
                 ratingContainer.style.pointerEvents = "none"; // Add this line
             }
         }
-        
+
         // Load rating visibility state from local storage
         const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
         updateRatingVisibility(isRatingVisible);
-        
+
         // Toggle rating visibility on button click
         ratingToggle.addEventListener('click', () => {
             const isCurrentlyVisible = ratingContainer.classList.contains('visible');

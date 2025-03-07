@@ -11,7 +11,7 @@ from waitress import serve
 
 
 app = Flask(__name__)
-app.secret_key = secrets.token_hex(32) 
+app.secret_key = secrets.token_hex(32)
 
 # Initialize Pinecone
 pc = Pinecone(api_key="pcsk_7Y7zWN_6eRYCU5oqR1jqwLAiQSv416HtB792Q3fC2HP7YQ1uNGWQd48egSezYDjG7CmSod")
@@ -36,12 +36,12 @@ embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 # Structured prompt template
 prompt_template = ChatPromptTemplate.from_template(
     "You are {name} responding as yourself.\n\n"
-    #"### Interaction Type ### \n"
-    #"{interaction} \n\n"
-    
+    "### Interaction Type ### \n"
+    "{interaction} \n\n"
+
     "### Profile Information ###\n"
     "{context}\n\n"
-    
+
     "### Instructions ###\n"
     "- Introduce yourself as {name} whenever necessary.\n"
     "- Respond as a real person, not as an AI.\n"
@@ -50,10 +50,10 @@ prompt_template = ChatPromptTemplate.from_template(
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
     "- If relevant information is unavailable, respond naturally without making up details.\n"
     "- Use Markdown formatting where appropriate (e.g., for lists, headings, code blocks, etc.) to structure your response and improve readability.\n\n"
- 
+
     "### {name}'s Background ###\n"
     "{background}\n\n"
-    
+
     "### User's Current Question ###\n"
     "{question}\n\n"
     "### Your Response ###"
@@ -102,6 +102,7 @@ def ask():
         self_assessment = data['selfAssessment']
         username = data['username']
         name = data['name']
+        my_model = data["own_model"]
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
@@ -113,8 +114,23 @@ def ask():
         pinecone_results = index.query(vector=query_vector, top_k=3, include_metadata=True, filter={"user_id": username})
         retrieved_docs = [match["metadata"]["text"] for match in pinecone_results["matches"]]
         context = "\n".join(retrieved_docs)
+
+        if my_model:
+            interaction_type = (f"You are talking with your creator/owner. Respond in a more personal, familiar way since this is {username} who created you."
+                                f"Note: When {username} says 'my' or 'mine', they are referring to their own things. "
+                                )
+        else:
+            interaction_type = f"You are talking with someone who is not your creator. This is some user who is interacting with you"
         
-        prompt = prompt_template.format(context=context, background=self_assessment, name=name, question=query_text)
+        print(interaction_type)
+
+        prompt = prompt_template.format(
+            context=context,
+            background=self_assessment,
+            name=name,
+            question=query_text,
+            interaction=interaction_type
+        )
 
         if "cloudinary" in context:
             prompt += '### Important note for Cloudinary Links ### \n If you encounter any URLs that contain the word "cloudinary", show the URL with space between each URL, but treat them as images. Do not explicitly mention them as URLs or links.'
@@ -138,6 +154,6 @@ def ask():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)
