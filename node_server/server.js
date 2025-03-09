@@ -616,12 +616,38 @@ app.get("/api/user/profile/:username", async (req, res) => {
         // Return only the ratings
         res.json({
             ratings: user.ratings,
+          
         });
     } catch (error) {
         console.error("Error fetching user ratings:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
+
+app.get("/api/user/profile/:username/full", async (req, res) => {
+    try {
+        const { username } = req.params;
+
+        const user = await User.findOne({ username: username });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Return only the ratings
+        res.json({
+            username: user.username,
+            pdfs: user.pdfs,
+            images: user.images,
+            selfAssessment: user.selfAssessment,
+            socialProfiles: user.socialProfiles,
+        });
+    } catch (error) {
+        console.error("Error fetching user ratings:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
 
 
 

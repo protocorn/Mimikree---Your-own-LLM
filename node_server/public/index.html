@@ -531,7 +531,7 @@
             }
         });
 
-        function checkAuth() {
+        async function checkAuth() {
             const token = localStorage.getItem("token");
             if (token) {
                 try {
@@ -544,9 +544,19 @@
                     document.getElementById("authenticated-buttons").style.display = "block";
 
                     const chatButton = document.getElementById('chat-button');
-                    chatButton.addEventListener('click', function () {
-                        location.href = '/query/' + decoded.username;
+
+                    const userData = await fetch(`/api/user/profile/${decoded.username}/full`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}` // Include authorization token
+                        }
                     });
+        
+                    if (userData.ok) {
+                        const user = await userData.json();
+                        disableChatButtonIfEmpty(user);
+                    } else {
+                        console.error("Failed to fetch user data");
+                    }
                 } catch (error) {
                     console.error("Invalid token");
                     logout();
@@ -560,6 +570,71 @@
         function logout() {
             localStorage.removeItem("token");
             location.reload();
+        }
+
+        function disableChatButtonIfEmpty(user) {
+            const chatButton = document.getElementById('chat-button');
+            const addDataButton = document.getElementById('add-data-button'); // Get the add data button
+        
+            const pdfsEmpty = !user.pdfs || user.pdfs.length === 0;
+            const imagesEmpty = !user.images || user.images.length === 0;
+            const selfAssessmentEmpty = !user.selfAssessment || (
+                !user.selfAssessment.communicationStyle &&
+                (!user.selfAssessment.personalityTraits || user.selfAssessment.personalityTraits.length === 0) &&
+                !user.selfAssessment.writingSample &&
+                (!user.selfAssessment.interests || user.selfAssessment.interests.length === 0)
+            );
+        
+            let socialProfilesEmpty = true;
+            if (user.socialProfiles) {
+                socialProfilesEmpty = (
+                    !user.socialProfiles.github &&
+                    !user.socialProfiles.linkedin &&
+                    !user.socialProfiles.twitter &&
+                    !user.socialProfiles.medium &&
+                    !user.socialProfiles.reddit
+                );
+            }
+        
+            if (pdfsEmpty && imagesEmpty && selfAssessmentEmpty && socialProfilesEmpty) {
+                //chatButton.disabled = true;
+                chatButton.style.backgroundColor = 'gray';
+                //chatButton.style.cursor = 'not-allowed';
+                chatButton.textContent = "Chat With your AI";
+        
+                // Add event listener to highlight and alert
+                chatButton.addEventListener('click', function() {
+                    alert("Please add data to your model before chatting.");
+                    highlightAddDataButton(addDataButton);
+                });
+        
+            } else {
+                chatButton.disabled = false;
+                chatButton.style.backgroundColor = '';
+                chatButton.style.cursor = '';
+                chatButton.textContent = "Chat with Your AI";
+        
+                // Remove the event listener if it was previously added
+                chatButton.removeEventListener('click', function() {
+                    highlightAddDataButton(addDataButton);
+                    alert("Please add data to your model before chatting.");
+                });
+
+                chatButton.addEventListener('click', function () {
+                    location.href = '/query/' + user.username;
+                });
+            }
+        }
+        
+        // Function to highlight the add data button
+        function highlightAddDataButton(button) {
+            button.style.boxShadow = '0 0 10px 5px rgba(255, 204, 0, 0.7)'; // Add glow effect
+            button.style.transition = 'box-shadow 0.5s ease-in-out';
+        
+            // Remove highlight after a short delay
+            setTimeout(function() {
+                button.style.boxShadow = '';
+            }, 2000); // Remove after 2 seconds
         }
 
         document.getElementById("add-data-button").addEventListener("click", function (event) {
