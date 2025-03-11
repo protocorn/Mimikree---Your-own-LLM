@@ -8,6 +8,7 @@ import uuid  # Import uuid to generate unique IDs
 import secrets
 import re
 from waitress import serve
+import google.generativeai as genai  # Import Google's Gemini API
 
 
 app = Flask(__name__)
@@ -60,10 +61,12 @@ prompt_template = ChatPromptTemplate.from_template(
 )
 
 # Initialize Hugging Face InferenceClient
-client = InferenceClient(
+'''client = InferenceClient(
     provider="hf-inference",
     api_key="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"
-)
+)'''
+# Initialize Gemini API
+genai.configure(api_key="AIzaSyAcPmStNQlnzgYg_nWlrsOVxHfARIdMOIA")
 
 @app.route('/process', methods=['POST'])
 def process_document():
@@ -138,18 +141,18 @@ def ask():
         # Request completion from Hugging Face API
         messages = [{"role": "user", "content": prompt}]
 
-        completion = client.chat.completions.create(
+        '''completion = client.chat.completions.create(
             model="meta-llama/Llama-3.3-70B-Instruct",
             messages=messages,
             max_tokens=1024,
-        )
-
-        response = completion.choices[0].message['content']
+        )'''
+        model = genai.GenerativeModel("gemini-1.5-pro")
+        response = model.generate_content([prompt])
 
         return jsonify({
             "success": True,
             "query": query_text,
-            "response": response
+            "response": response.text
         })
 
     except Exception as e:

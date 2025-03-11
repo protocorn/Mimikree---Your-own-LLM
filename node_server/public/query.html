@@ -12,11 +12,12 @@
             --primary-color: #4d68ff;
             --primary-light: #e6f2ff;
             --primary-dark: #0056b3;
-            --secondary-color: #e9ecef;
+            --secondary-color: #efefef;
             --text-color: #333;
             --background-color: #f4f4f9;
             --border-radius: 12px;
             --transition-speed: 0.3s;
+            --drawer-width: 300px;
         }
 
         * {
@@ -30,18 +31,22 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
         }
 
         .container {
-            max-width: 800px;
-            height: 90vh;
+            max-width: 100%;
+            height: calc(100vh - 4rem);
             display: flex;
             flex-direction: column;
-            margin: 2rem auto;
+            margin: 2rem;
             padding: 2rem;
             background: white;
             border-radius: var(--border-radius);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: margin-right var(--transition-speed);
+            position: relative;
         }
 
         h1 {
@@ -85,17 +90,20 @@
             display: flex;
             gap: 0.5rem;
             flex-direction: row;
-            /* Changed to row */
-            align-items: center;
+            align-items: flex-end;
         }
 
-
-        input {
+        #queryInput {
             flex: 1;
             padding: 0.8rem;
             border: 1px solid #ddd;
-            border-radius: 24px;
+            border-radius: 8px;
             font-size: 1rem;
+            resize: vertical;
+            min-height: 40px;
+            max-height: 100px;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         button {
@@ -109,9 +117,8 @@
             font-size: 1rem;
         }
 
-
         button:hover {
-            background-color: #0056b3;
+            background-color: var(--primary-dark);
         }
 
         button:disabled {
@@ -119,23 +126,7 @@
             cursor: not-allowed;
         }
 
-        @media (max-width: 600px) {
-            .container {
-                margin: 1rem;
-                padding: 1rem;
-            }
-
-            .chat-box {
-                height: 400px;
-            }
-        }
-
-        .back-to-main {
-            margin: 0;
-        }
-
         .back-to-main button {
-            /* Button styles – inherit or customize as needed */
             padding: 0.8rem 1.5rem;
             border: none;
             background: var(--primary-color);
@@ -147,28 +138,23 @@
         }
 
         .back-to-main button:hover {
-            background-color: #0056b3;
+            background-color: var(--primary-dark);
         }
 
         .copy-link-container {
             display: flex;
             align-items: center;
-            /* Vertically align items */
             margin-top: 1rem;
-            /* Add some spacing */
         }
 
         .copy-link-display {
             flex-grow: 1;
-            /* Allow the link to expand */
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 0.9rem;
             overflow-x: auto;
-            /* Handle long URLs */
             white-space: nowrap;
-            /* Prevent line breaks */
         }
 
         .copy-link-button {
@@ -179,45 +165,6 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-        }
-
-        @media (max-width: 768px) {
-            .back-to-main button {
-                padding: 0.6rem 1.2rem;
-                /* Adjust padding for smaller screens */
-                font-size: 1.2rem;
-                /* Adjust font size */
-            }
-        }
-
-        #queryInput {
-            flex: 1;
-            /* Allow input to grow */
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            /* Slightly less rounded */
-            font-size: 1rem;
-            resize: vertical;
-            /* Allow vertical resizing */
-            min-height: 40px;
-            /* Set a minimum height */
-            max-height: 100px;
-            /* Set a maximum height */
-            overflow-y: auto;
-            /* Enable scrollbar if content exceeds max-height */
-            box-sizing: border-box;
-            /* Include padding and border in element's total width and height */
-        }
-
-        .input-box button {
-            /* Styles for the button */
-            align-self: flex-end;
-            /* Align button to the right */
-            margin-top: 0.5rem;
-            /* Space between input and button */
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
         }
 
         .header-container {
@@ -268,6 +215,7 @@
             max-height: 0;
             opacity: 0;
             margin-bottom: 0;
+            position: relative;
         }
 
         .rating-container.visible {
@@ -397,147 +345,6 @@
             transform: translateX(-50%) translateY(calc(100% + 8px));
         }
 
-        #queryInput {
-            flex: 1;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            resize: vertical;
-            min-height: 40px;
-            max-height: 100px;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        .input-box button {
-            align-self: flex-end;
-            margin-top: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            border-radius: 20px;
-        }
-
-        .copy-link-container {
-            display: flex;
-            align-items: center;
-            margin-top: 1rem;
-        }
-
-        .copy-link-display {
-            flex-grow: 1;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        .copy-link-button {
-            padding: 0.5rem 1rem;
-            margin-left: 0.5rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                margin: 0.5rem;
-                padding: 0.8rem;
-            }
-
-            .chat-box {
-                height: 350px;
-                /* Slightly smaller for mobile */
-            }
-
-            .header-container {
-                flex-direction: row;
-                /* Change from column to row */
-                justify-content: space-between;
-                /* Distribute space between items */
-                align-items: center;
-                /* Vertically center items */
-                gap: 0.5rem;
-            }
-
-            .rating-toggle {
-                width: auto;
-                justify-content: space-between;
-            }
-
-            .rating-container {
-                width: 100%;
-                pointer-events: none;
-            }
-
-            .rating-content {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.75rem;
-            }
-
-            .rating-left,
-            .rating-right {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .rating-right {
-                justify-content: flex-start;
-            }
-
-            .rating-feedback {
-                min-width: 80px;
-                /* More space for feedback text */
-            }
-
-            .container h1 {
-                font-size: 1.5rem;
-                /* Smaller heading */
-            }
-        }
-
-        /* Extra small devices */
-        @media (max-width: 500px) {
-            .rating-left {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-            }
-
-            .rating-stars {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .star {
-                font-size: 1.8rem;
-                /* Larger stars for better touch targets */
-            }
-
-            .rating-feedback {
-                margin-top: 0.25rem;
-                text-align: left;
-            }
-
-            .back-to-main button,
-            .rating-toggle,
-            .input-box button {
-                padding: 0.5rem 1rem;
-                /* Smaller buttons */
-                font-size: 0.7rem;
-            }
-
-            .container h1 {
-                font-size: 1.5rem;
-                /* Smaller heading */
-            }
-        }
-
         .typing-indicator {
             display: flex;
             align-items: center;
@@ -644,6 +451,267 @@
             margin-top: 5px;
             font-style: italic;
         }
+
+        /* Drawer Styles */
+        .drawer-toggle {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 60px;
+            background-color: var(--primary-color);
+            border-radius: 8px 0 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right var(--transition-speed);
+        }
+
+        .drawer-toggle-arrow {
+            color: white;
+            font-size: 1.2rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: calc(-1 * var(--drawer-width));
+            width: var(--drawer-width);
+            height: 100vh;
+            background-color: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right var(--transition-speed);
+            z-index: 999;
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .drawer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .drawer-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+        }
+
+        .drawer-content {
+            margin-bottom: 1rem;
+        }
+
+        .drawer-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .drawer-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .drawer-section-content {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* When drawer is open */
+        body.drawer-open .drawer {
+            right: 0;
+        }
+
+        body.drawer-open .drawer-toggle {
+            right: var(--drawer-width);
+        }
+
+        body.drawer-open .drawer-toggle-arrow {
+            transform: rotate(180deg);
+        }
+
+        body.drawer-open .container {
+            margin-right: calc(var(--drawer-width) + 2rem);
+        }
+
+        .examples-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .examples-container h3 {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .example-prompts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .example-prompt {
+            background-color: white;
+            color: var(--text-color);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            border: 1px solid rgba(77, 104, 255, 0.15);
+            font-size: 0.95rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .example-prompt:hover {
+            background-color: var(--primary-light);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(77, 104, 255, 0.25);
+            border-color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .back-to-main button {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            body.drawer-open .container {
+                margin-right: 2rem;
+                transform: translateX(calc(-1 * var(--drawer-width) / 2));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 0.5rem;
+                padding: 0.8rem;
+            }
+
+            .chat-box {
+                height: 350px;
+            }
+
+            .header-container {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .rating-toggle {
+                width: auto;
+                justify-content: space-between;
+            }
+
+            .rating-container {
+                width: 100%;
+                pointer-events: none;
+            }
+
+            .rating-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .rating-left,
+            .rating-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .rating-right {
+                justify-content: flex-start;
+            }
+
+            .rating-feedback {
+                min-width: 80px;
+            }
+
+            .container h1 {
+                font-size: 2.0rem;
+            }
+
+            .drawer {
+                width: 85vw;
+            }
+
+            body.drawer-open .drawer-toggle {
+                right: 85vw;
+            }
+
+            body.drawer-open .container {
+                transform: translateX(-40vw);
+            }
+
+            :root {
+                --drawer-width: 85vw;
+            }
+
+            .example-prompts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .rating-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .rating-stars {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .star {
+                font-size: 1.8rem;
+            }
+
+            .rating-feedback {
+                margin-top: 0.25rem;
+                text-align: left;
+            }
+
+            .back-to-main button,
+            .rating-toggle,
+            .input-box button {
+                padding: 0.5rem 1rem;
+                font-size: 0.7rem;
+            }
+
+            .container h1 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -687,7 +755,14 @@
             </div>
         </div>
         <h1></h1>
-        <div class="chat-box" id="chatBox"></div>
+        <div class="chat-box" id="chatBox">
+            <div id="examplesContainer" class="examples-container">
+                <h3>Welcome! Try asking me:</h3>
+                <div class="example-prompts">
+
+                </div>
+            </div>
+        </div>
         <div class="input-box">
             <textarea id="queryInput" placeholder="Enter your query" required></textarea>
             <button id="submitButton">Send</button>
@@ -697,10 +772,143 @@
             </div>
             <button class="copy-link-button" id="copyLinkButton">Copy</button>
         </div>
+    </div>
 
+    <!-- Drawer Toggle Button -->
+    <div class="drawer-toggle" id="drawerToggle">
+        <span class="drawer-toggle-arrow">◄</span>
+    </div>
+
+    <!-- Drawer Panel -->
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-title">Additional Information</div>
+            <button class="drawer-close" id="drawerClose">×</button>
+        </div>
+        <div class="drawer-content">
+            <div class="drawer-section">
+                <div class="drawer-section-title">Session Information</div>
+                <div class="drawer-section-content">
+                    <p>Started: <span id="sessionStartTime">March 11, 2025 10:30 AM</span></p>
+                    <p>Messages: <span id="messageCount">3</span></p>
+                    <p>Status: <span class="text-success">Active</span></p>
+                </div>
+            </div>
+            <div class="drawer-section">
+                <div class="drawer-section-title">Model Information</div>
+                <div class="drawer-section-content">
+                    <p>Model: Claude 3.7 Sonnet</p>
+                    <p>Version: 20250219</p>
+                    <p>Response time: 1.2s avg.</p>
+                </div>
+            </div>
+            <div class="drawer-section">
+                <div class="drawer-section-title">Settings</div>
+                <div class="drawer-section-content">
+                    <p>Theme: Light</p>
+                    <p>Notifications: Enabled</p>
+                    <p>History: Saved</p>
+                </div>
+            </div>
+            <div class="drawer-section">
+                <div class="drawer-section-title">Help Resources</div>
+                <div class="drawer-section-content">
+                    <p><a href="#" style="color: var(--primary-color);">Documentation</a></p>
+                    <p><a href="#" style="color: var(--primary-color);">FAQ</a></p>
+                    <p><a href="#" style="color: var(--primary-color);">Contact Support</a></p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
+
+        // Drawer functionality
+        const drawerToggle = document.getElementById('drawerToggle');
+        const drawerClose = document.getElementById('drawerClose');
+        const drawer = document.getElementById('drawer');
+
+        function toggleDrawer() {
+            if (document.body.classList.contains('drawer-open')) {
+                // If drawer is open, close it
+                document.body.classList.remove('drawer-open');
+                drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                drawerToggle.style.right = '0';
+            } else {
+                // If drawer is closed, open it
+                document.body.classList.add('drawer-open');
+                drawer.style.right = '0';
+                drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+            }
+        }
+
+        drawerToggle.addEventListener('click', toggleDrawer);
+        drawerClose.addEventListener('click', toggleDrawer);
+
+        // Optional: Add drag functionality for the drawer
+        let isDragging = false;
+        let startX = 0;
+        let startRight = 0;
+
+        drawerToggle.addEventListener('mousedown', function (e) {
+            isDragging = true;
+            startX = e.clientX;
+            startRight = parseInt(window.getComputedStyle(drawer).right);
+            document.addEventListener('mousemove', moveDrawer);
+            document.addEventListener('mouseup', stopDragging);
+        });
+
+        drawerToggle.addEventListener('touchstart', function (e) {
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startRight = parseInt(window.getComputedStyle(drawer).right);
+            document.addEventListener('touchmove', moveDrawerTouch);
+            document.addEventListener('touchend', stopDragging);
+        });
+
+        function moveDrawer(e) {
+            if (!isDragging) return;
+            const diff = startX - e.clientX;
+            const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+            drawer.style.right = `-${newRight}px`;
+            drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+            if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                document.body.classList.add('drawer-open');
+            } else {
+                document.body.classList.remove('drawer-open');
+            }
+        }
+
+        function moveDrawerTouch(e) {
+            if (!isDragging) return;
+            const diff = startX - e.touches[0].clientX;
+            const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+            drawer.style.right = `-${newRight}px`;
+            drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+            if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                document.body.classList.add('drawer-open');
+            } else {
+                document.body.classList.remove('drawer-open');
+            }
+        }
+
+        function stopDragging() {
+            if (!isDragging) return;
+            isDragging = false;
+            document.removeEventListener('mousemove', moveDrawer);
+            document.removeEventListener('touchmove', moveDrawerTouch);
+
+            // Snap to open or closed position
+            if (document.body.classList.contains('drawer-open')) {
+                drawer.style.right = '0';
+                drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+            } else {
+                drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                drawerToggle.style.right = '0';
+            }
+        }
         const currentLinkDisplay = document.getElementById('currentLinkDisplay');
         currentLinkDisplay.textContent = window.location.href;
 
@@ -724,22 +932,54 @@
         });
         document.addEventListener('DOMContentLoaded', () => {
             const urlUsername = window.location.pathname.split('/').pop();
-            
+            const examplePromptsContainer = document.querySelector('.example-prompts');
+    
+
             // Check if we're viewing our own AI
             const currentUserToken = localStorage.getItem("token");
-            
+
             if (currentUserToken) {
                 // Decode the JWT token to get current user info
                 try {
                     const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
                     const currentUsername = tokenData.username;
-                    
+
                     if (urlUsername && currentUsername && urlUsername === currentUsername) {
                         // This is the user's own AI
                         document.querySelector('h1').innerHTML = "Chat with Your AI";
+
+                        examplePromptsContainer.innerHTML = `
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        Create a roadmap for me to study [Topic name]
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        Write a tweet about my latest project
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        What are the top projects/skills I should showcase?
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        Help me write a bio for my profile
+                    </div>
+                `;
                     } else if (urlUsername) {
                         // This is someone else's AI
                         document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                        // Set examples for someone else's AI
+                        examplePromptsContainer.innerHTML = `
+                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                    What topics are you specialized in?
+                </div>
+                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                    Can you tell me about your creator?
+                </div>
+                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                    What makes your responses unique?
+                </div>
+                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                    Show me an example of what you do best
+                </div>
+            `;
                     } else {
                         document.querySelector('h1').innerHTML = "Chat with AI";
                     }
@@ -761,10 +1001,33 @@
                 }
             }
         });
+        function useExamplePrompt(element) {
+            const promptText = element.textContent.trim();
+            document.getElementById("queryInput").value = promptText;
+
+            // Focus on the input
+            document.getElementById("queryInput").focus();
+
+            // Adjust input height
+            const input = document.getElementById("queryInput");
+            input.style.height = "auto";
+            input.style.height = Math.min(input.scrollHeight, 100) + "px";
+        }
+
+        // Function to hide examples when conversation starts
+        function hideExamples() {
+            const examplesContainer = document.getElementById("examplesContainer");
+            if (examplesContainer) {
+                examplesContainer.style.display = "none";
+            }
+        }
+
         document.getElementById("submitButton").addEventListener("click", async function () {
             const queryInput = document.getElementById("queryInput");
             const query = queryInput.value.trim();
             if (!query) return;
+
+            hideExamples();
 
             const chatBox = document.getElementById("chatBox");
             const submitButton = document.getElementById("submitButton");
