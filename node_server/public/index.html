@@ -433,6 +433,9 @@
 </head>
 
 <body>
+    <div id="website-down-message" style="display: none; position: fixed; top: 0; left: 0; width: 100%; background-color: #fdd; color: #a00; text-align: center; padding: 10px; z-index: 10000;">
+        Website is currently down for maintenance. Please check back later.
+    </div>
     <nav class="navbar">
         <div style="display: flex; align-items: center;">
             <img src="Mimikree_logo.png" width="60px" height="60px" style="border-radius: 10px; margin-right: 10px;"/>
@@ -446,7 +449,6 @@
         </div>
 
     </nav>
-
     <header class="hero">
         <div class="hero-content">
             <h2>Unlock the Power of Personalized AI</h2>
@@ -521,6 +523,11 @@
     </footer>
 
     <script>
+        const isWebsiteDown = true; // Change to true to simulate down
+
+        if (isWebsiteDown) {
+            document.getElementById("website-down-message").style.display = "block";
+        }
         // Navbar scroll effect
         window.addEventListener('scroll', function () {
             const navbar = document.querySelector('.navbar');
