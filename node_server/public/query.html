@@ -7,6 +7,8 @@
     <title>Chat Interface</title>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
     <style>
         :root {
             --primary-color: #4d68ff;
@@ -561,14 +563,14 @@
             padding: 1rem;
             text-align: center;
         }
-        
+
         .examples-container h3 {
             color: var(--text-color);
             margin-bottom: 1.5rem;
             font-size: 1.2rem;
             font-weight: 600;
         }
-        
+
         .example-prompts {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -576,7 +578,7 @@
             width: 100%;
             max-width: 600px;
         }
-        
+
         .example-prompt {
             background-color: white;
             color: var(--text-color);
@@ -588,7 +590,7 @@
             font-size: 0.95rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        
+
         .example-prompt:hover {
             background-color: var(--primary-light);
             transform: translateY(-3px);
@@ -712,6 +714,127 @@
                 font-size: 1.5rem;
             }
         }
+
+        .service-connection {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .service-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .service-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .service-status {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .service-status.connected {
+            color: #34A853;
+        }
+
+        .service-button {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        #calendarConnectButton {
+            background-color: #4285F4;
+            color: white;
+            border: none;
+        }
+
+        #calendarConnectButton:hover {
+            background-color: #3367D6;
+        }
+
+        #calendarConnectButton.disconnect {
+            background-color: #f8f9fa;
+            color: #5f6368;
+            border: 1px solid #dadce0;
+        }
+
+        #calendarConnectButton.disconnect:hover {
+            background-color: #f1f3f4;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+        }
+
+        .events-preview {
+            display: none;
+            margin-top: 12px;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .events-preview.visible {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .events-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            color: #202124;
+        }
+
+        .event-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #e8eaed;
+            font-size: 0.85rem;
+        }
+
+        .event-time {
+            color: #5f6368;
+            font-size: 0.8rem;
+        }
+
+        .empty-events {
+            font-style: italic;
+            color: #5f6368;
+            font-size: 0.85rem;
+            padding: 8px 0;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4285F4;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            transition: opacity 0.3s;
+        }
+
+        .notification.error {
+            background-color: #EA4335;
+        }
     </style>
 </head>
 
@@ -782,173 +905,451 @@
     <!-- Drawer Panel -->
     <div class="drawer" id="drawer">
         <div class="drawer-header">
-            <div class="drawer-title">Additional Information</div>
+            <div class="drawer-title">Integrate Services</div>
             <button class="drawer-close" id="drawerClose">×</button>
         </div>
         <div class="drawer-content">
             <div class="drawer-section">
-                <div class="drawer-section-title">Session Information</div>
-                <div class="drawer-section-content">
-                    <p>Started: <span id="sessionStartTime">March 11, 2025 10:30 AM</span></p>
-                    <p>Messages: <span id="messageCount">3</span></p>
-                    <p>Status: <span class="text-success">Active</span></p>
-                </div>
+                <div class="drawer-section-title">This is in testing phase</div>
             </div>
             <div class="drawer-section">
-                <div class="drawer-section-title">Model Information</div>
+                <div class="drawer-section-title">Connected Services</div>
                 <div class="drawer-section-content">
-                    <p>Model: Claude 3.7 Sonnet</p>
-                    <p>Version: 20250219</p>
-                    <p>Response time: 1.2s avg.</p>
-                </div>
-            </div>
-            <div class="drawer-section">
-                <div class="drawer-section-title">Settings</div>
-                <div class="drawer-section-content">
-                    <p>Theme: Light</p>
-                    <p>Notifications: Enabled</p>
-                    <p>History: Saved</p>
-                </div>
-            </div>
-            <div class="drawer-section">
-                <div class="drawer-section-title">Help Resources</div>
-                <div class="drawer-section-content">
-                    <p><a href="#" style="color: var(--primary-color);">Documentation</a></p>
-                    <p><a href="#" style="color: var(--primary-color);">FAQ</a></p>
-                    <p><a href="#" style="color: var(--primary-color);">Contact Support</a></p>
+                    <div class="service-connection">
+                        <div class="service-info">
+                            <div class="service-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M19.5 3H18V1.5H16.5V3H7.5V1.5H6V3H4.5C3.675 3 3 3.675 3 4.5V19.5C3 20.325 3.675 21 4.5 21H19.5C20.325 21 21 20.325 21 19.5V4.5C21 3.675 20.325 3 19.5 3ZM19.5 19.5H4.5V7.5H19.5V19.5ZM8.25 9.75H6V12H8.25V9.75ZM13.5 9.75H11.25V12H13.5V9.75ZM18.75 9.75H16.5V12H18.75V9.75ZM8.25 13.5H6V15.75H8.25V13.5ZM13.5 13.5H11.25V15.75H13.5V13.5ZM18.75 13.5H16.5V15.75H18.75V13.5Z"
+                                        fill="#4285F4" />
+                                </svg>
+                            </div>
+                            <div class="service-details">
+                                <span class="service-name">Google Calendar</span>
+                                <span class="service-status" id="calendarConnectionStatus">Not connected</span>
+                            </div>
+                        </div>
+                        <button class="service-button" id="calendarConnectButton">Connect</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
+        <script>
+            /*
+            document.addEventListener('DOMContentLoaded', function () {
+                const connectButton = document.getElementById('calendarConnectButton');
+                const statusDisplay = document.getElementById('calendarConnectionStatus');
 
-        // Drawer functionality
-        const drawerToggle = document.getElementById('drawerToggle');
-        const drawerClose = document.getElementById('drawerClose');
-        const drawer = document.getElementById('drawer');
+                // Your OAuth client ID from Google Cloud Console
+                // IMPORTANT: You must create this in Google Cloud Console
+                const CLIENT_ID = '305246459078-5lele352pmn10a5mhhjrdd32p58n2qtn.apps.googleusercontent.com';
+                const API_KEY = 'AIzaSyD7bzWL5TA3WuFG5NRWQQARlERqOZ-aXlg';
 
-        function toggleDrawer() {
-            if (document.body.classList.contains('drawer-open')) {
-                // If drawer is open, close it
-                document.body.classList.remove('drawer-open');
-                drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                drawerToggle.style.right = '0';
-            } else {
-                // If drawer is closed, open it
-                document.body.classList.add('drawer-open');
-                drawer.style.right = '0';
-                drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-            }
-        }
+                const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
 
-        drawerToggle.addEventListener('click', toggleDrawer);
-        drawerClose.addEventListener('click', toggleDrawer);
+                // Authorization scopes required by the API
+                const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events';
 
-        // Optional: Add drag functionality for the drawer
-        let isDragging = false;
-        let startX = 0;
-        let startRight = 0;
+                let tokenClient;
+                let gapiInited = false;
+                let gisInited = false;
 
-        drawerToggle.addEventListener('mousedown', function (e) {
-            isDragging = true;
-            startX = e.clientX;
-            startRight = parseInt(window.getComputedStyle(drawer).right);
-            document.addEventListener('mousemove', moveDrawer);
-            document.addEventListener('mouseup', stopDragging);
-        });
+                // Check if previously connected
+                const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
+                updateConnectionUI(isConnected);
 
-        drawerToggle.addEventListener('touchstart', function (e) {
-            isDragging = true;
-            startX = e.touches[0].clientX;
-            startRight = parseInt(window.getComputedStyle(drawer).right);
-            document.addEventListener('touchmove', moveDrawerTouch);
-            document.addEventListener('touchend', stopDragging);
-        });
+                // Initialize the API client library
+                function initializeGapiClient() {
+                    gapi.client.init({
+                        apiKey: API_KEY,
+                        discoveryDocs: [DISCOVERY_DOC],
+                    }).then(() => {
+                        gapiInited = true;
+                        maybeEnableButtons();
+                    });
+                }
 
-        function moveDrawer(e) {
-            if (!isDragging) return;
-            const diff = startX - e.clientX;
-            const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-            drawer.style.right = `-${newRight}px`;
-            drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+                // Load the API client and auth2 library
+                function loadGapiClient() {
+                    gapi.load('client', initializeGapiClient);
+                }
 
-            if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                document.body.classList.add('drawer-open');
-            } else {
-                document.body.classList.remove('drawer-open');
-            }
-        }
+                // Initialize Google Identity Services SDK
+                function initializeGisClient() {
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: CLIENT_ID,
+                        scope: SCOPES,
+                        callback: '', // defined later
+                    });
+                    gisInited = true;
+                    maybeEnableButtons();
+                }
 
-        function moveDrawerTouch(e) {
-            if (!isDragging) return;
-            const diff = startX - e.touches[0].clientX;
-            const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-            drawer.style.right = `-${newRight}px`;
-            drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+                // Enable the button if libraries are loaded
+                function maybeEnableButtons() {
+                    if (gapiInited && gisInited) {
+                        connectButton.disabled = false;
+                    }
+                }
 
-            if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                document.body.classList.add('drawer-open');
-            } else {
-                document.body.classList.remove('drawer-open');
-            }
-        }
-
-        function stopDragging() {
-            if (!isDragging) return;
-            isDragging = false;
-            document.removeEventListener('mousemove', moveDrawer);
-            document.removeEventListener('touchmove', moveDrawerTouch);
-
-            // Snap to open or closed position
-            if (document.body.classList.contains('drawer-open')) {
-                drawer.style.right = '0';
-                drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-            } else {
-                drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                drawerToggle.style.right = '0';
-            }
-        }
-        const currentLinkDisplay = document.getElementById('currentLinkDisplay');
-        currentLinkDisplay.textContent = window.location.href;
-
-        // Copy link functionality
-        const copyLinkButton = document.getElementById('copyLinkButton');
-        copyLinkButton.addEventListener('click', () => {
-            navigator.clipboard.writeText(window.location.href)
-                .then(() => {
-                    copyLinkButton.textContent = 'Copied!';
-                    setTimeout(() => {
-                        copyLinkButton.textContent = 'Copy';
-                    }, 2000); // Reset button text after 2 seconds
-                })
-                .catch(err => {
-                    console.error('Failed to copy: ', err);
-                    copyLinkButton.textContent = 'Error';
-                    setTimeout(() => {
-                        copyLinkButton.textContent = 'Copy';
-                    }, 2000);
+                // Load the libraries
+                loadGapiClient();
+                google.accounts.id.initialize({
+                    client_id: CLIENT_ID,
+                    auto_select: false,
+                    callback: (response) => { }
                 });
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlUsername = window.location.pathname.split('/').pop();
-            const examplePromptsContainer = document.querySelector('.example-prompts');
-    
+                initializeGisClient();
 
-            // Check if we're viewing our own AI
-            const currentUserToken = localStorage.getItem("token");
+                // Connect button click handler
+                connectButton.addEventListener('click', function () {
+                    if (connectButton.classList.contains('disconnect')) {
+                        // Handle disconnect
+                        disconnectFromGoogleCalendar();
+                    } else {
+                        // Handle connect
+                        connectToGoogleCalendar();
+                    }
+                });
 
-            if (currentUserToken) {
-                // Decode the JWT token to get current user info
-                try {
-                    const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
-                    const currentUsername = tokenData.username;
+                function connectToGoogleCalendar() {
+                    // Request an access token
+                    tokenClient.callback = async (resp) => {
+                        if (resp.error !== undefined) {
+                            showNotification('Error connecting to Google Calendar', true);
+                            return;
+                        }
 
-                    if (urlUsername && currentUsername && urlUsername === currentUsername) {
-                        // This is the user's own AI
-                        document.querySelector('h1').innerHTML = "Chat with Your AI";
+                        // Store token in localStorage (in a real app, handle this more securely)
+                        localStorage.setItem('googleCalendarConnected', 'true');
+                        localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
 
-                        examplePromptsContainer.innerHTML = `
+                        // Update UI
+                        updateConnectionUI(true);
+                        showNotification('Connected to Google Calendar successfully!');
+
+                        // Fetch and display events
+                        await listUpcomingEvents();
+                    };
+
+                    if (gapi.client.getToken() === null) {
+                        // Prompt the user to select a Google Account and ask for consent
+                        tokenClient.requestAccessToken({ prompt: 'consent' });
+                    } else {
+                        // Skip display of account chooser and consent dialog
+                        tokenClient.requestAccessToken({ prompt: '' });
+                    }
+                }
+
+                function disconnectFromGoogleCalendar() {
+                    // Revoke the token
+                    const token = gapi.client.getToken();
+                    if (token !== null) {
+                        google.accounts.oauth2.revoke(token.access_token);
+                        gapi.client.setToken('');
+                    }
+
+                    // Update local storage and UI
+                    localStorage.removeItem('googleCalendarConnected');
+                    localStorage.removeItem('googleCalendarConnectedAt');
+                    updateConnectionUI(false);
+
+                    // Hide events preview
+                    const eventsPreview = document.querySelector('.events-preview');
+                    if (eventsPreview) {
+                        eventsPreview.style.display = 'none';
+                        eventsPreview.classList.remove('visible');
+                    }
+
+                    showNotification('Disconnected from Google Calendar');
+                }
+
+                async function listUpcomingEvents() {
+                    try {
+                        // Get events from primary calendar, sorted by start time
+                        const response = await gapi.client.calendar.events.list({
+                            'calendarId': 'primary',
+                            'timeMin': (new Date()).toISOString(),
+                            'showDeleted': false,
+                            'singleEvents': true,
+                            'maxResults': 5,
+                            'orderBy': 'startTime'
+                        });
+
+                        const events = response.result.items;
+
+                        // Create or get events preview section
+                        let eventsPreview = document.querySelector('.events-preview');
+
+                        if (!eventsPreview) {
+                            eventsPreview = document.createElement('div');
+                            eventsPreview.className = 'events-preview';
+                            document.querySelector('.service-connection').after(eventsPreview);
+                        }
+
+                        // Generate HTML for events
+                        let eventsHTML = `
+                    <div class="events-title">Upcoming Events</div>
+                `;
+
+                        if (events.length === 0) {
+                            eventsHTML += `<div class="empty-events">No upcoming events found</div>`;
+                        } else {
+                            events.forEach(event => {
+                                // Format the event time
+                                const start = event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date);
+                                const formattedDate = start.toLocaleDateString(undefined, {
+                                    weekday: 'short',
+                                    month: 'short',
+                                    day: 'numeric'
+                                });
+
+                                let timeStr = '';
+                                if (event.start.dateTime) {
+                                    const formattedTime = start.toLocaleTimeString(undefined, {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    });
+                                    timeStr = `${formattedDate}, ${formattedTime}`;
+
+                                    if (event.end?.dateTime) {
+                                        const end = new Date(event.end.dateTime);
+                                        const endTime = end.toLocaleTimeString(undefined, {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        });
+                                        timeStr += ` - ${endTime}`;
+                                    }
+                                } else {
+                                    timeStr = formattedDate; // All-day event
+                                }
+
+                                eventsHTML += `
+                            <div class="event-item">
+                                <div>${event.summary}</div>
+                                <div class="event-time">${timeStr}</div>
+                            </div>
+                        `;
+                            });
+                        }
+
+                        // Update and show events preview
+                        eventsPreview.innerHTML = eventsHTML;
+                        eventsPreview.style.display = 'block';
+
+                        // Animate height expansion
+                        setTimeout(() => {
+                            eventsPreview.classList.add('visible');
+                        }, 100);
+
+                    } catch (error) {
+                        console.error('Error fetching calendar events:', error);
+                        showNotification('Error fetching calendar events', true);
+                    }
+                }
+
+                function updateConnectionUI(isConnected) {
+                    if (isConnected) {
+                        connectButton.textContent = 'Disconnect';       
+                        connectButton.classList.add('disconnect');
+                        statusDisplay.textContent = 'Connected';
+                        statusDisplay.classList.add('connected');
+
+                        // If connection time exists, show it
+                        const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
+                        if (connectedAt) {
+                            const connectedDate = new Date(connectedAt);
+                            const formattedDate = connectedDate.toLocaleString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            statusDisplay.textContent = `Connected since ${formattedDate}`;
+                        }
+
+                        // If already connected and token is available, display events
+                        if (gapi.client?.getToken() !== null) {
+                            listUpcomingEvents();
+                        }
+                    } else {
+                        connectButton.textContent = 'Connect';
+                        connectButton.classList.remove('disconnect');
+                        statusDisplay.textContent = 'Not connected';
+                        statusDisplay.classList.remove('connected');
+                    }
+                }
+
+                function showNotification(message, isError = false) {
+                    // Create notification element
+                    const notification = document.createElement('div');
+                    notification.className = isError ? 'notification error' : 'notification';
+                    notification.textContent = message;
+
+                    // Add to body
+                    document.body.appendChild(notification);
+
+                    // Remove after delay
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 300);
+                    }, 3000);
+                }
+
+                // If already connected, try to refresh the token on page load
+                if (isConnected) {
+                    // We'll try to refresh token when APIs are loaded
+                    const checkApisAndRefresh = setInterval(() => {
+                        if (gapiInited && gisInited) {
+                            clearInterval(checkApisAndRefresh);
+                            // Silently try to get a new token
+                            tokenClient.callback = async (resp) => {
+                                if (resp.error !== undefined) {
+                                    // Token refresh failed, mark as disconnected
+                                    localStorage.removeItem('googleCalendarConnected');
+                                    updateConnectionUI(false);
+                                    return;
+                                }
+                                // Successfully refreshed token, fetch events
+                                await listUpcomingEvents();
+                            };
+
+                            tokenClient.requestAccessToken({ prompt: '' });
+                        }
+                    }, 500);
+                }
+            });*/
+
+            // Drawer functionality
+            const drawerToggle = document.getElementById('drawerToggle');
+            const drawerClose = document.getElementById('drawerClose');
+            const drawer = document.getElementById('drawer');
+
+            function toggleDrawer() {
+                if (document.body.classList.contains('drawer-open')) {
+                    // If drawer is open, close it
+                    document.body.classList.remove('drawer-open');
+                    drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                    drawerToggle.style.right = '0';
+                } else {
+                    // If drawer is closed, open it
+                    document.body.classList.add('drawer-open');
+                    drawer.style.right = '0';
+                    drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+                }
+            }
+
+            drawerToggle.addEventListener('click', toggleDrawer);
+            drawerClose.addEventListener('click', toggleDrawer);
+
+            // Optional: Add drag functionality for the drawer
+            let isDragging = false;
+            let startX = 0;
+            let startRight = 0;
+
+            drawerToggle.addEventListener('mousedown', function (e) {
+                isDragging = true;
+                startX = e.clientX;
+                startRight = parseInt(window.getComputedStyle(drawer).right);
+                document.addEventListener('mousemove', moveDrawer);
+                document.addEventListener('mouseup', stopDragging);
+            });
+
+            drawerToggle.addEventListener('touchstart', function (e) {
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startRight = parseInt(window.getComputedStyle(drawer).right);
+                document.addEventListener('touchmove', moveDrawerTouch);
+                document.addEventListener('touchend', stopDragging);
+            });
+
+            function moveDrawer(e) {
+                if (!isDragging) return;
+                const diff = startX - e.clientX;
+                const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+                drawer.style.right = `-${newRight}px`;
+                drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+                if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                    document.body.classList.add('drawer-open');
+                } else {
+                    document.body.classList.remove('drawer-open');
+                }
+            }
+
+            function moveDrawerTouch(e) {
+                if (!isDragging) return;
+                const diff = startX - e.touches[0].clientX;
+                const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+                drawer.style.right = `-${newRight}px`;
+                drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+                if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                    document.body.classList.add('drawer-open');
+                } else {
+                    document.body.classList.remove('drawer-open');
+                }
+            }
+
+            function stopDragging() {
+                if (!isDragging) return;
+                isDragging = false;
+                document.removeEventListener('mousemove', moveDrawer);
+                document.removeEventListener('touchmove', moveDrawerTouch);
+
+                // Snap to open or closed position
+                if (document.body.classList.contains('drawer-open')) {
+                    drawer.style.right = '0';
+                    drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+                } else {
+                    drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                    drawerToggle.style.right = '0';
+                }
+            }
+            const currentLinkDisplay = document.getElementById('currentLinkDisplay');
+            currentLinkDisplay.textContent = window.location.href;
+
+            // Copy link functionality
+            const copyLinkButton = document.getElementById('copyLinkButton');
+            copyLinkButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => {
+                        copyLinkButton.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyLinkButton.textContent = 'Copy';
+                        }, 2000); // Reset button text after 2 seconds
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        copyLinkButton.textContent = 'Error';
+                        setTimeout(() => {
+                            copyLinkButton.textContent = 'Copy';
+                        }, 2000);
+                    });
+            });
+            document.addEventListener('DOMContentLoaded', () => {
+                const urlUsername = window.location.pathname.split('/').pop();
+                const examplePromptsContainer = document.querySelector('.example-prompts');
+
+
+                // Check if we're viewing our own AI
+                const currentUserToken = localStorage.getItem("token");
+
+                if (currentUserToken) {
+                    // Decode the JWT token to get current user info
+                    try {
+                        const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
+                        const currentUsername = tokenData.username;
+
+                        if (urlUsername && currentUsername && urlUsername === currentUsername) {
+                            // This is the user's own AI
+                            document.querySelector('h1').innerHTML = "Chat with Your AI";
+
+                            examplePromptsContainer.innerHTML = `
                     <div class="example-prompt" onclick="useExamplePrompt(this)">
                         Create a roadmap for me to study [Topic name]
                     </div>
@@ -962,11 +1363,11 @@
                         Help me write a bio for my profile
                     </div>
                 `;
-                    } else if (urlUsername) {
-                        // This is someone else's AI
-                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                        // Set examples for someone else's AI
-                        examplePromptsContainer.innerHTML = `
+                        } else if (urlUsername) {
+                            // This is someone else's AI
+                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                            // Set examples for someone else's AI
+                            examplePromptsContainer.innerHTML = `
                 <div class="example-prompt" onclick="useExamplePrompt(this)">
                     What topics are you specialized in?
                 </div>
@@ -980,412 +1381,412 @@
                     Show me an example of what you do best
                 </div>
             `;
-                    } else {
-                        document.querySelector('h1').innerHTML = "Chat with AI";
+                        } else {
+                            document.querySelector('h1').innerHTML = "Chat with AI";
+                        }
+                    } catch (error) {
+                        console.error("Error parsing token:", error);
+                        // Fallback to original behavior
+                        if (urlUsername) {
+                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                        } else {
+                            document.querySelector('h1').innerHTML = "Chat with AI";
+                        }
                     }
-                } catch (error) {
-                    console.error("Error parsing token:", error);
-                    // Fallback to original behavior
+                } else {
+                    // No token (user not logged in), use original behavior
                     if (urlUsername) {
                         document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                     } else {
                         document.querySelector('h1').innerHTML = "Chat with AI";
                     }
                 }
-            } else {
-                // No token (user not logged in), use original behavior
-                if (urlUsername) {
-                    document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                } else {
-                    document.querySelector('h1').innerHTML = "Chat with AI";
-                }
-            }
-        });
-        function useExamplePrompt(element) {
-            const promptText = element.textContent.trim();
-            document.getElementById("queryInput").value = promptText;
+            });
+            function useExamplePrompt(element) {
+                const promptText = element.textContent.trim();
+                document.getElementById("queryInput").value = promptText;
 
-            // Focus on the input
-            document.getElementById("queryInput").focus();
+                // Focus on the input
+                document.getElementById("queryInput").focus();
 
-            // Adjust input height
-            const input = document.getElementById("queryInput");
-            input.style.height = "auto";
-            input.style.height = Math.min(input.scrollHeight, 100) + "px";
-        }
-
-        // Function to hide examples when conversation starts
-        function hideExamples() {
-            const examplesContainer = document.getElementById("examplesContainer");
-            if (examplesContainer) {
-                examplesContainer.style.display = "none";
-            }
-        }
-
-        document.getElementById("submitButton").addEventListener("click", async function () {
-            const queryInput = document.getElementById("queryInput");
-            const query = queryInput.value.trim();
-            if (!query) return;
-
-            hideExamples();
-
-            const chatBox = document.getElementById("chatBox");
-            const submitButton = document.getElementById("submitButton");
-
-            // Display user message
-            const userMessage = document.createElement("div");
-            userMessage.className = "message user-message";
-            userMessage.textContent = query;
-            chatBox.appendChild(userMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Clear input and disable button
-            queryInput.value = "";
-            queryInput.style.height = "40px";
-            submitButton.disabled = true;
-
-            // Show "loading" message
-            const botMessage = document.createElement("div");
-            botMessage.className = "message bot-message";
-
-            // Create the loading indicator with text and dots
-            const loadingIndicator = document.createElement("div");
-            loadingIndicator.className = "typing-indicator";
-
-            const indicatorText = document.createElement("span");
-            indicatorText.className = "typing-indicator-text";
-            indicatorText.textContent = "Thinking";
-            loadingIndicator.appendChild(indicatorText);
-
-            const typingDots = document.createElement("div");
-            typingDots.className = "typing-dots";
-            for (let i = 0; i < 3; i++) {
-                const dot = document.createElement("div");
-                dot.className = "dot";
-                typingDots.appendChild(dot);
+                // Adjust input height
+                const input = document.getElementById("queryInput");
+                input.style.height = "auto";
+                input.style.height = Math.min(input.scrollHeight, 100) + "px";
             }
 
-            loadingIndicator.appendChild(typingDots);
-            botMessage.appendChild(loadingIndicator);
-
-            // Add progress bar
-            const progressContainer = document.createElement("div");
-            progressContainer.className = "progress-bar-container";
-
-            const progressBar = document.createElement("div");
-            progressBar.className = "progress-bar";
-            progressContainer.appendChild(progressBar);
-            botMessage.appendChild(progressContainer);
-
-            // Add AI status
-            const aiStatus = document.createElement("div");
-            aiStatus.className = "ai-status";
-            aiStatus.textContent = "Processing query...";
-            botMessage.appendChild(aiStatus);
-
-            chatBox.appendChild(botMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            // Start randomized status updates
-            const statusMessages = [
-                "Analyzing question...",
-                "Retrieving information...",
-                "Generating response...",
-                "Formulating answer...",
-                "Processing query...",
-                "Creating thoughtful reply...",
-                "Almost there..."
-            ];
-
-            let statusInterval = setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * statusMessages.length);
-                aiStatus.textContent = statusMessages[randomIndex];
-            }, 2500);
-
-            try {
-                const username = window.location.pathname.split('/').pop();
-                console.log(username);
-
-                const token = localStorage.getItem("token");
-                let response = null; // Declare response outside if/else
-
-                if (!token) {
-                    response = await fetch(`/api/query/${username}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ query })
-                    });
-                } else {
-                    response = await fetch(`/api/query/${username}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ query })
-                    });
+            // Function to hide examples when conversation starts
+            function hideExamples() {
+                const examplesContainer = document.getElementById("examplesContainer");
+                if (examplesContainer) {
+                    examplesContainer.style.display = "none";
                 }
+            }
 
-                if (response) { // Check if response is not null before using it.
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        const data = await response.json();
+            document.getElementById("submitButton").addEventListener("click", async function () {
+                const queryInput = document.getElementById("queryInput");
+                const query = queryInput.value.trim();
+                if (!query) return;
 
-                        if (data.success) {
-                            let responseText = data.response;
-                            botMessage.innerHTML = ""; // Clear "Thinking..."
+                hideExamples();
 
-                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
-                            let match;
-                            let lastIndex = 0;
+                const chatBox = document.getElementById("chatBox");
+                const submitButton = document.getElementById("submitButton");
 
-                            while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
-                                // Add text before the image
-                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
-
-                                // Create and append the image
-                                const img = document.createElement("img");
-                                img.src = match[0];
-                                img.style.maxWidth = "100%";
-                                img.style.maxHeight = "500px"; // Limit image height to prevent overflow
-                                img.style.display = "block";
-                                img.style.borderRadius = "8px"; // Ensure images are block-level
-                                img.alt = "Bot generated image";
-                                botMessage.appendChild(img);
-                                lastIndex = cloudinaryUrlRegex.lastIndex;
-                            }
-
-                            // Add any remaining text after the last image
-                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
-                        } else {
-                            botMessage.textContent = "Error: " + data.message;
-                        }
-                    } else {
-                        const text = await response.text(); // Get the response as plain text
-                        console.error("Non-JSON response:", text);
-                        botMessage.textContent = "Error: Invalid response from server.";
-                    }
-                } else {
-                    console.error("Response was null, fetch failed.");
-                    botMessage.textContent = "Error: Fetch request failed.";
-                }
-
-            } catch (error) {
-                botMessage.textContent = "Error processing query.";
-                console.error("Error:", error);
-            } finally {
-                submitButton.disabled = false;
+                // Display user message
+                const userMessage = document.createElement("div");
+                userMessage.className = "message user-message";
+                userMessage.textContent = query;
+                chatBox.appendChild(userMessage);
                 chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        });
 
-        // Allow Enter key to send messages
-        document.getElementById("queryInput").addEventListener("keydown", function (event) {
-            if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
-                event.preventDefault(); // Prevent new line in textarea
-                document.getElementById("submitButton").click();
-            }
-        });
+                // Clear input and disable button
+                queryInput.value = "";
+                queryInput.style.height = "40px";
+                submitButton.disabled = true;
 
-        document.getElementById("queryInput").addEventListener("input", function () {
-            this.style.height = "auto"; // Reset height to recalculate
-            this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
-        });
-        const ratingToggle = document.getElementById('ratingToggle');
-        const ratingContainer = document.getElementById('ratingContainer');
+                // Show "loading" message
+                const botMessage = document.createElement("div");
+                botMessage.className = "message bot-message";
 
-        // Function to update rating visibility with animation
-        function updateRatingVisibility(show) {
-            if (show) {
-                ratingContainer.classList.add('visible');
-                ratingToggle.classList.add('active');
-                localStorage.setItem("ratingVisible", "true");
-                ratingContainer.style.pointerEvents = "auto"; // Add this line
-            } else {
-                ratingContainer.classList.remove('visible');
-                ratingToggle.classList.remove('active');
-                localStorage.setItem("ratingVisible", "false");
-                ratingContainer.style.pointerEvents = "none"; // Add this line
-            }
-        }
+                // Create the loading indicator with text and dots
+                const loadingIndicator = document.createElement("div");
+                loadingIndicator.className = "typing-indicator";
 
-        // Load rating visibility state from local storage
-        const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
-        updateRatingVisibility(isRatingVisible);
+                const indicatorText = document.createElement("span");
+                indicatorText.className = "typing-indicator-text";
+                indicatorText.textContent = "Thinking";
+                loadingIndicator.appendChild(indicatorText);
 
-        // Toggle rating visibility on button click
-        ratingToggle.addEventListener('click', () => {
-            const isCurrentlyVisible = ratingContainer.classList.contains('visible');
-            updateRatingVisibility(!isCurrentlyVisible);
-        });
-
-        const ratingStars = document.getElementById("ratingStars");
-        const ratingFeedback = document.getElementById("ratingFeedback");
-        const ratingSuccess = document.getElementById("ratingSuccess");
-        const averageRatingDisplay = document.getElementById("averageRatingDisplay");
-        const averageStars = document.getElementById("averageStars");
-        const averageNumber = document.getElementById("averageNumber");
-        const ratingCount = document.getElementById("ratingCount");
-        const username = window.location.pathname.split('/').pop();
-
-        const feedbackTexts = [
-            "",
-            "Poor",
-            "Below Average",
-            "Average",
-            "Good",
-            "Excellent"
-        ];
-
-        ratingStars.addEventListener("mouseover", (event) => {
-            if (event.target.classList.contains("star")) {
-                const rating = parseInt(event.target.dataset.rating);
-                const stars = ratingStars.querySelectorAll(".star");
-
-                // Reset all stars
-                stars.forEach(star => star.classList.remove("active"));
-
-                // Highlight stars up to the hovered one
-                for (let i = 0; i < rating; i++) {
-                    stars[i].classList.add("active");
+                const typingDots = document.createElement("div");
+                typingDots.className = "typing-dots";
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement("div");
+                    dot.className = "dot";
+                    typingDots.appendChild(dot);
                 }
 
-                // Show feedback text
-                ratingFeedback.textContent = feedbackTexts[rating];
-            }
-        });
+                loadingIndicator.appendChild(typingDots);
+                botMessage.appendChild(loadingIndicator);
 
-        // Reset stars when not hovering over the rating container
-        ratingStars.addEventListener("mouseleave", () => {
-            const stars = ratingStars.querySelectorAll(".star");
-            stars.forEach(star => star.classList.remove("active"));
-            ratingFeedback.textContent = "";
-        });
+                // Add progress bar
+                const progressContainer = document.createElement("div");
+                progressContainer.className = "progress-bar-container";
 
-        // Handle rating submission
-        ratingStars.addEventListener("click", async (event) => {
-            if (event.target.classList.contains("star")) {
-                const rating = parseInt(event.target.dataset.rating);
+                const progressBar = document.createElement("div");
+                progressBar.className = "progress-bar";
+                progressContainer.appendChild(progressBar);
+                botMessage.appendChild(progressContainer);
+
+                // Add AI status
+                const aiStatus = document.createElement("div");
+                aiStatus.className = "ai-status";
+                aiStatus.textContent = "Processing query...";
+                botMessage.appendChild(aiStatus);
+
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Start randomized status updates
+                const statusMessages = [
+                    "Analyzing question...",
+                    "Retrieving information...",
+                    "Generating response...",
+                    "Formulating answer...",
+                    "Processing query...",
+                    "Creating thoughtful reply...",
+                    "Almost there..."
+                ];
+
+                let statusInterval = setInterval(() => {
+                    const randomIndex = Math.floor(Math.random() * statusMessages.length);
+                    aiStatus.textContent = statusMessages[randomIndex];
+                }, 2500);
 
                 try {
+                    const username = window.location.pathname.split('/').pop();
+                    console.log(username);
+
                     const token = localStorage.getItem("token");
+                    let response = null; // Declare response outside if/else
+
                     if (!token) {
-                        alert("You must be logged in to rate.");
-                        location.href = '/login';
-                        return;
-                    }
-
-                    const response = await fetch(`/api/rate/${username}`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({ rating }),
-                    });
-
-                    const data = await response.json();
-                    if (response.ok) {
-                        // Show success message
-                        ratingSuccess.classList.add("visible");
-                        setTimeout(() => {
-                            ratingSuccess.classList.remove("visible");
-                        }, 2000);
-
-                        await fetchAverageRating(); // Refresh average rating
+                        response = await fetch(`/api/query/${username}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ query })
+                        });
                     } else {
-                        alert(data.message);
+                        response = await fetch(`/api/query/${username}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ query })
+                        });
                     }
+
+                    if (response) { // Check if response is not null before using it.
+                        const contentType = response.headers.get("content-type");
+                        if (contentType && contentType.includes("application/json")) {
+                            const data = await response.json();
+
+                            if (data.success) {
+                                let responseText = data.response;
+                                botMessage.innerHTML = ""; // Clear "Thinking..."
+
+                                const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
+                                let match;
+                                let lastIndex = 0;
+
+                                while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                                    // Add text before the image
+                                    botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+
+                                    // Create and append the image
+                                    const img = document.createElement("img");
+                                    img.src = match[0];
+                                    img.style.maxWidth = "100%";
+                                    img.style.maxHeight = "500px"; // Limit image height to prevent overflow
+                                    img.style.display = "block";
+                                    img.style.borderRadius = "8px"; // Ensure images are block-level
+                                    img.alt = "Bot generated image";
+                                    botMessage.appendChild(img);
+                                    lastIndex = cloudinaryUrlRegex.lastIndex;
+                                }
+
+                                // Add any remaining text after the last image
+                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
+                            } else {
+                                botMessage.textContent = "Error: " + data.message;
+                            }
+                        } else {
+                            const text = await response.text(); // Get the response as plain text
+                            console.error("Non-JSON response:", text);
+                            botMessage.textContent = "Error: Invalid response from server.";
+                        }
+                    } else {
+                        console.error("Response was null, fetch failed.");
+                        botMessage.textContent = "Error: Fetch request failed.";
+                    }
+
                 } catch (error) {
-                    console.error("Error rating:", error);
-                    alert("An error occurred while rating.");
+                    botMessage.textContent = "Error processing query.";
+                    console.error("Error:", error);
+                } finally {
+                    submitButton.disabled = false;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            });
+
+            // Allow Enter key to send messages
+            document.getElementById("queryInput").addEventListener("keydown", function (event) {
+                if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
+                    event.preventDefault(); // Prevent new line in textarea
+                    document.getElementById("submitButton").click();
+                }
+            });
+
+            document.getElementById("queryInput").addEventListener("input", function () {
+                this.style.height = "auto"; // Reset height to recalculate
+                this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
+            });
+            const ratingToggle = document.getElementById('ratingToggle');
+            const ratingContainer = document.getElementById('ratingContainer');
+
+            // Function to update rating visibility with animation
+            function updateRatingVisibility(show) {
+                if (show) {
+                    ratingContainer.classList.add('visible');
+                    ratingToggle.classList.add('active');
+                    localStorage.setItem("ratingVisible", "true");
+                    ratingContainer.style.pointerEvents = "auto"; // Add this line
+                } else {
+                    ratingContainer.classList.remove('visible');
+                    ratingToggle.classList.remove('active');
+                    localStorage.setItem("ratingVisible", "false");
+                    ratingContainer.style.pointerEvents = "none"; // Add this line
                 }
             }
-        });
 
-        // Function to render star rating
-        function renderStarRating(container, rating, size = "1rem") {
-            container.innerHTML = ""; // Clear previous stars
+            // Load rating visibility state from local storage
+            const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
+            updateRatingVisibility(isRatingVisible);
 
-            // Calculate full and partial stars
-            const fullStars = Math.floor(rating);
-            const hasHalfStar = rating % 1 >= 0.5;
+            // Toggle rating visibility on button click
+            ratingToggle.addEventListener('click', () => {
+                const isCurrentlyVisible = ratingContainer.classList.contains('visible');
+                updateRatingVisibility(!isCurrentlyVisible);
+            });
 
-            // Add full stars
-            for (let i = 0; i < fullStars; i++) {
-                const star = document.createElement("span");
-                star.className = "star star-filled";
-                star.style.fontSize = size;
-                star.style.cursor = "default";
-                star.textContent = "★";
-                container.appendChild(star);
-            }
+            const ratingStars = document.getElementById("ratingStars");
+            const ratingFeedback = document.getElementById("ratingFeedback");
+            const ratingSuccess = document.getElementById("ratingSuccess");
+            const averageRatingDisplay = document.getElementById("averageRatingDisplay");
+            const averageStars = document.getElementById("averageStars");
+            const averageNumber = document.getElementById("averageNumber");
+            const ratingCount = document.getElementById("ratingCount");
+            const username = window.location.pathname.split('/').pop();
 
-            // Add half star if needed
-            if (hasHalfStar) {
-                const halfStar = document.createElement("span");
-                halfStar.className = "star star-half";
-                halfStar.style.fontSize = size;
-                halfStar.style.cursor = "default";
-                container.appendChild(halfStar);
-            }
+            const feedbackTexts = [
+                "",
+                "Poor",
+                "Below Average",
+                "Average",
+                "Good",
+                "Excellent"
+            ];
 
-            // Add empty stars
-            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-            for (let i = 0; i < emptyStars; i++) {
-                const star = document.createElement("span");
-                star.className = "star";
-                star.style.fontSize = size;
-                star.style.cursor = "default";
-                star.textContent = "★";
-                container.appendChild(star);
-            }
-        }
+            ratingStars.addEventListener("mouseover", (event) => {
+                if (event.target.classList.contains("star")) {
+                    const rating = parseInt(event.target.dataset.rating);
+                    const stars = ratingStars.querySelectorAll(".star");
 
-        async function fetchAverageRating() {
-            try {
-                const targetUsername = window.location.pathname.split('/').pop();
-                const response = await fetch(`/api/user/profile/${targetUsername}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                });
+                    // Reset all stars
+                    stars.forEach(star => star.classList.remove("active"));
 
-                if (response.ok) {
-                    const data = await response.json();
-                    let totalRating = 0;
+                    // Highlight stars up to the hovered one
+                    for (let i = 0; i < rating; i++) {
+                        stars[i].classList.add("active");
+                    }
 
-                    if (data.ratings && data.ratings.length > 0) {
-                        data.ratings.forEach(rating => {
-                            totalRating += rating.rating;
+                    // Show feedback text
+                    ratingFeedback.textContent = feedbackTexts[rating];
+                }
+            });
+
+            // Reset stars when not hovering over the rating container
+            ratingStars.addEventListener("mouseleave", () => {
+                const stars = ratingStars.querySelectorAll(".star");
+                stars.forEach(star => star.classList.remove("active"));
+                ratingFeedback.textContent = "";
+            });
+
+            // Handle rating submission
+            ratingStars.addEventListener("click", async (event) => {
+                if (event.target.classList.contains("star")) {
+                    const rating = parseInt(event.target.dataset.rating);
+
+                    try {
+                        const token = localStorage.getItem("token");
+                        if (!token) {
+                            alert("You must be logged in to rate.");
+                            location.href = '/login';
+                            return;
+                        }
+
+                        const response = await fetch(`/api/rate/${username}`, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                            },
+                            body: JSON.stringify({ rating }),
                         });
 
-                        const averageRating = totalRating / data.ratings.length;
+                        const data = await response.json();
+                        if (response.ok) {
+                            // Show success message
+                            ratingSuccess.classList.add("visible");
+                            setTimeout(() => {
+                                ratingSuccess.classList.remove("visible");
+                            }, 2000);
 
-                        // Update the average rating display
-                        renderStarRating(averageStars, averageRating, "0.9rem");
-                        averageNumber.textContent = `${averageRating.toFixed(1)}`;
-                        ratingCount.textContent = `(${data.ratings.length})`;
-                    } else {
-                        averageStars.innerHTML = "";
-                        averageNumber.textContent = "No ratings";
-                        ratingCount.textContent = "";
+                            await fetchAverageRating(); // Refresh average rating
+                        } else {
+                            alert(data.message);
+                        }
+                    } catch (error) {
+                        console.error("Error rating:", error);
+                        alert("An error occurred while rating.");
                     }
-                } else {
-                    console.log("Error fetching profile");
                 }
-            } catch (error) {
-                console.error("Error fetching average rating:", error);
-                averageNumber.textContent = "Error";
-            }
-        }
+            });
 
-        fetchAverageRating(); // Fetch rating on page load
-    </script>
+            // Function to render star rating
+            function renderStarRating(container, rating, size = "1rem") {
+                container.innerHTML = ""; // Clear previous stars
+
+                // Calculate full and partial stars
+                const fullStars = Math.floor(rating);
+                const hasHalfStar = rating % 1 >= 0.5;
+
+                // Add full stars
+                for (let i = 0; i < fullStars; i++) {
+                    const star = document.createElement("span");
+                    star.className = "star star-filled";
+                    star.style.fontSize = size;
+                    star.style.cursor = "default";
+                    star.textContent = "★";
+                    container.appendChild(star);
+                }
+
+                // Add half star if needed
+                if (hasHalfStar) {
+                    const halfStar = document.createElement("span");
+                    halfStar.className = "star star-half";
+                    halfStar.style.fontSize = size;
+                    halfStar.style.cursor = "default";
+                    container.appendChild(halfStar);
+                }
+
+                // Add empty stars
+                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                for (let i = 0; i < emptyStars; i++) {
+                    const star = document.createElement("span");
+                    star.className = "star";
+                    star.style.fontSize = size;
+                    star.style.cursor = "default";
+                    star.textContent = "★";
+                    container.appendChild(star);
+                }
+            }
+
+            async function fetchAverageRating() {
+                try {
+                    const targetUsername = window.location.pathname.split('/').pop();
+                    const response = await fetch(`/api/user/profile/${targetUsername}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        let totalRating = 0;
+
+                        if (data.ratings && data.ratings.length > 0) {
+                            data.ratings.forEach(rating => {
+                                totalRating += rating.rating;
+                            });
+
+                            const averageRating = totalRating / data.ratings.length;
+
+                            // Update the average rating display
+                            renderStarRating(averageStars, averageRating, "0.9rem");
+                            averageNumber.textContent = `${averageRating.toFixed(1)}`;
+                            ratingCount.textContent = `(${data.ratings.length})`;
+                        } else {
+                            averageStars.innerHTML = "";
+                            averageNumber.textContent = "No ratings";
+                            ratingCount.textContent = "";
+                        }
+                    } else {
+                        console.log("Error fetching profile");
+                    }
+                } catch (error) {
+                    console.error("Error fetching average rating:", error);
+                    averageNumber.textContent = "Error";
+                }
+            }
+
+            fetchAverageRating(); // Fetch rating on page load
+        </script>
 </body>
 
 </html>
