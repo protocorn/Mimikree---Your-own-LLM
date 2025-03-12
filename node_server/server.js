@@ -25,6 +25,13 @@ app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
+app.use((req, res, next) => {
+    if (req.path.includes('/wp-admin') || req.path.includes('/setup-config.php')) {
+        return res.status(403).send('Access Denied');
+    }
+    next();
+});
+
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -38,6 +45,7 @@ app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
 app.use("/api/reddit", redditRoutes.router);
+
 
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
