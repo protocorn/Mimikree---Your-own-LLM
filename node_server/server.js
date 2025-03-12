@@ -90,7 +90,7 @@ const User = mongoose.model('User', userSchema);
 // JWT Secret Key (stored in .env file for security)
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-const envd = process.env.NODE_ENV || "production"; // Default to production
+const envd = "production"; // Default to production
 const config = require("./config")[envd];
 
 
