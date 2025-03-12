@@ -54,7 +54,7 @@
 
         h1 {
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin: 0.5rem 0;
             color: var(--primary-color);
         }
 
@@ -226,9 +226,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
             gap: 1rem;
+            position: relative;
+            z-index: 2;
         }
 
         .rating-toggle {
@@ -267,17 +269,25 @@
             border: 1px solid #eaeaea;
             transition: all var(--transition-speed) ease;
             overflow: hidden;
-            max-height: 0;
-            opacity: 0;
-            margin-bottom: 0;
             position: relative;
+            min-height: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
         .rating-container.visible {
-            max-height: 200px;
+            height: auto;
+            min-height: 100px;
             opacity: 1;
-            margin-bottom: 1rem;
+            visibility: visible;
             pointer-events: auto;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1rem;
         }
 
         .rating-content {
@@ -286,6 +296,14 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            height: auto;
+            min-height: 60px;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .rating-container.visible .rating-content {
+            opacity: 1;
         }
 
         .rating-left {
@@ -686,7 +704,11 @@
 
             .rating-container {
                 width: 100%;
-                pointer-events: none;
+            }
+
+            .rating-container.visible {
+                min-height: 140px;
+                pointer-events: auto;
             }
 
             .rating-content {
@@ -731,6 +753,18 @@
 
             .example-prompts {
                 grid-template-columns: 1fr;
+            }
+
+            .rating-container.visible {
+                min-height: 140px;
+            }
+
+            .rating-content {
+                min-height: 100px;
+            }
+
+            h1 {
+                margin: 0.25rem 0;
             }
         }
 
@@ -1467,7 +1501,7 @@
                         What topics are you specialized in?
                     </div>
                     <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Can you tell me about your creator?
+                        Can you tell me about you?
                     </div>
                     <div class="example-prompt" onclick="useExamplePrompt(this)">
                         What makes your responses unique?
