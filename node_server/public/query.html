@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <style>
         :root {
             --primary-color: #4d68ff;
@@ -381,7 +382,6 @@
         }
 
         @keyframes pulse {
-
             0%,
             50%,
             100% {
@@ -1422,6 +1422,7 @@
                     examplesContainer.style.display = "none";
                 }
             }
+            let chatHistory = [];
 
             document.getElementById("submitButton").addEventListener("click", async function () {
                 const queryInput = document.getElementById("queryInput");
@@ -1433,12 +1434,14 @@
                 const chatBox = document.getElementById("chatBox");
                 const submitButton = document.getElementById("submitButton");
 
+                // Add user message to chat history
+                chatHistory.push({ role: "user", content: query });
+
                 // Display user message
                 const userMessage = document.createElement("div");
                 userMessage.className = "message user-message";
                 userMessage.textContent = query;
                 chatBox.appendChild(userMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
 
                 // Clear input and disable button
                 queryInput.value = "";
@@ -1485,7 +1488,7 @@
                 botMessage.appendChild(aiStatus);
 
                 chatBox.appendChild(botMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
                 // Start randomized status updates
                 const statusMessages = [
@@ -1505,10 +1508,14 @@
 
                 try {
                     const username = window.location.pathname.split('/').pop();
-                    console.log(username);
+                    console.log("Username:", username);
+                    console.log("Chat History:", chatHistory);
 
                     const token = localStorage.getItem("token");
-                    let response = null; // Declare response outside if/else
+                    let response = null;
+
+                    const requestBody = { query, chatHistory };
+                    console.log("Request Body:", requestBody);
 
                     if (!token) {
                         response = await fetch(`/api/query/${username}`, {
@@ -1516,7 +1523,7 @@
                             headers: {
                                 "Content-Type": "application/json",
                             },
-                            body: JSON.stringify({ query })
+                            body: JSON.stringify(requestBody)
                         });
                     } else {
                         response = await fetch(`/api/query/${username}`, {
@@ -1525,60 +1532,68 @@
                                 "Content-Type": "application/json",
                                 'Authorization': `Bearer ${token}`
                             },
-                            body: JSON.stringify({ query })
+                            body: JSON.stringify(requestBody)
                         });
                     }
 
-                    if (response) { // Check if response is not null before using it.
-                        const contentType = response.headers.get("content-type");
-                        if (contentType && contentType.includes("application/json")) {
-                            const data = await response.json();
+                    const contentType = response.headers.get("content-type");
+                    console.log("Response Content-Type:", contentType);
 
-                            if (data.success) {
-                                let responseText = data.response;
-                                botMessage.innerHTML = ""; // Clear "Thinking..."
+                    if (contentType && contentType.includes("application/json")) {
+                        const data = await response.json();
+                        console.log("Response Data:", data);
 
-                                const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
-                                let match;
-                                let lastIndex = 0;
+                        if (data.success) {
+                            let responseText = data.response;
+                            botMessage.innerHTML = ""; // Clear "Thinking..."
 
-                                while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
-                                    // Add text before the image
-                                    botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+                            // Add bot message to chat history
+                            chatHistory.push({ role: "assistant", content: responseText });
 
-                                    // Create and append the image
-                                    const img = document.createElement("img");
-                                    img.src = match[0];
-                                    img.style.maxWidth = "100%";
-                                    img.style.maxHeight = "500px"; // Limit image height to prevent overflow
-                                    img.style.display = "block";
-                                    img.style.borderRadius = "8px"; // Ensure images are block-level
-                                    img.alt = "Bot generated image";
-                                    botMessage.appendChild(img);
-                                    lastIndex = cloudinaryUrlRegex.lastIndex;
-                                }
-
-                                // Add any remaining text after the last image
-                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
-                            } else {
-                                botMessage.textContent = "Error: " + data.message;
+                            // Limit chat history to last 10 messages to prevent memory issues
+                            if (chatHistory.length > 10) {
+                                chatHistory = chatHistory.slice(-10);
                             }
+                            console.log("Updated Chat History:", chatHistory);
+
+                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
+                            let match;
+                            let lastIndex = 0;
+
+                            while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                                // Add text before the image
+                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+
+                                // Create and append the image
+                                const img = document.createElement("img");
+                                img.src = match[0];
+                                img.style.maxWidth = "100%";
+                                img.style.maxHeight = "500px";
+                                img.style.display = "block";
+                                img.style.borderRadius = "8px";
+                                img.alt = "Bot generated image";
+                                botMessage.appendChild(img);
+                                lastIndex = cloudinaryUrlRegex.lastIndex;
+                            }
+
+                            // Add any remaining text after the last image
+                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
                         } else {
-                            const text = await response.text(); // Get the response as plain text
-                            console.error("Non-JSON response:", text);
-                            botMessage.textContent = "Error: Invalid response from server.";
+                            console.error("Error in response:", data.message);
+                            botMessage.textContent = "Error: " + data.message;
                         }
                     } else {
-                        console.error("Response was null, fetch failed.");
-                        botMessage.textContent = "Error: Fetch request failed.";
+                        const text = await response.text();
+                        console.error("Non-JSON response:", text);
+                        botMessage.textContent = "Error: Invalid response from server.";
                     }
-
                 } catch (error) {
-                    botMessage.textContent = "Error processing query.";
-                    console.error("Error:", error);
+                    console.error("Error in chat:", error);
+                    botMessage.textContent = "Error processing query. Please try again.";
                 } finally {
+                    clearInterval(statusInterval); // Clear status interval in all cases
                     submitButton.disabled = false;
-                    chatBox.scrollTop = chatBox.scrollHeight;
+                    botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
 
@@ -1786,6 +1801,14 @@
             }
 
             fetchAverageRating(); // Fetch rating on page load
+
+            
+            // Add this function to clear chat history when the page is about to unload
+            window.addEventListener('beforeunload', function() {
+                chatHistory = [];
+            });
+            console.log(chatHistory);
+
         </script>
 </body>
 

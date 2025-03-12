@@ -98,7 +98,7 @@ const User = mongoose.model('User', userSchema);
 // JWT Secret Key (stored in .env file for security)
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
-const envd = "production"; // Default to production
+const envd = process.env.NODE_ENV || "production"; // Default to production
 const config = require("./config")[envd];
 
 
@@ -394,19 +394,17 @@ app.get("/query/:username", async (req, res) => {
 
 app.post("/api/query/:username", async (req, res) => {
     try {
-        const { query } = req.body;
+        const { query, chatHistory } = req.body;  // Get chat history from request
         const { username } = req.params;
         let myusername;
         let is_own_model = false;
         const token = req.headers.authorization?.split(" ")[1];
-        console.log(token);
+        
         if (token) {
             let decoded;
             try {
                 decoded = jwt.verify(token, JWT_SECRET_KEY);
                 myusername = decoded.username;
-                console.log(myusername);
-                console.log(username);
                 if(username==myusername){
                     is_own_model=true;
                 }
@@ -416,9 +414,7 @@ app.post("/api/query/:username", async (req, res) => {
             }
         }
 
-       
-
-        // 1. Input Validation (Crucial)
+        // Input Validation
         if (!query || query.trim().length === 0) {
             return res.status(400).json({ success: false, message: "Query cannot be empty" });
         }
@@ -444,6 +440,7 @@ app.post("/api/query/:username", async (req, res) => {
                 username: username,
                 name: user.name, // Include name if needed by your LLM
                 own_model: is_own_model,
+                chatHistory: chatHistory || []  // Include chat history in the request to LLama server
             };
 
             const response = await axios.post(`${config.llamaServer}/ask`, dataForModel);

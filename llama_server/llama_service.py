@@ -54,9 +54,13 @@ prompt_template = ChatPromptTemplate.from_template(
 
     "### {name}'s Background ###\n"
     "{background}\n\n"
+    
+    "### Previous Conversation ###\n"
+    "{history}\n\n"
 
     "### User's Current Question ###\n"
     "{question}\n\n"
+
     "### Your Response ###"
 )
 
@@ -106,6 +110,7 @@ def ask():
         username = data['username']
         name = data['name']
         my_model = data["own_model"]
+        chat_history = data.get('chatHistory', [])  # Get chat history if provided
 
         if not query_text:
             return jsonify({"error": "No query provided"}), 400
@@ -120,32 +125,32 @@ def ask():
 
         if my_model:
             interaction_type = (f"You are talking with your creator/owner. Respond in a more personal, familiar way since this is {username} who created you."
-                                f"Note: When {username} says 'my' or 'mine', they are referring to their own things. "
-                                )
+                              f"Note: When {username} says 'my' or 'mine', they are referring to their own things. "
+                              )
         else:
             interaction_type = f"You are talking with someone who is not your creator. This is some user who is interacting with you"
-        
-        print(interaction_type)
+
+        # Format chat history for context
+        conversation_history = ""
+        if chat_history:
+            conversation_history = "\n### Previous Conversation ###\n"
+            for msg in chat_history[-5:]:  # Only include last 5 messages for context
+                role = "User" if msg["role"] == "user" else name
+                conversation_history += f"{role}: {msg['content']}\n"
 
         prompt = prompt_template.format(
             context=context,
             background=self_assessment,
             name=name,
             question=query_text,
-            interaction=interaction_type
+            interaction=interaction_type,
+            history= conversation_history
         )
 
         if "cloudinary" in context:
             prompt += '### Important note for Cloudinary Links ### \n If you encounter any URLs that contain the word "cloudinary", show the URL with space between each URL, but treat them as images. Do not explicitly mention them as URLs or links.'
 
-        # Request completion from Hugging Face API
-        messages = [{"role": "user", "content": prompt}]
-
-        '''completion = client.chat.completions.create(
-            model="meta-llama/Llama-3.3-70B-Instruct",
-            messages=messages,
-            max_tokens=1024,
-        )'''
+        # Request completion from Gemini
         model = genai.GenerativeModel("gemini-1.5-pro")
         response = model.generate_content([prompt])
 
