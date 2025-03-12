@@ -133,10 +133,11 @@ def ask():
         # Format chat history for context
         conversation_history = ""
         if chat_history:
-            conversation_history = "\n### Previous Conversation ###\n"
-            for msg in chat_history[-5:]:  # Only include last 5 messages for context
-                role = "User" if msg["role"] == "user" else name
+            for msg in chat_history[-5:]:  # Include last 5 messages for context
+                role = "User" if msg["role"] == "user" else "Assistant"
                 conversation_history += f"{role}: {msg['content']}\n"
+        
+        print(conversation_history)
 
         prompt = prompt_template.format(
             context=context,
