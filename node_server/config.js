@@ -1,7 +1,7 @@
 // config.js
 module.exports = {
     production: {
-      nodeServer: "https://mimikree.com",
+      nodeServer: "https://www.mimikree.com",
       llamaServer: "https://llama-server.fly.dev",
     },
     test: {
