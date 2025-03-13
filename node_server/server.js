@@ -394,7 +394,7 @@ app.get("/query/:username", async (req, res) => {
 // Helper function to check calendar availability
 async function checkCalendarAvailability(username, date) {
     try {
-        const response = await fetch(`${config.nodeServer}/api/calendar/busy-blocks/${username}?date=${date}`);
+        const response = await fetch(`http://localhost:3000/api/calendar/busy-blocks/${username}?date=${date}`);
         if (!response.ok) {
             return null;
         }
@@ -411,14 +411,14 @@ app.post('/api/query/:username', async (req, res) => {
         const { query, chatHistory } = req.body;
         const { username } = req.params;
 
-        // Create updated chat history with current date context
+        // Initialize or get existing chat history
         const updatedHistory = chatHistory ? [...chatHistory] : [];
-        
-        // Add current date context
+
+        // Add current date context to every query
         const currentDate = new Date();
         const dateContext = {
             role: "system",
-            content: `Current date and time context: ${currentDate.toLocaleString('en-US', { 
+            content: `Current date and time: ${currentDate.toLocaleString('en-US', { 
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
@@ -431,44 +431,16 @@ app.post('/api/query/:username', async (req, res) => {
         updatedHistory.push(dateContext);
 
         // Check if query is related to calendar/scheduling
-        // Keywords for schedule-related queries
-        const schedulingKeywords = [
-            'free', 'available', 'schedule', 'meeting', 'calendar',
-            'today', 'tomorrow', 'next week', 'monday', 'tuesday', 'wednesday',
-            'thursday', 'friday', 'saturday', 'sunday', 'morning', 'afternoon',
-            'evening', 'appointment', 'busy', 'book', 'slot', 'time'
-        ];
-
+        const schedulingKeywords = ['free', 'available', 'schedule', 'meeting', 'calendar', 'tomorrow', 'today'];
         const isSchedulingQuery = schedulingKeywords.some(keyword => 
             query.toLowerCase().includes(keyword)
         );
 
         let calendarInfo = '';
         if (isSchedulingQuery) {
-            // Extract date from query
+            // Extract date from query or use tomorrow's date
             let queryDate = new Date();
-            const queryLower = query.toLowerCase();
-
-            // Check for specific days
-            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-            const dayMentioned = days.find(day => queryLower.includes(day));
-            
-            if (dayMentioned) {
-                const today = queryDate.getDay();
-                const targetDay = days.indexOf(dayMentioned);
-                const daysToAdd = (targetDay + 7 - today) % 7;
-                queryDate.setDate(queryDate.getDate() + daysToAdd);
-            }
-            // Check for relative dates
-            else if (queryLower.includes('tomorrow')) {
-                queryDate.setDate(queryDate.getDate() + 1);
-            }
-            else if (queryLower.includes('next week')) {
-                queryDate.setDate(queryDate.getDate() + 7);
-            }
-            else if (!queryLower.includes('today')) {
-                // If no specific date mentioned and not explicitly today,
-                // default to tomorrow for scheduling queries
+            if (query.toLowerCase().includes('tomorrow')) {
                 queryDate.setDate(queryDate.getDate() + 1);
             }
             // Format date as YYYY-MM-DD
@@ -487,7 +459,7 @@ app.post('/api/query/:username', async (req, res) => {
             }
         }
 
-        // Add calendar information to the conversation if available
+        // Add calendar information if available
         if (calendarInfo) {
             updatedHistory.push({
                 role: "system",
