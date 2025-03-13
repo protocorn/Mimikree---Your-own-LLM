@@ -9,6 +9,7 @@ const twitterRoutes = require("./src/twitter");
 const linkedinRoutes = require("./src/linkedin");
 const mediumRoutes = require("./src/medium");
 const redditRoutes = require("./src/reddit");
+const calendarRoutes = require("./src/calendar");
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -45,6 +46,7 @@ app.use("/api/twitter", twitterRoutes.router);
 app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
 app.use("/api/reddit", redditRoutes.router);
+app.use("/api/calendar", calendarRoutes.router);
 
 
 mongoose.connect(process.env.MONGO_URI, {
@@ -195,8 +197,6 @@ app.post("/api/submit", async (req, res) => {
             })
 
         }
-
-
 
         const token = req.headers.authorization?.split(" ")[1];
         console.log(token);
@@ -391,11 +391,113 @@ app.get("/query/:username", async (req, res) => {
     }
 });
 
-
-app.post("/api/query/:username", async (req, res) => {
+// Helper function to check calendar availability
+async function checkCalendarAvailability(username, date) {
     try {
-        const { query, chatHistory } = req.body;  // Get chat history from request
+        const response = await fetch(`http://localhost:3000/api/calendar/busy-blocks/${username}?date=${date}`);
+        if (!response.ok) {
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error checking calendar availability:', error);
+        return null;
+    }
+}
+
+// Modify the query endpoint to include calendar information
+app.post('/api/query/:username', async (req, res) => {
+    try {
+        const { query, chatHistory } = req.body;
         const { username } = req.params;
+
+        // Create updated chat history with current date context
+        const updatedHistory = chatHistory ? [...chatHistory] : [];
+        
+        // Add current date context
+        const currentDate = new Date();
+        const dateContext = {
+            role: "system",
+            content: `Current date and time context: ${currentDate.toLocaleString('en-US', { 
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZoneName: 'short'
+            })}`
+        };
+        updatedHistory.push(dateContext);
+
+        // Check if query is related to calendar/scheduling
+        // Keywords for schedule-related queries
+        const schedulingKeywords = [
+            'free', 'available', 'schedule', 'meeting', 'calendar',
+            'today', 'tomorrow', 'next week', 'monday', 'tuesday', 'wednesday',
+            'thursday', 'friday', 'saturday', 'sunday', 'morning', 'afternoon',
+            'evening', 'appointment', 'busy', 'book', 'slot', 'time'
+        ];
+
+        const isSchedulingQuery = schedulingKeywords.some(keyword => 
+            query.toLowerCase().includes(keyword)
+        );
+
+        let calendarInfo = '';
+        if (isSchedulingQuery) {
+            // Extract date from query
+            let queryDate = new Date();
+            const queryLower = query.toLowerCase();
+
+            // Check for specific days
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayMentioned = days.find(day => queryLower.includes(day));
+            
+            if (dayMentioned) {
+                const today = queryDate.getDay();
+                const targetDay = days.indexOf(dayMentioned);
+                const daysToAdd = (targetDay + 7 - today) % 7;
+                queryDate.setDate(queryDate.getDate() + daysToAdd);
+            }
+            // Check for relative dates
+            else if (queryLower.includes('tomorrow')) {
+                queryDate.setDate(queryDate.getDate() + 1);
+            }
+            else if (queryLower.includes('next week')) {
+                queryDate.setDate(queryDate.getDate() + 7);
+            }
+            else if (!queryLower.includes('today')) {
+                // If no specific date mentioned and not explicitly today,
+                // default to tomorrow for scheduling queries
+                queryDate.setDate(queryDate.getDate() + 1);
+            }
+            // Format date as YYYY-MM-DD
+            const formattedDate = queryDate.toISOString().split('T')[0];
+            
+            const availability = await checkCalendarAvailability(username, formattedDate);
+            if (availability) {
+                if (availability.busyBlocks && availability.busyBlocks.length > 0) {
+                    const blocks = availability.busyBlocks.map(block => 
+                        `- Busy from ${block.startTime} to ${block.endTime}`
+                    ).join('\n');
+                    calendarInfo = `\nCalendar information for ${formattedDate}:\n${blocks}`;
+                } else {
+                    calendarInfo = `\nNo scheduled events found for ${formattedDate}.`;
+                }
+            }
+        }
+
+        // Add calendar information to the conversation if available
+        if (calendarInfo) {
+            updatedHistory.push({
+                role: "system",
+                content: `Calendar availability information: ${calendarInfo}`
+            });
+        }
+
+        // Rest of your existing query handling code...
+        // Make sure to pass updatedHistory instead of chatHistory to your model
+
         let myusername;
         let is_own_model = false;
         const token = req.headers.authorization?.split(" ")[1];
@@ -440,7 +542,7 @@ app.post("/api/query/:username", async (req, res) => {
                 username: username,
                 name: user.name, // Include name if needed by your LLM
                 own_model: is_own_model,
-                chatHistory: chatHistory || []  // Include chat history in the request to LLama server
+                chatHistory: updatedHistory  // Include updated chat history in the request to LLama server
             };
 
             const response = await axios.post(`${config.llamaServer}/ask`, dataForModel);
@@ -652,9 +754,6 @@ app.get("/api/user/profile/:username/full", async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-
-
-
 
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

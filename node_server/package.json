@@ -14,9 +14,11 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "cheerio": "^1.0.0",
+    "cloudinary": "latest",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "googleapis": "^146.0.0",
     "jsdom": "^26.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.0",
@@ -26,8 +28,7 @@
     "puppeteer-core": "^24.1.1",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "snoowrap": "^1.23.0",
-    "cloudinary": "latest"
+    "snoowrap": "^1.23.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.7.8"

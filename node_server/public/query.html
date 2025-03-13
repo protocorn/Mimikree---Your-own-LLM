@@ -1023,7 +1023,6 @@
         </div>
 
         <script>
-            /*
             document.addEventListener('DOMContentLoaded', function () {
                 const connectButton = document.getElementById('calendarConnectButton');
                 const statusDisplay = document.getElementById('calendarConnectionStatus');
@@ -1034,9 +1033,7 @@
                 const API_KEY = 'AIzaSyD7bzWL5TA3WuFG5NRWQQARlERqOZ-aXlg';
 
                 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
-
-                // Authorization scopes required by the API
-                const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events';
+                const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
                 let tokenClient;
                 let gapiInited = false;
@@ -1089,14 +1086,102 @@
                 });
                 initializeGisClient();
 
-                // Connect button click handler
-                connectButton.addEventListener('click', function () {
-                    if (connectButton.classList.contains('disconnect')) {
-                        // Handle disconnect
-                        disconnectFromGoogleCalendar();
+                async function analyzeCalendarPatterns() {
+                    try {
+                        // Get events for the next 30 days
+                        const now = new Date();
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+                        const response = await gapi.client.calendar.events.list({
+                            'calendarId': 'primary',
+                            'timeMin': now.toISOString(),
+                            'timeMax': thirtyDaysFromNow.toISOString(),
+                            'showDeleted': false,
+                            'singleEvents': true,
+                            'orderBy': 'startTime'
+                        });
+
+                        const events = response.result.items;
+                        
+                        // Group events by date
+                        const busyBlocksByDate = new Map();
+                        
+                        events.forEach(event => {
+                            if (!event.start || !event.end) return;
+                            
+                            const startDateTime = new Date(event.start.dateTime || event.start.date);
+                            const endDateTime = new Date(event.end.dateTime || event.end.date);
+                            const dateKey = startDateTime.toISOString().split('T')[0];
+                            
+                            if (!busyBlocksByDate.has(dateKey)) {
+                                busyBlocksByDate.set(dateKey, []);
+                            }
+                            
+                            busyBlocksByDate.get(dateKey).push({
+                                startTime: startDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                endTime: endDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                                summary: event.summary || 'Busy'
+                            });
+                        });
+
+                        // Convert to array format for storage
+                        const busyBlocks = Array.from(busyBlocksByDate.entries()).map(([date, blocks]) => ({
+                            date: new Date(date),
+                            blocks: blocks.sort((a, b) => a.startTime.localeCompare(b.startTime))
+                        }));
+
+                        // Store in localStorage for client-side use
+                        localStorage.setItem('calendarBusyBlocks', JSON.stringify(busyBlocks));
+
+                        // Send to server
+                        const authToken = localStorage.getItem('token');
+                        if (!authToken) {
+                            throw new Error('Authentication token not found');
+                        }
+
+                        const serverResponse = await fetch('/api/calendar/patterns', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${authToken}`
+                            },
+                            body: JSON.stringify({ busyBlocks })
+                        });
+
+                        if (!serverResponse.ok) {
+                            throw new Error('Failed to store calendar patterns');
+                        }
+
+                        const responseData = await serverResponse.json();
+                        console.log('Calendar patterns stored successfully:', responseData);
+                        showNotification('Calendar patterns updated successfully');
+
+                    } catch (error) {
+                        console.error('Error analyzing calendar patterns:', error);
+                        showNotification('Error updating calendar patterns', true);
+                        throw error;
+                    }
+                }
+
+                async function handleCalendarConnect() {
+                    try {
+                        await tokenClient.requestAccessToken();
+                        await analyzeCalendarPatterns();
+                        localStorage.setItem('googleCalendarConnected', 'true');
+                        localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
+                        updateConnectionUI(true);
+                    } catch (error) {
+                        console.error('Error connecting to calendar:', error);
+                        showNotification('Error connecting to calendar', true);
+                    }
+                }
+
+                connectButton.addEventListener('click', async () => {
+                    if (connectButton.textContent === 'Connect') {
+                        await handleCalendarConnect();
                     } else {
-                        // Handle connect
-                        connectToGoogleCalendar();
+                        disconnectFromGoogleCalendar();
                     }
                 });
 
@@ -1112,12 +1197,14 @@
                         localStorage.setItem('googleCalendarConnected', 'true');
                         localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
 
-                        // Update UI
+                        // Analyze calendar patterns after successful connection
+                        const patterns = await analyzeCalendarPatterns();
+                        if (patterns) {
+                            showNotification('Calendar patterns analyzed successfully!');
+                        }
+
                         updateConnectionUI(true);
                         showNotification('Connected to Google Calendar successfully!');
-
-                        // Fetch and display events
-                        await listUpcomingEvents();
                     };
 
                     if (gapi.client.getToken() === null) {
@@ -1140,105 +1227,26 @@
                     // Update local storage and UI
                     localStorage.removeItem('googleCalendarConnected');
                     localStorage.removeItem('googleCalendarConnectedAt');
+                    localStorage.removeItem('calendarBusyBlocks');
                     updateConnectionUI(false);
 
-                    // Hide events preview
-                    const eventsPreview = document.querySelector('.events-preview');
-                    if (eventsPreview) {
-                        eventsPreview.style.display = 'none';
-                        eventsPreview.classList.remove('visible');
+                    // Notify server about disconnection
+                    const authToken = localStorage.getItem('token');
+                    if (authToken) {
+                        fetch('/api/calendar/disconnect', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        });
                     }
 
                     showNotification('Disconnected from Google Calendar');
                 }
 
-                async function listUpcomingEvents() {
-                    try {
-                        // Get events from primary calendar, sorted by start time
-                        const response = await gapi.client.calendar.events.list({
-                            'calendarId': 'primary',
-                            'timeMin': (new Date()).toISOString(),
-                            'showDeleted': false,
-                            'singleEvents': true,
-                            'maxResults': 5,
-                            'orderBy': 'startTime'
-                        });
-
-                        const events = response.result.items;
-
-                        // Create or get events preview section
-                        let eventsPreview = document.querySelector('.events-preview');
-
-                        if (!eventsPreview) {
-                            eventsPreview = document.createElement('div');
-                            eventsPreview.className = 'events-preview';
-                            document.querySelector('.service-connection').after(eventsPreview);
-                        }
-
-                        // Generate HTML for events
-                        let eventsHTML = `
-                    <div class="events-title">Upcoming Events</div>
-                `;
-
-                        if (events.length === 0) {
-                            eventsHTML += `<div class="empty-events">No upcoming events found</div>`;
-                        } else {
-                            events.forEach(event => {
-                                // Format the event time
-                                const start = event.start.dateTime ? new Date(event.start.dateTime) : new Date(event.start.date);
-                                const formattedDate = start.toLocaleDateString(undefined, {
-                                    weekday: 'short',
-                                    month: 'short',
-                                    day: 'numeric'
-                                });
-
-                                let timeStr = '';
-                                if (event.start.dateTime) {
-                                    const formattedTime = start.toLocaleTimeString(undefined, {
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    });
-                                    timeStr = `${formattedDate}, ${formattedTime}`;
-
-                                    if (event.end?.dateTime) {
-                                        const end = new Date(event.end.dateTime);
-                                        const endTime = end.toLocaleTimeString(undefined, {
-                                            hour: '2-digit',
-                                            minute: '2-digit'
-                                        });
-                                        timeStr += ` - ${endTime}`;
-                                    }
-                                } else {
-                                    timeStr = formattedDate; // All-day event
-                                }
-
-                                eventsHTML += `
-                            <div class="event-item">
-                                <div>${event.summary}</div>
-                                <div class="event-time">${timeStr}</div>
-                            </div>
-                        `;
-                            });
-                        }
-
-                        // Update and show events preview
-                        eventsPreview.innerHTML = eventsHTML;
-                        eventsPreview.style.display = 'block';
-
-                        // Animate height expansion
-                        setTimeout(() => {
-                            eventsPreview.classList.add('visible');
-                        }, 100);
-
-                    } catch (error) {
-                        console.error('Error fetching calendar events:', error);
-                        showNotification('Error fetching calendar events', true);
-                    }
-                }
-
                 function updateConnectionUI(isConnected) {
                     if (isConnected) {
-                        connectButton.textContent = 'Disconnect';       
+                        connectButton.textContent = 'Disconnect';
                         connectButton.classList.add('disconnect');
                         statusDisplay.textContent = 'Connected';
                         statusDisplay.classList.add('connected');
@@ -1254,11 +1262,6 @@
                                 minute: '2-digit'
                             });
                             statusDisplay.textContent = `Connected since ${formattedDate}`;
-                        }
-
-                        // If already connected and token is available, display events
-                        if (gapi.client?.getToken() !== null) {
-                            listUpcomingEvents();
                         }
                     } else {
                         connectButton.textContent = 'Connect';
@@ -1300,15 +1303,13 @@
                                     updateConnectionUI(false);
                                     return;
                                 }
-                                // Successfully refreshed token, fetch events
-                                await listUpcomingEvents();
                             };
 
                             tokenClient.requestAccessToken({ prompt: '' });
                         }
                     }, 500);
                 }
-            });*/
+            });
 
             // Drawer functionality
             const drawerToggle = document.getElementById('drawerToggle');
@@ -1657,7 +1658,7 @@
                         console.log("Response Data:", data);
 
                         if (data.success) {
-                            let responseText = data.response;
+                            let responseText = data.response.trim();
                             botMessage.innerHTML = ""; // Clear "Thinking..."
 
                             // Add bot message to chat history
@@ -1673,9 +1674,19 @@
                             let match;
                             let lastIndex = 0;
 
+                            // Configure marked to not add extra paragraphs
+                            marked.setOptions({
+                                gfm: true,
+                                breaks: true
+                            });
+
                             while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
                                 // Add text before the image
-                                botMessage.innerHTML += marked.parse(responseText.substring(lastIndex, match.index));
+                                const textBeforeImage = responseText.substring(lastIndex, match.index).trim();
+                                if (textBeforeImage) {
+                                    const parsedText = marked.parse(textBeforeImage).trim();
+                                    botMessage.innerHTML += parsedText;
+                                }
 
                                 // Create and append the image
                                 const img = document.createElement("img");
@@ -1690,7 +1701,11 @@
                             }
 
                             // Add any remaining text after the last image
-                            botMessage.innerHTML += marked.parse(responseText.substring(lastIndex));
+                            const remainingText = responseText.substring(lastIndex).trim();
+                            if (remainingText) {
+                                const parsedText = marked.parse(remainingText).trim();
+                                botMessage.innerHTML += parsedText;
+                            }
                         } else {
                             console.error("Error in response:", data.message);
                             botMessage.textContent = "Error: " + data.message;
