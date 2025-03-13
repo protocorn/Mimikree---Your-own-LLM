@@ -1164,27 +1164,6 @@
                     }
                 }
 
-                async function handleCalendarConnect() {
-                    try {
-                        await tokenClient.requestAccessToken();
-                        await analyzeCalendarPatterns();
-                        localStorage.setItem('googleCalendarConnected', 'true');
-                        localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
-                        updateConnectionUI(true);
-                    } catch (error) {
-                        console.error('Error connecting to calendar:', error);
-                        showNotification('Error connecting to calendar', true);
-                    }
-                }
-
-                connectButton.addEventListener('click', async () => {
-                    if (connectButton.textContent === 'Connect') {
-                        await handleCalendarConnect();
-                    } else {
-                        disconnectFromGoogleCalendar();
-                    }
-                });
-
                 function connectToGoogleCalendar() {
                     // Request an access token
                     tokenClient.callback = async (resp) => {
@@ -1193,18 +1172,25 @@
                             return;
                         }
 
-                        // Store token in localStorage (in a real app, handle this more securely)
-                        localStorage.setItem('googleCalendarConnected', 'true');
-                        localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
-
-                        // Analyze calendar patterns after successful connection
-                        const patterns = await analyzeCalendarPatterns();
-                        if (patterns) {
-                            showNotification('Calendar patterns analyzed successfully!');
+                        try {
+                            // Analyze calendar patterns immediately after getting token
+                            await analyzeCalendarPatterns();
+                            
+                            // Store connection state
+                            localStorage.setItem('googleCalendarConnected', 'true');
+                            localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
+                            
+                            // Update UI
+                            updateConnectionUI(true);
+                            showNotification('Connected to Google Calendar successfully!');
+                        } catch (error) {
+                            console.error('Error during calendar connection:', error);
+                            showNotification('Error connecting to calendar', true);
+                            // Reset connection state on error
+                            localStorage.removeItem('googleCalendarConnected');
+                            localStorage.removeItem('googleCalendarConnectedAt');
+                            updateConnectionUI(false);
                         }
-
-                        updateConnectionUI(true);
-                        showNotification('Connected to Google Calendar successfully!');
                     };
 
                     if (gapi.client.getToken() === null) {
@@ -1215,6 +1201,14 @@
                         tokenClient.requestAccessToken({ prompt: '' });
                     }
                 }
+
+                connectButton.addEventListener('click', async () => {
+                    if (connectButton.textContent === 'Connect') {
+                        connectToGoogleCalendar();
+                    } else {
+                        disconnectFromGoogleCalendar();
+                    }
+                });
 
                 function disconnectFromGoogleCalendar() {
                     // Revoke the token
