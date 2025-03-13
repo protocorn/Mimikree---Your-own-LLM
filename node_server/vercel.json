@@ -18,6 +18,9 @@
     "NODE_ENV": "production",
     "CLOUDINARY_CLOUD_NAME": "dkyloeuir",
     "CLOUDINARY_API_KEY": "464193934321355",
-    "CLOUDINARY_API_SECRET": "MKnz_JA8iO44v5PMwZjnnpIk0UA"
+    "CLOUDINARY_API_SECRET": "MKnz_JA8iO44v5PMwZjnnpIk0UA",
+    "GOOGLE_CLIENT_ID": "305246459078-5lele352pmn10a5mhhjrdd32p58n2qtn.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "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",
+    "GOOGLE_REDIRECT_URI": "https://www.mimikree.com"
   }
 }
