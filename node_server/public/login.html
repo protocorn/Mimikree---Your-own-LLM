@@ -198,10 +198,17 @@
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // Get user's timezone information
+        const timezone = {
+            offset: new Date().getTimezoneOffset(),
+            name: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+
         const formData = new FormData(e.target);
         const data = {
             email: formData.get('email'),
             password: formData.get('password'),
+            timezone: timezone
         };
 
         const response = await fetch('/api/login', {

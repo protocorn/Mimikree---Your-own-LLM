@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: { type: String, required: true },
+    timezone: { 
+        offset: { type: Number, required: false },  // Timezone offset in minutes
+        name: { type: String, required: false }     // Timezone name (e.g., "America/New_York")
+    },
     socialProfiles: {
         github: { type: String, required: false },
         linkedin: { type: String, required: false },
@@ -414,24 +418,35 @@ app.post('/api/query/:username', async (req, res) => {
         // Initialize or get existing chat history
         const updatedHistory = chatHistory ? [...chatHistory] : [];
 
+        // Get user's timezone information
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Create date in user's timezone
+        const userDate = new Date();
+        const userTimezone = user.timezone?.name || 'UTC';
+
         // Add current date context to every query
-        const currentDate = new Date();
         const dateContext = {
             role: "system",
-            content: `Current date and time: ${currentDate.toLocaleString('en-US', { 
+            content: `Current date and time in user's timezone (${userTimezone}): ${userDate.toLocaleString('en-US', { 
                 weekday: 'long',
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                timeZoneName: 'short'
+                timeZoneName: 'short',
+                timeZone: userTimezone,  // Explicitly use the user's timezone
+                hour12: true  // Use 12-hour format
             })}`
         };
         updatedHistory.push(dateContext);
 
         // Check if query is related to calendar/scheduling
-        const schedulingKeywords = ['free', 'available', 'schedule', 'meeting', 'calendar', 'tomorrow', 'today'];
+        const schedulingKeywords = ['free', 'available', 'schedule', 'meeting', 'calendar', 'tomorrow', 'today', 'week', 'month', 'friday', 'monday', 'tuesday', 'wednesday', 'thursday', 'saturday', 'sunday'];
         const isSchedulingQuery = schedulingKeywords.some(keyword => 
             query.toLowerCase().includes(keyword)
         );
@@ -439,23 +454,95 @@ app.post('/api/query/:username', async (req, res) => {
         let calendarInfo = '';
         if (isSchedulingQuery) {
             // Extract date from query or use tomorrow's date
-            let queryDate = new Date();
+            let queryDate = new Date(userDate);
+            let endDate = new Date(userDate);
+            let dateRange = [];
+
+            // Handle different date queries
             if (query.toLowerCase().includes('tomorrow')) {
                 queryDate.setDate(queryDate.getDate() + 1);
-            }
-            // Format date as YYYY-MM-DD
-            const formattedDate = queryDate.toISOString().split('T')[0];
-            
-            const availability = await checkCalendarAvailability(username, formattedDate);
-            if (availability) {
-                if (availability.busyBlocks && availability.busyBlocks.length > 0) {
-                    const blocks = availability.busyBlocks.map(block => 
-                        `- Busy from ${block.startTime} to ${block.endTime}`
-                    ).join('\n');
-                    calendarInfo = `\nCalendar information for ${formattedDate}:\n${blocks}`;
-                } else {
-                    calendarInfo = `\nNo scheduled events found for ${formattedDate}.`;
+                endDate = new Date(queryDate);
+            } else if (query.toLowerCase().includes('this week')) {
+                // Get the current day of week (0 = Sunday, 1 = Monday, etc.)
+                const currentDay = queryDate.getDay();
+                // Calculate days until Saturday
+                const daysUntilSaturday = 6 - currentDay;
+                endDate.setDate(queryDate.getDate() + daysUntilSaturday);
+            } else if (query.toLowerCase().includes('next week')) {
+                // Get to next Monday
+                const currentDay = queryDate.getDay();
+                const daysUntilNextMonday = (8 - currentDay) % 7;
+                queryDate.setDate(queryDate.getDate() + daysUntilNextMonday);
+                // Set end date to next Sunday
+                endDate = new Date(queryDate);
+                endDate.setDate(endDate.getDate() + 6);
+            } else if (query.toLowerCase().includes('this month')) {
+                // Get to the last day of current month
+                endDate = new Date(queryDate.getFullYear(), queryDate.getMonth() + 1, 0);
+            } else if (query.toLowerCase().includes('next month')) {
+                // Get to first day of next month
+                queryDate = new Date(queryDate.getFullYear(), queryDate.getMonth() + 1, 1);
+                // Get to last day of next month
+                endDate = new Date(queryDate.getFullYear(), queryDate.getMonth() + 1, 0);
+            } else {
+                // Handle specific day queries (e.g., "this friday", "next monday")
+                const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const targetDay = days.find(day => query.toLowerCase().includes(day));
+                if (targetDay) {
+                    const currentDay = queryDate.getDay();
+                    const targetDayIndex = days.indexOf(targetDay);
+                    let daysToAdd = targetDayIndex - currentDay;
+                    
+                    // If the target day is before current day, add 7 to get to next occurrence
+                    if (daysToAdd <= 0) {
+                        daysToAdd += 7;
+                    }
+                    
+                    // If query includes "next", add another week
+                    if (query.toLowerCase().includes('next')) {
+                        daysToAdd += 7;
+                    }
+                    
+                    queryDate.setDate(queryDate.getDate() + daysToAdd);
+                    endDate = new Date(queryDate);
                 }
+            }
+
+            // Generate array of dates between start and end date
+            while (queryDate <= endDate) {
+                dateRange.push(new Date(queryDate));
+                queryDate.setDate(queryDate.getDate() + 1);
+            }
+
+            // Check availability for each date in the range
+            let allAvailability = [];
+            for (const date of dateRange) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const formattedDate = `${year}-${month}-${day}`;
+                
+                const availability = await checkCalendarAvailability(username, formattedDate);
+                if (availability) {
+                    if (availability.busyBlocks && availability.busyBlocks.length > 0) {
+                        allAvailability.push({
+                            date: formattedDate,
+                            blocks: availability.busyBlocks
+                        });
+                    }
+                }
+            }
+
+            // Format the calendar information
+            if (allAvailability.length > 0) {
+                const blocks = allAvailability.map(day => 
+                    `\n${day.date}:\n${day.blocks.map(block => 
+                        `- Busy from ${block.startTime} to ${block.endTime}`
+                    ).join('\n')}`
+                ).join('\n');
+                calendarInfo = `\nCalendar information for the requested period:\n${blocks}`;
+            } else {
+                calendarInfo = `\nNo scheduled events found for the requested period.`;
             }
         }
 
@@ -570,8 +657,8 @@ app.post("/api/signup", async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
     try {
-        const { email, password } = req.body;
-        console.log("Login attempt:", { email, password }); // TEMPORARY DEBUG LOGGING
+        const { email, password, timezone } = req.body;
+        console.log("Login attempt:", { email, password, timezone }); // TEMPORARY DEBUG LOGGING
 
         // Find user by email
         const user = await User.findOne({ email });
@@ -586,6 +673,12 @@ app.post("/api/login", async (req, res) => {
         console.log("Password match:", isMatch); // DEBUG LOGGING
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
+        }
+
+        // Update user's timezone if provided
+        if (timezone) {
+            user.timezone = timezone;
+            await user.save();
         }
 
         // Create and sign JWT token
