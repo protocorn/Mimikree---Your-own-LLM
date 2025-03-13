@@ -18,9 +18,44 @@ const cloudinary = require('cloudinary').v2;
 
 dotenv.config();
 
-
 const app = express();
 const PORT = 3000;
+
+// MongoDB Connection Setup - Moved to the top
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 15000, // Increase timeout to 15 seconds
+    socketTimeoutMS: 45000, // Socket timeout
+    connectTimeoutMS: 15000, // Connection timeout
+    maxPoolSize: 10, // Maximum number of connections in the pool
+    retryWrites: true,
+    w: 'majority'
+})
+.then(() => {
+    console.log("Connected to MongoDB");
+    // Start the server only after successful MongoDB connection
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+})
+.catch((err) => {
+    console.error("Initial MongoDB connection error:", err);
+    // Attempt to reconnect after a delay
+    setTimeout(() => {
+        mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            serverSelectionTimeoutMS: 15000,
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 15000,
+            maxPoolSize: 10,
+            retryWrites: true,
+            w: 'majority'
+        })
+        .then(() => console.log("Reconnected to MongoDB"))
+        .catch((reconnectErr) => console.error("Failed to reconnect:", reconnectErr));
+    }, 5000);
+});
+
 // Middleware
 app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -32,7 +67,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -47,26 +81,6 @@ app.use("/api/linkedin", linkedinRoutes.router);
 app.use("/api/medium", mediumRoutes.router);
 app.use("/api/reddit", redditRoutes.router);
 app.use("/api/calendar", calendarRoutes.router);
-
-
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((err) => {
-        console.error("Initial MongoDB connection error:", err);
-        // Attempt to reconnect after a delay (e.g., 5 seconds)
-        setTimeout(() => {
-            mongoose.connect(process.env.MONGO_URI, {
-                useNewUrlParser: true,
-                useUnifiedTopology: true,
-            })
-                .then(() => console.log("Reconnected to MongoDB"))
-                .catch((reconnectErr) => console.error("Failed to reconnect:", reconnectErr));
-        }, 5000);
-    });
-
 
 // User Schema
 const userSchema = new mongoose.Schema({
@@ -107,11 +121,9 @@ const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 const envd = process.env.NODE_ENV || "production"; // Default to production
 const config = require("./config")[envd];
 
-
 app.get('/add-data', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "data.html"));
 });
-
 
 app.get('/signup', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "signup.html"));
@@ -152,14 +164,12 @@ app.post("/api/submit", async (req, res) => {
             combinedText += `GitHub Profile: ${JSON.stringify(collectedData.github)} `;
         }
 
-
         if (data.socialProfiles.linkedin) {
             const linkedinResponse = await axios.post(`${config.nodeServer}/api/linkedin/profile`, {
                 linkedInUrl: data.socialProfiles.linkedin.url
             });
 
             collectedData.linkedin = linkedinResponse.data.profile;
-
 
             // Store LinkedIn data in Pinecone
             documents.push(JSON.stringify(linkedinResponse.data.profile));
@@ -274,7 +284,6 @@ app.post("/api/submit", async (req, res) => {
         else {
             return res.status(401).json({ success: false, message: "Unauthorized: No token provided" });
         }
-
 
         res.json({ success: true, message: "Data sent successfully" });
 
@@ -819,6 +828,3 @@ app.get("/api/user/profile/:username/full", async (req, res) => {
         res.status(500).json({ message: "Internal server error" });
     }
 });
-
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
