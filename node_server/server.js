@@ -394,7 +394,7 @@ app.get("/query/:username", async (req, res) => {
 // Helper function to check calendar availability
 async function checkCalendarAvailability(username, date) {
     try {
-        const response = await fetch(`http://localhost:3000/api/calendar/busy-blocks/${username}?date=${date}`);
+        const response = await fetch(`${config.nodeServer}/api/calendar/busy-blocks/${username}?date=${date}`);
         if (!response.ok) {
             return null;
         }
