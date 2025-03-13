@@ -177,11 +177,8 @@ router.post('/disconnect', verifyToken, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        await CalendarPattern.findOneAndUpdate(
-            { userId: user._id },
-            { isConnected: false },
-            { new: true }
-        );
+        // Delete the calendar pattern document instead of just marking it as disconnected
+        await CalendarPattern.findOneAndDelete({ userId: user._id });
 
         res.json({ message: 'Calendar disconnected successfully' });
     } catch (error) {
