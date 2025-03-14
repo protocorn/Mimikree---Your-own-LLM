@@ -203,6 +203,41 @@
             margin-top: 10px;
         }
 
+        .image-caption {
+            font-style: italic;
+            color: #666;
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .image-description {
+            margin: 8px 0;
+            padding: 8px;
+            background: #fff;
+            border-radius: 4px;
+        }
+
+        .caption-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .caption-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
         .predefined-links {
             margin-top: 20px;
             margin-bottom: 20px;
@@ -856,30 +891,51 @@
         function addImages() {
             const imageInput = document.getElementById('imageInput');
             const imagesList = document.getElementById('imagesList');
+            const manualDescription = document.getElementById('imageDescription').value;
 
             if (imageInput.files.length > 0) {
-                // Capture the description once, before the loop starts.
-                const imageDescription = document.getElementById('imageDescription').value;
+                const totalImages = imageInput.files.length;
+                let processedImages = 0;
+
+                const loader = showLoading("Generating image captions...");
 
                 for (let file of imageInput.files) {
                     const reader = new FileReader();
-                    reader.onload = function (e) {
+                    
+                    reader.onload = async function (e) {
                         const imageItem = document.createElement('div');
                         imageItem.className = 'image-item';
 
+                        // Initial HTML with loading state
                         imageItem.innerHTML = `
                             <img src="${e.target.result}" class="image-preview">
-                            <p>${imageDescription}</p>
+                            <div class="caption-loading">
+                                <div class="caption-spinner"></div>
+                                <span>Generating caption...</span>
+                            </div>
+                            <div class="image-description">${manualDescription}</div>
                             <button onclick="this.parentElement.remove()">Remove</button>
                         `;
                         imagesList.appendChild(imageItem);
 
-                        // Clear input only after the last file is processed.
-                        if (file === imageInput.files[imageInput.files.length - 1]) {
+                        // Generate caption
+                        const caption = await generateImageCaption(imageItem.querySelector('img'));
+                        
+                        // Update HTML with caption
+                        const captionLoadingDiv = imageItem.querySelector('.caption-loading');
+                        captionLoadingDiv.className = 'image-caption';
+                        captionLoadingDiv.innerHTML = `<strong>AI Caption:</strong> ${caption}`;
+
+                        // Update progress
+                        processedImages++;
+                        const progress = (processedImages / totalImages) * 100;
+                        loader.updateProgress(progress);
+
+                        if (processedImages === totalImages) {
+                            loader.hideLoading();
                             imageInput.value = '';
                             document.getElementById('imageDescription').value = '';
                         }
-
                     };
                     reader.readAsDataURL(file);
                 }
@@ -1048,12 +1104,16 @@
 
             data.selfAssessment = collectSelfAssessmentData();
 
-            // Collect images
+            // Collect images with both captions and descriptions
             document.querySelectorAll('.image-item').forEach(item => {
                 const imageUrl = item.querySelector('img').src;
-                if (!loadedImageUrls.includes(imageUrl)) { // Check if image is not loaded
+                const caption = item.querySelector('.image-caption')?.textContent.replace('AI Caption:', '').trim() || '';
+                const description = item.querySelector('.image-description')?.textContent.trim() || '';
+                
+                if (!loadedImageUrls.includes(imageUrl)) {
                     data.images.push({
-                        description: item.querySelector('p').textContent,
+                        description: description,
+                        caption: caption,
                         src: imageUrl
                     });
                 }
@@ -1217,6 +1277,31 @@
                     }
                 }
                 pdfInput.value = ''; // Clear input after processing
+            }
+        }
+
+        async function generateImageCaption(imageElement) {
+            try {
+                const response = await fetch('/api/generate-caption', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: JSON.stringify({
+                        image: imageElement.src
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Caption generation failed');
+                }
+
+                const data = await response.json();
+                return data.caption;
+            } catch (error) {
+                console.error('Error generating caption:', error);
+                return 'Failed to generate caption';
             }
         }
     </script>

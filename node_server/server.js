@@ -21,6 +21,10 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Add Hugging Face API configuration
+const HUGGING_FACE_API_KEY = "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";
+const HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large";
+
 // MongoDB Connection Setup - Moved to the top
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -265,11 +269,26 @@ app.post("/api/submit", async (req, res) => {
                                 public_id: `user_${username}_${Date.now()}`,
                             });
                             const imageUrl = result.secure_url;
-                            //const caption = await generateImageCaption(imageUrl);
                             await updateUserImages(username, imageUrl, image.description);
-                            await axios.post(`${config.llamaServer}/process`, { document: `Image URL: ${imageUrl}, Description: ${image.description}`, username: username });
+                            
+                            // Create a comprehensive image document that includes both caption and description
+                            const imageDocument = {
+                                url: imageUrl,
+                                caption: image.caption || '',
+                                description: image.description || '',
+                                type: 'image'
+                            };
 
-                            console.log(`Image uploaded: ${imageUrl}`);
+                            // Send both caption and description to llama_server
+                            await axios.post(`${config.llamaServer}/process`, { 
+                                document: `Image Analysis:
+URL: ${imageUrl}
+AI Generated Caption: ${image.caption}
+User Description: ${image.description}`, 
+                                username: username 
+                            });
+
+                            console.log(`Image uploaded and processed: ${imageUrl}`);
                         } catch (uploadError) {
                             console.error("Error uploading image:", uploadError);
                         }
@@ -826,5 +845,61 @@ app.get("/api/user/profile/:username/full", async (req, res) => {
     } catch (error) {
         console.error("Error fetching user ratings:", error);
         res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Add the generate-caption endpoint
+app.post('/api/generate-caption', async (req, res) => {
+    try {
+        // Verify authentication
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
+
+        try {
+            jwt.verify(token, JWT_SECRET_KEY);
+        } catch (error) {
+            return res.status(401).json({ success: false, message: "Invalid token" });
+        }
+
+        const { image } = req.body;
+
+        if (!image) {
+            return res.status(400).json({ success: false, message: "No image provided" });
+        }
+
+        // Convert base64 to buffer
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+
+        // Make request to Hugging Face API
+        const response = await fetch(HUGGING_FACE_API_URL, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: imageBuffer
+        });
+
+        if (!response.ok) {
+            throw new Error(`Hugging Face API error: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        // The API returns an array of generated captions, we'll take the first one
+        const caption = Array.isArray(result) && result.length > 0 ? result[0].generated_text : "Could not generate caption";
+
+        res.json({ success: true, caption });
+
+    } catch (error) {
+        console.error('Error generating caption:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Error generating caption",
+            error: error.message 
+        });
     }
 });
