@@ -1182,20 +1182,38 @@
 <div style="display: flex; align-items: center;">  
     <p style="flex-grow: 1; margin-right: 10px;">${file.name}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
 </div>`;
-                    pdfList.appendChild(pdfItem);
-
+                    
                     try {
-                        const extractedText = await extractTextFromPDF(file);
-                        // Store the extracted text (filename and content)
-                        console.log("Extracted text from", file.name + ":", extractedText);
+                        const typedarray = new Uint8Array(await file.arrayBuffer());
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        
+                        // Check page count
+                        if (pdf.numPages > 5) {
+                            pdfItem.innerHTML = `
+                                <div style="display: flex; align-items: center;">
+                                    <p style="flex-grow: 1; margin-right: 10px; color: red;">
+                                        Error: ${file.name} has ${pdf.numPages} pages. Maximum allowed is 5 pages.
+                                    </p>
+                                    <button onclick="this.parentElement.parentElement.remove()">Dismiss</button>
+                                </div>`;
+                            pdfList.appendChild(pdfItem);
+                            continue; // Skip processing this file further
+                        }
 
-                        // Store in the array (filename and extracted text)
+                        pdfList.appendChild(pdfItem);
+
+                        const extractedText = await extractTextFromPDF(file);
+                        console.log("Extracted text from", file.name + ":", extractedText);
                         pdfTexts.push({ filename: file.name, text: extractedText });
 
                     } catch (error) {
                         console.error("Error processing PDF:", error);
-                        // Handle the error (e.g., display a message to the user)
-                        pdfItem.innerHTML = `<p style="color:red;">Error processing ${file.name}</p>`; // Indicate error
+                        pdfItem.innerHTML = `
+                            <div style="display: flex; align-items: center;">
+                                <p style="flex-grow: 1; margin-right: 10px; color: red;">Error processing ${file.name}</p>
+                                <button onclick="this.parentElement.parentElement.remove()">Dismiss</button>
+                            </div>`;
+                        pdfList.appendChild(pdfItem);
                     }
                 }
                 pdfInput.value = ''; // Clear input after processing
