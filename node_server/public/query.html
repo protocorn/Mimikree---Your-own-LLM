@@ -1415,9 +1415,15 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const urlUsername = window.location.pathname.split('/').pop();
                 const examplePromptsContainer = document.querySelector('.example-prompts');
+                const drawerToggle = document.getElementById('drawerToggle');
+                const drawer = document.getElementById('drawer');
 
                 // Check if we're viewing our own AI
                 const currentUserToken = localStorage.getItem("token");
+
+                // Default to hiding drawer for all users initially
+                drawerToggle.style.display = 'none';
+                drawer.style.display = 'none';
 
                 if (currentUserToken) {
                     // Decode the JWT token to get current user info
@@ -1428,39 +1434,43 @@
                         if (urlUsername && currentUsername && urlUsername === currentUsername) {
                             // This is the user's own AI
                             document.querySelector('h1').innerHTML = "Chat with Your AI";
+                            
+                            // Show drawer components only for the AI owner
+                            drawerToggle.style.display = 'flex';
+                            drawer.style.display = 'block';
 
                             examplePromptsContainer.innerHTML = `
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Create a roadmap for me to study [Topic name]
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Write a tweet about my latest project
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What are the top projects/skills I should showcase?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Help me write a bio for my profile
-                    </div>
-                `;
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Create a roadmap for me to study [Topic name]
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Write a tweet about my latest project
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What are the top projects/skills I should showcase?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Help me write a bio for my profile
+                                </div>
+                            `;
                         } else if (urlUsername) {
                             // This is someone else's AI
                             document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                             // Set examples for someone else's AI
                             examplePromptsContainer.innerHTML = `
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What topics are you specialized in?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Can you tell me about you?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What makes your responses unique?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Show me an example of what you do best
-                    </div>
-                `;
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What topics are you specialized in?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Can you tell me about you?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What makes your responses unique?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Show me an example of what you do best
+                                </div>
+                            `;
                         } else {
                             document.querySelector('h1').innerHTML = "Chat with AI";
                         }
@@ -1470,19 +1480,19 @@
                         if (urlUsername) {
                             document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                             examplePromptsContainer.innerHTML = `
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What topics are you specialized in?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Can you tell me about you?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What makes your responses unique?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Show me an example of what you do best
-                    </div>
-                `;
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What topics are you specialized in?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Can you tell me about you?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What makes your responses unique?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Show me an example of what you do best
+                                </div>
+                            `;
                         } else {
                             document.querySelector('h1').innerHTML = "Chat with AI";
                         }
@@ -1492,19 +1502,19 @@
                     if (urlUsername) {
                         document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                         examplePromptsContainer.innerHTML = `
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What topics are you specialized in?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Can you tell me about you?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        What makes your responses unique?
-                    </div>
-                    <div class="example-prompt" onclick="useExamplePrompt(this)">
-                        Show me an example of what you do best
-                    </div>
-                `;
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What topics are you specialized in?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Can you tell me about you?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What makes your responses unique?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Show me an example of what you do best
+                                </div>
+                            `;
                     } else {
                         document.querySelector('h1').innerHTML = "Chat with AI";
                     }
