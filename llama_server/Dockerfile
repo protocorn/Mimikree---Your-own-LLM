@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core huggingface-hub waitress google-generativeai
+RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core waitress google-generativeai
 
 # Expose port
 EXPOSE 8080

@@ -149,11 +149,24 @@ def ask():
         )
 
         if "cloudinary" in context:
-            prompt += '### Important note for Cloudinary Links ### \n If you encounter any URLs that contain the word "cloudinary", show the URL with space between each URL, but treat them as images. Do not explicitly mention them as URLs or links.'
+            prompt += '''### Important note for Cloudinary Links ### 
+When you encounter URLs that contain the word "cloudinary":
+1. Return the URLs exactly as they are, without any modification
+2. After each URL, add a brief one-line description of what the image shows
+3. Place each URL on its own line, followed by its description
+4. Do not add any formatting, markdown, or HTML tags to the URLs
+5. Example format:
+https://res.cloudinary.com/example1.jpg
+This is a photo of a mountain landscape
+https://res.cloudinary.com/example2.jpg
+This image shows a portrait of a person'''
 
         # Request completion from Gemini
-        model = genai.GenerativeModel("gemini-1.5-pro")
+        model = genai.GenerativeModel("gemini-2.0-flash-exp")
         response = model.generate_content([prompt])
+        
+        # Log the response for debugging
+        print("Model Response:", response.text)
 
         return jsonify({
             "success": True,

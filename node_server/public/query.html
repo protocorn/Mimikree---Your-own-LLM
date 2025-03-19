@@ -1674,9 +1674,12 @@
                             }
                             console.log("Updated Chat History:", chatHistory);
 
-                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ ]+\.(jpg|jpeg|png|gif))/gi;
+                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ \n]+\.(jpg|jpeg|png|gif))/gi;
                             let match;
                             let lastIndex = 0;
+
+                            // Log the response text for debugging
+                            console.log("Full response text:", responseText);
 
                             // Configure marked to not add extra paragraphs
                             marked.setOptions({
@@ -1685,6 +1688,8 @@
                             });
 
                             while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                                console.log("Found Cloudinary URL:", match[0]); // Debug log
+
                                 // Add text before the image
                                 const textBeforeImage = responseText.substring(lastIndex, match.index).trim();
                                 if (textBeforeImage) {
@@ -1693,14 +1698,46 @@
                                 }
 
                                 // Create and append the image
+                                const imgContainer = document.createElement("div");
+                                imgContainer.style.margin = "1rem 0";
+                                imgContainer.style.textAlign = "left";
+                                
                                 const img = document.createElement("img");
                                 img.src = match[0];
                                 img.style.maxWidth = "100%";
                                 img.style.maxHeight = "500px";
                                 img.style.display = "block";
                                 img.style.borderRadius = "8px";
-                                img.alt = "Bot generated image";
-                                botMessage.appendChild(img);
+                                img.style.margin = "0"; // Remove auto margin
+                                img.alt = "Generated image";
+                                
+                                // Add error handling for image loading
+                                img.onerror = () => {
+                                    console.error("Failed to load image:", match[0]);
+                                    const errorText = document.createElement("div");
+                                    errorText.textContent = `Image URL: ${match[0]}`;
+                                    errorText.style.color = "red";
+                                    imgContainer.appendChild(errorText);
+                                };
+                                
+                                imgContainer.appendChild(img);
+                                
+                                // Look for a description in the text after the URL
+                                let nextNewline = responseText.indexOf('\n', match.index + match[0].length);
+                                if (nextNewline === -1) nextNewline = responseText.length;
+                                
+                                // Check if there's text between the URL and the next newline
+                                const possibleDescription = responseText.substring(match[0].length + match.index, nextNewline).trim();
+                                if (possibleDescription && !possibleDescription.startsWith('https://')) {
+                                    const descriptionEl = document.createElement("div");
+                                    descriptionEl.style.fontStyle = "italic";
+                                    descriptionEl.style.color = "#555";
+                                    descriptionEl.style.marginTop = "0.5rem";
+                                    descriptionEl.textContent = possibleDescription;
+                                    imgContainer.appendChild(descriptionEl);
+                                }
+                                
+                                botMessage.appendChild(imgContainer);
                                 lastIndex = cloudinaryUrlRegex.lastIndex;
                             }
 
