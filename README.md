@@ -49,7 +49,7 @@ Mimikree is a powerful AI assistant platform that creates personalized AI models
 
 1. Clone the repository:
 ```bash
-git clone [https://github.com/protocorn/Mimikree---Your-own-LLM]
+git clone https://github.com/protocorn/Mimikree---Your-own-LLM
 cd MyLLM
 ```
 
