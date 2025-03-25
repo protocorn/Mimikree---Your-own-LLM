@@ -71,7 +71,7 @@ pip install Flask pinecone sentence-transformers langchain-core waitress google-
 ```bash
 # Start Node.js server
 cd node_server
-npm start
+node server.js
 
 # Start LLaMA server
 cd llama_server
