@@ -11,5 +11,34 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ]
+  ],
+  "env": {
+    "PORT": "3000",
+    "NODE_ENV": "production",
+    "MONGO_URI": "mongodb+srv://chordiasahil24:RYZSUL4Q19SfRaVg@cluster0.5nrrh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+    "JWT_SECRET_KEY": "your_jwt_secret_key",
+    "CLOUDINARY_CLOUD_NAME": "dkyloeuir",
+    "CLOUDINARY_API_KEY": "464193934321355",
+    "CLOUDINARY_API_SECRET": "MKnz_JA8iO44v5PMwZjnnpIk0UA",
+    "GOOGLE_CLIENT_ID": "305246459078-5lele352pmn10a5mhhjrdd32p58n2qtn.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "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",
+    "GOOGLE_REDIRECT_URI": "https://www.mimikree.com",
+    "GOOGLE_CALENDAR_API_KEY": "AIzaSyD7bzWL5TA3WuFG5NRWQQARlERqOZ-aXlg",
+    "GOOGLE_CALENDAR_DISCOVERY_DOC": "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest",
+    "GOOGLE_CALENDAR_SCOPES": "https://www.googleapis.com/auth/calendar.readonly",
+    "HUGGING_FACE_API_KEY": "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",
+    "HUGGING_FACE_API_URL": "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large",
+    "GITHUB_API_URL": "https://api.github.com/",
+    "GITHUB_TOKEN": "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",
+    "GITHUB_USER_AGENT": "protocorn",
+    "REDDIT_CLIENT_ID": "sDEzkNnfLcmnoaKlxxteHA",
+    "REDDIT_CLIENT_SECRET": "7wIB4OIg5VyKd_JRJMGwCJ5qn-KQXQ",
+    "REDDIT_USERNAME": "Apprehensive-Mix3820",
+    "REDDIT_PASSWORD": "Saahil@2412",
+    "REDDIT_USER_AGENT": "LLM/1.0.0",
+    "REDDIT_REDIRECT_URI": "http://localhost:3000/",
+    "TWITTER_USERNAME": "Sahil365132",
+    "TWITTER_PASSWORD": "Saahil@2412",
+    "PINECONE_API_KEY": "pcsk_7Y7zWN_6eRYCU5oqR1jqwLAiQSv416HtB792Q3fC2HP7YQ1uNGWQd48egSezYDjG7CmSod"
+  }
 }
