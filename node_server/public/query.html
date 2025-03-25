@@ -1027,12 +1027,236 @@
             document.addEventListener('DOMContentLoaded', function () {
                 const connectButton = document.getElementById('calendarConnectButton');
                 const statusDisplay = document.getElementById('calendarConnectionStatus');
+                const urlUsername = window.location.pathname.split('/').pop();
+                const examplePromptsContainer = document.querySelector('.example-prompts');
+                const drawerToggle = document.getElementById('drawerToggle');
+                const drawer = document.getElementById('drawer');
+
+                // Initialize drawer functionality
+                function toggleDrawer() {
+                    if (document.body.classList.contains('drawer-open')) {
+                        document.body.classList.remove('drawer-open');
+                        drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                        drawerToggle.style.right = '0';
+                    } else {
+                        document.body.classList.add('drawer-open');
+                        drawer.style.right = '0';
+                        drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+                    }
+                }
+
+                drawerToggle.addEventListener('click', toggleDrawer);
+                document.getElementById('drawerClose').addEventListener('click', toggleDrawer);
+
+                // Optional: Add drag functionality for the drawer
+                let isDragging = false;
+                let startX = 0;
+                let startRight = 0;
+
+                drawerToggle.addEventListener('mousedown', function (e) {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startRight = parseInt(window.getComputedStyle(drawer).right);
+                    document.addEventListener('mousemove', moveDrawer);
+                    document.addEventListener('mouseup', stopDragging);
+                });
+
+                drawerToggle.addEventListener('touchstart', function (e) {
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    startRight = parseInt(window.getComputedStyle(drawer).right);
+                    document.addEventListener('touchmove', moveDrawerTouch);
+                    document.addEventListener('touchend', stopDragging);
+                });
+
+                function moveDrawer(e) {
+                    if (!isDragging) return;
+                    const diff = startX - e.clientX;
+                    const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+                    drawer.style.right = `-${newRight}px`;
+                    drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+                    if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                        document.body.classList.add('drawer-open');
+                    } else {
+                        document.body.classList.remove('drawer-open');
+                    }
+                }
+
+                function moveDrawerTouch(e) {
+                    if (!isDragging) return;
+                    const diff = startX - e.touches[0].clientX;
+                    const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
+                    drawer.style.right = `-${newRight}px`;
+                    drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
+
+                    if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
+                        document.body.classList.add('drawer-open');
+                    } else {
+                        document.body.classList.remove('drawer-open');
+                    }
+                }
+
+                function stopDragging() {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    document.removeEventListener('mousemove', moveDrawer);
+                    document.removeEventListener('touchmove', moveDrawerTouch);
+
+                    // Snap to open or closed position
+                    if (document.body.classList.contains('drawer-open')) {
+                        drawer.style.right = '0';
+                        drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
+                    } else {
+                        drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
+                        drawerToggle.style.right = '0';
+                    }
+                }
+
+                // Check if previously connected
+                const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
+                updateConnectionUI(isConnected);
+
+                // Default to hiding drawer for all users initially
+                drawerToggle.style.display = 'none';
+                drawer.style.display = 'none';
+
+                // Initialize example prompts and UI based on user state
+                const currentUserToken = localStorage.getItem("token");
+                if (currentUserToken) {
+                    try {
+                        const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
+                        const currentUsername = tokenData.username;
+
+                        if (urlUsername && currentUsername && urlUsername === currentUsername) {
+                            // This is the user's own AI
+                            document.querySelector('h1').innerHTML = "Chat with Your AI";
+                            
+                            // Show drawer components only for the AI owner
+                            drawerToggle.style.display = 'flex';
+                            drawer.style.display = 'block';
+
+                            examplePromptsContainer.innerHTML = `
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Create a roadmap for me to study [Topic name]
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Write a tweet about my latest project
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What are the top projects/skills I should showcase?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Help me write a bio for my profile
+                                </div>
+                            `;
+                        } else if (urlUsername) {
+                            // This is someone else's AI
+                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                            examplePromptsContainer.innerHTML = `
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What topics are you specialized in?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Can you tell me about you?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    What makes your responses unique?
+                                </div>
+                                <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                    Show me an example of what you do best
+                                </div>
+                            `;
+                        } else {
+                            document.querySelector('h1').innerHTML = "Chat with AI";
+                        }
+                    } catch (error) {
+                        console.error("Error parsing token:", error);
+                        handleDefaultUI(urlUsername, examplePromptsContainer);
+                    }
+                } else {
+                    handleDefaultUI(urlUsername, examplePromptsContainer);
+                }
+
+                // Function to handle default UI state
+                function handleDefaultUI(username, container) {
+                    if (username) {
+                        document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
+                        container.innerHTML = `
+                            <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                What topics are you specialized in?
+                            </div>
+                            <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                Can you tell me about you?
+                            </div>
+                            <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                What makes your responses unique?
+                            </div>
+                            <div class="example-prompt" onclick="useExamplePrompt(this)">
+                                Show me an example of what you do best
+                            </div>
+                        `;
+                    } else {
+                        document.querySelector('h1').innerHTML = "Chat with AI";
+                    }
+                }
 
                 // Replace the hardcoded configuration with dynamic loading
                 let CLIENT_ID;
                 let API_KEY;
                 let DISCOVERY_DOC;
                 let SCOPES;
+                let tokenClient = null;
+                let gapiInited = false;
+                let gisInited = false;
+
+                // Initialize Google Identity Services SDK
+                function initializeGisClient() {
+                    try {
+                        if (!CLIENT_ID || !SCOPES) {
+                            console.error('Client ID or Scopes not loaded yet');
+                            return;
+                        }
+                        
+                        tokenClient = google.accounts.oauth2.initTokenClient({
+                            client_id: CLIENT_ID,
+                            scope: SCOPES,
+                            callback: '', // defined later
+                        });
+                        gisInited = true;
+                        maybeEnableButtons();
+                    } catch (error) {
+                        console.error('Error initializing GIS client:', error);
+                        showNotification('Error initializing Google Calendar', true);
+                    }
+                }
+
+                // Load the API client and auth2 library
+                async function loadGapiClient() {
+                    return new Promise((resolve, reject) => {
+                        gapi.load('client', async () => {
+                            try {
+                                await gapi.client.init({
+                                    apiKey: API_KEY,
+                                    discoveryDocs: [DISCOVERY_DOC],
+                                });
+                                gapiInited = true;
+                                maybeEnableButtons();
+                                resolve();
+                            } catch (error) {
+                                console.error('Error initializing GAPI client:', error);
+                                reject(error);
+                            }
+                        });
+                    });
+                }
+
+                // Enable the button if libraries are loaded
+                function maybeEnableButtons() {
+                    if (gapiInited && gisInited) {
+                        connectButton.disabled = false;
+                    }
+                }
 
                 // Fetch Google Calendar configuration
                 async function loadGoogleCalendarConfig() {
@@ -1043,64 +1267,174 @@
                         API_KEY = config.apiKey;
                         DISCOVERY_DOC = config.discoveryDoc;
                         SCOPES = config.scopes;
-                        // Initialize Google Calendar after config is loaded
-                        loadGapiClient();
+                        
+                        // Initialize Google APIs only after config is loaded
+                        await loadGapiClient();
+                        
+                        google.accounts.id.initialize({
+                            client_id: CLIENT_ID,
+                            auto_select: false,
+                            callback: (response) => { }
+                        });
+                        
+                        initializeGisClient();
                     } catch (error) {
                         console.error('Error loading Google Calendar configuration:', error);
                         showNotification('Error loading calendar configuration', true);
                     }
                 }
 
-                let tokenClient;
-                let gapiInited = false;
-                let gisInited = false;
+                function connectToGoogleCalendar() {
+                    if (!tokenClient) {
+                        console.error('Token client not initialized');
+                        showNotification('Google Calendar not initialized yet. Please try again.', true);
+                        return;
+                    }
 
-                // Check if previously connected
-                const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
-                updateConnectionUI(isConnected);
+                    try {
+                        // Request an access token
+                        tokenClient.callback = async (resp) => {
+                            if (resp.error !== undefined) {
+                                showNotification('Error connecting to Google Calendar', true);
+                                return;
+                            }
 
-                // Initialize the API client library
-                function initializeGapiClient() {
-                    gapi.client.init({
-                        apiKey: API_KEY,
-                        discoveryDocs: [DISCOVERY_DOC],
-                    }).then(() => {
-                        gapiInited = true;
-                        maybeEnableButtons();
-                    });
-                }
+                            try {
+                                // Analyze calendar patterns immediately after getting token
+                                await analyzeCalendarPatterns();
+                                
+                                // Store connection state
+                                localStorage.setItem('googleCalendarConnected', 'true');
+                                localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
+                                
+                                // Update UI
+                                updateConnectionUI(true);
+                                showNotification('Connected to Google Calendar successfully!');
+                            } catch (error) {
+                                console.error('Error during calendar connection:', error);
+                                showNotification('Error connecting to calendar', true);
+                                // Reset connection state on error
+                                localStorage.removeItem('googleCalendarConnected');
+                                localStorage.removeItem('googleCalendarConnectedAt');
+                                updateConnectionUI(false);
+                            }
+                        };
 
-                // Load the API client and auth2 library
-                function loadGapiClient() {
-                    gapi.load('client', initializeGapiClient);
-                }
+                        if (!gapi.client || typeof gapi.client.getToken !== 'function') {
+                            showNotification('Google Calendar API not initialized yet. Please try again.', true);
+                            return;
+                        }
 
-                // Initialize Google Identity Services SDK
-                function initializeGisClient() {
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: CLIENT_ID,
-                        scope: SCOPES,
-                        callback: '', // defined later
-                    });
-                    gisInited = true;
-                    maybeEnableButtons();
-                }
-
-                // Enable the button if libraries are loaded
-                function maybeEnableButtons() {
-                    if (gapiInited && gisInited) {
-                        connectButton.disabled = false;
+                        if (gapi.client.getToken() === null) {
+                            // Prompt the user to select a Google Account and ask for consent
+                            tokenClient.requestAccessToken({ prompt: 'consent' });
+                        } else {
+                            // Skip display of account chooser and consent dialog
+                            tokenClient.requestAccessToken({ prompt: '' });
+                        }
+                    } catch (error) {
+                        console.error('Error in connectToGoogleCalendar:', error);
+                        showNotification('Error connecting to Google Calendar', true);
                     }
                 }
 
-                // Load the libraries
-                loadGapiClient();
-                google.accounts.id.initialize({
-                    client_id: CLIENT_ID,
-                    auto_select: false,
-                    callback: (response) => { }
+                // Start loading the configuration
+                loadGoogleCalendarConfig();
+
+                // Add click event listener for connect button
+                connectButton.addEventListener('click', async () => {
+                    if (connectButton.textContent === 'Connect') {
+                        connectToGoogleCalendar();
+                    } else {
+                        disconnectFromGoogleCalendar();
+                    }
                 });
-                initializeGisClient();
+
+                function disconnectFromGoogleCalendar() {
+                    try {
+                        // Check if gapi.client exists and has a token
+                        if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
+                            const token = gapi.client.getToken();
+                            if (token !== null) {
+                                google.accounts.oauth2.revoke(token.access_token);
+                                gapi.client.setToken('');
+                            }
+                        }
+
+                        // Update local storage and UI regardless of token revocation
+                        localStorage.removeItem('googleCalendarConnected');
+                        localStorage.removeItem('googleCalendarConnectedAt');
+                        localStorage.removeItem('calendarBusyBlocks');
+                        updateConnectionUI(false);
+
+                        // Notify server about disconnection
+                        const authToken = localStorage.getItem('token');
+                        if (authToken) {
+                            fetch('/api/calendar/disconnect', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${authToken}`
+                                }
+                            });
+                        }
+
+                        showNotification('Disconnected from Google Calendar');
+                    } catch (error) {
+                        console.error('Error during disconnection:', error);
+                        showNotification('Error during disconnection', true);
+                        
+                        // Still update UI to show disconnected state
+                        localStorage.removeItem('googleCalendarConnected');
+                        localStorage.removeItem('googleCalendarConnectedAt');
+                        localStorage.removeItem('calendarBusyBlocks');
+                        updateConnectionUI(false);
+                    }
+                }
+
+                function updateConnectionUI(isConnected) {
+                    if (isConnected) {
+                        connectButton.textContent = 'Disconnect';
+                        connectButton.classList.add('disconnect');
+                        statusDisplay.textContent = 'Connected';
+                        statusDisplay.classList.add('connected');
+
+                        // If connection time exists, show it
+                        const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
+                        if (connectedAt) {
+                            const connectedDate = new Date(connectedAt);
+                            const formattedDate = connectedDate.toLocaleString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                            statusDisplay.textContent = `Connected since ${formattedDate}`;
+                        }
+                    } else {
+                        connectButton.textContent = 'Connect';
+                        connectButton.classList.remove('disconnect');
+                        statusDisplay.textContent = 'Not connected';
+                        statusDisplay.classList.remove('connected');
+                    }
+                }
+
+                function showNotification(message, isError = false) {
+                    // Create notification element
+                    const notification = document.createElement('div');
+                    notification.className = isError ? 'notification error' : 'notification';
+                    notification.textContent = message;
+
+                    // Add to body
+                    document.body.appendChild(notification);
+
+                    // Remove after delay
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => {
+                            document.body.removeChild(notification);
+                        }, 300);
+                    }, 3000);
+                }
 
                 async function analyzeCalendarPatterns() {
                     try {
@@ -1180,819 +1514,487 @@
                     }
                 }
 
-                function connectToGoogleCalendar() {
-                    // Request an access token
-                    tokenClient.callback = async (resp) => {
-                        if (resp.error !== undefined) {
-                            showNotification('Error connecting to Google Calendar', true);
-                            return;
-                        }
+                // Copy link functionality
+                const currentLinkDisplay = document.getElementById('currentLinkDisplay');
+                currentLinkDisplay.textContent = window.location.href;
 
-                        try {
-                            // Analyze calendar patterns immediately after getting token
-                            await analyzeCalendarPatterns();
-                            
-                            // Store connection state
-                            localStorage.setItem('googleCalendarConnected', 'true');
-                            localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
-                            
-                            // Update UI
-                            updateConnectionUI(true);
-                            showNotification('Connected to Google Calendar successfully!');
-                        } catch (error) {
-                            console.error('Error during calendar connection:', error);
-                            showNotification('Error connecting to calendar', true);
-                            // Reset connection state on error
-                            localStorage.removeItem('googleCalendarConnected');
-                            localStorage.removeItem('googleCalendarConnectedAt');
-                            updateConnectionUI(false);
-                        }
-                    };
+                const copyLinkButton = document.getElementById('copyLinkButton');
+                copyLinkButton.addEventListener('click', () => {
+                    navigator.clipboard.writeText(window.location.href)
+                        .then(() => {
+                            copyLinkButton.textContent = 'Copied!';
+                            setTimeout(() => {
+                                copyLinkButton.textContent = 'Copy';
+                            }, 2000); // Reset button text after 2 seconds
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy: ', err);
+                            copyLinkButton.textContent = 'Error';
+                            setTimeout(() => {
+                                copyLinkButton.textContent = 'Copy';
+                            }, 2000);
+                        });
+                });
 
-                    if (gapi.client.getToken() === null) {
-                        // Prompt the user to select a Google Account and ask for consent
-                        tokenClient.requestAccessToken({ prompt: 'consent' });
-                    } else {
-                        // Skip display of account chooser and consent dialog
-                        tokenClient.requestAccessToken({ prompt: '' });
-                    }
+                function useExamplePrompt(element) {
+                    const promptText = element.textContent.trim();
+                    document.getElementById("queryInput").value = promptText;
+
+                    // Focus on the input
+                    document.getElementById("queryInput").focus();
+
+                    // Adjust input height
+                    const input = document.getElementById("queryInput");
+                    input.style.height = "auto";
+                    input.style.height = Math.min(input.scrollHeight, 100) + "px";
                 }
 
-                connectButton.addEventListener('click', async () => {
-                    if (connectButton.textContent === 'Connect') {
-                        connectToGoogleCalendar();
-                    } else {
-                        disconnectFromGoogleCalendar();
+                // Function to hide examples when conversation starts
+                function hideExamples() {
+                    const examplesContainer = document.getElementById("examplesContainer");
+                    if (examplesContainer) {
+                        examplesContainer.style.display = "none";
+                    }
+                }
+                let chatHistory = [];
+
+                document.getElementById("submitButton").addEventListener("click", async function () {
+                    const queryInput = document.getElementById("queryInput");
+                    const query = queryInput.value.trim();
+                    if (!query) return;
+
+                    hideExamples();
+
+                    const chatBox = document.getElementById("chatBox");
+                    const submitButton = document.getElementById("submitButton");
+
+                    // Add user message to chat history
+                    chatHistory.push({ role: "user", content: query });
+
+                    // Display user message
+                    const userMessage = document.createElement("div");
+                    userMessage.className = "message user-message";
+                    userMessage.textContent = query;
+                    chatBox.appendChild(userMessage);
+
+                    // Clear input and disable button
+                    queryInput.value = "";
+                    queryInput.style.height = "40px";
+                    submitButton.disabled = true;
+
+                    // Show "loading" message
+                    const botMessage = document.createElement("div");
+                    botMessage.className = "message bot-message";
+
+                    // Create the loading indicator with text and dots
+                    const loadingIndicator = document.createElement("div");
+                    loadingIndicator.className = "typing-indicator";
+
+                    const indicatorText = document.createElement("span");
+                    indicatorText.className = "typing-indicator-text";
+                    indicatorText.textContent = "Thinking";
+                    loadingIndicator.appendChild(indicatorText);
+
+                    const typingDots = document.createElement("div");
+                    typingDots.className = "typing-dots";
+                    for (let i = 0; i < 3; i++) {
+                        const dot = document.createElement("div");
+                        dot.className = "dot";
+                        typingDots.appendChild(dot);
+                    }
+
+                    loadingIndicator.appendChild(typingDots);
+                    botMessage.appendChild(loadingIndicator);
+
+                    // Add progress bar
+                    const progressContainer = document.createElement("div");
+                    progressContainer.className = "progress-bar-container";
+
+                    const progressBar = document.createElement("div");
+                    progressBar.className = "progress-bar";
+                    progressContainer.appendChild(progressBar);
+                    botMessage.appendChild(progressContainer);
+
+                    // Add AI status
+                    const aiStatus = document.createElement("div");
+                    aiStatus.className = "ai-status";
+                    aiStatus.textContent = "Processing query...";
+                    botMessage.appendChild(aiStatus);
+
+                    chatBox.appendChild(botMessage);
+                    botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    // Start randomized status updates
+                    const statusMessages = [
+                        "Analyzing question...",
+                        "Retrieving information...",
+                        "Generating response...",
+                        "Formulating answer...",
+                        "Processing query...",
+                        "Creating thoughtful reply...",
+                        "Almost there..."
+                    ];
+
+                    let statusInterval = setInterval(() => {
+                        const randomIndex = Math.floor(Math.random() * statusMessages.length);
+                        aiStatus.textContent = statusMessages[randomIndex];
+                    }, 2500);
+
+                    try {
+                        const username = window.location.pathname.split('/').pop();
+                        console.log("Username:", username);
+                        console.log("Chat History:", chatHistory);
+
+                        const token = localStorage.getItem("token");
+                        let response = null;
+
+                        const requestBody = { query, chatHistory };
+                        console.log("Request Body:", requestBody);
+
+                        if (!token) {
+                            response = await fetch(`/api/query/${username}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(requestBody)
+                            });
+                        } else {
+                            response = await fetch(`/api/query/${username}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify(requestBody)
+                            });
+                        }
+
+                        const contentType = response.headers.get("content-type");
+                        console.log("Response Content-Type:", contentType);
+
+                        if (contentType && contentType.includes("application/json")) {
+                            const data = await response.json();
+                            console.log("Response Data:", data);
+
+                            if (data.success) {
+                                let responseText = data.response.trim();
+                                botMessage.innerHTML = ""; // Clear "Thinking..."
+
+                                // Add bot message to chat history
+                                chatHistory.push({ role: "assistant", content: responseText });
+
+                                // Limit chat history to last 10 messages to prevent memory issues
+                                if (chatHistory.length > 10) {
+                                    chatHistory = chatHistory.slice(-10);
+                                }
+                                console.log("Updated Chat History:", chatHistory);
+
+                                const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ \n]+\.(jpg|jpeg|png|gif))/gi;
+                                let match;
+                                let lastIndex = 0;
+
+                                // Log the response text for debugging
+                                console.log("Full response text:", responseText);
+
+                                // Configure marked to not add extra paragraphs
+                                marked.setOptions({
+                                    gfm: true,
+                                    breaks: true
+                                });
+
+                                while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
+                                    console.log("Found Cloudinary URL:", match[0]); // Debug log
+
+                                    // Add text before the image
+                                    const textBeforeImage = responseText.substring(lastIndex, match.index).trim();
+                                    if (textBeforeImage) {
+                                        const parsedText = marked.parse(textBeforeImage).trim();
+                                        botMessage.innerHTML += parsedText;
+                                    }
+
+                                    // Create and append the image
+                                    const imgContainer = document.createElement("div");
+                                    imgContainer.style.margin = "1rem 0";
+                                    imgContainer.style.textAlign = "left";
+                                    
+                                    const img = document.createElement("img");
+                                    img.src = match[0];
+                                    img.style.maxWidth = "100%";
+                                    img.style.maxHeight = "500px";
+                                    img.style.display = "block";
+                                    img.style.borderRadius = "8px";
+                                    img.style.margin = "0"; // Remove auto margin
+                                    img.alt = "Generated image";
+                                    
+                                    // Add error handling for image loading
+                                    img.onerror = () => {
+                                        console.error("Failed to load image:", match[0]);
+                                        const errorText = document.createElement("div");
+                                        errorText.textContent = `Image URL: ${match[0]}`;
+                                        errorText.style.color = "red";
+                                        imgContainer.appendChild(errorText);
+                                    };
+                                    
+                                    imgContainer.appendChild(img);
+                                    
+                                    // Look for a description in the text after the URL
+                                    let nextNewline = responseText.indexOf('\n', match.index + match[0].length);
+                                    if (nextNewline === -1) nextNewline = responseText.length;
+                                    
+                                    // Check if there's text between the URL and the next newline
+                                    const possibleDescription = responseText.substring(match[0].length + match.index, nextNewline).trim();
+                                    if (possibleDescription && !possibleDescription.startsWith('https://')) {
+                                        const descriptionEl = document.createElement("div");
+                                        descriptionEl.style.fontStyle = "italic";
+                                        descriptionEl.style.color = "#555";
+                                        descriptionEl.style.marginTop = "0.5rem";
+                                        descriptionEl.textContent = possibleDescription;
+                                        imgContainer.appendChild(descriptionEl);
+                                    }
+                                    
+                                    botMessage.appendChild(imgContainer);
+                                    lastIndex = cloudinaryUrlRegex.lastIndex;
+                                }
+
+                                // Add any remaining text after the last image
+                                const remainingText = responseText.substring(lastIndex).trim();
+                                if (remainingText) {
+                                    const parsedText = marked.parse(remainingText).trim();
+                                    botMessage.innerHTML += parsedText;
+                                }
+                            } else {
+                                console.error("Error in response:", data.message);
+                                botMessage.textContent = "Error: " + data.message;
+                            }
+                        } else {
+                            const text = await response.text();
+                            console.error("Non-JSON response:", text);
+                            botMessage.textContent = "Error: Invalid response from server.";
+                        }
+                    } catch (error) {
+                        console.error("Error in chat:", error);
+                        botMessage.textContent = "Error processing query. Please try again.";
+                    } finally {
+                        clearInterval(statusInterval); // Clear status interval in all cases
+                        submitButton.disabled = false;
+                        botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }
                 });
 
-                function disconnectFromGoogleCalendar() {
-                    // Revoke the token
-                    const token = gapi.client.getToken();
-                    if (token !== null) {
-                        google.accounts.oauth2.revoke(token.access_token);
-                        gapi.client.setToken('');
+                // Allow Enter key to send messages
+                document.getElementById("queryInput").addEventListener("keydown", function (event) {
+                    if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
+                        event.preventDefault(); // Prevent new line in textarea
+                        document.getElementById("submitButton").click();
                     }
+                });
 
-                    // Update local storage and UI
-                    localStorage.removeItem('googleCalendarConnected');
-                    localStorage.removeItem('googleCalendarConnectedAt');
-                    localStorage.removeItem('calendarBusyBlocks');
-                    updateConnectionUI(false);
+                document.getElementById("queryInput").addEventListener("input", function () {
+                    this.style.height = "auto"; // Reset height to recalculate
+                    this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
+                });
+                const ratingToggle = document.getElementById('ratingToggle');
+                const ratingContainer = document.getElementById('ratingContainer');
 
-                    // Notify server about disconnection
-                    const authToken = localStorage.getItem('token');
-                    if (authToken) {
-                        fetch('/api/calendar/disconnect', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`
-                            }
-                        });
-                    }
-
-                    showNotification('Disconnected from Google Calendar');
-                }
-
-                function updateConnectionUI(isConnected) {
-                    if (isConnected) {
-                        connectButton.textContent = 'Disconnect';
-                        connectButton.classList.add('disconnect');
-                        statusDisplay.textContent = 'Connected';
-                        statusDisplay.classList.add('connected');
-
-                        // If connection time exists, show it
-                        const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
-                        if (connectedAt) {
-                            const connectedDate = new Date(connectedAt);
-                            const formattedDate = connectedDate.toLocaleString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                            statusDisplay.textContent = `Connected since ${formattedDate}`;
-                        }
+                // Function to update rating visibility with animation
+                function updateRatingVisibility(show) {
+                    if (show) {
+                        ratingContainer.classList.add('visible');
+                        ratingToggle.classList.add('active');
+                        localStorage.setItem("ratingVisible", "true");
+                        ratingContainer.style.pointerEvents = "auto"; // Add this line
                     } else {
-                        connectButton.textContent = 'Connect';
-                        connectButton.classList.remove('disconnect');
-                        statusDisplay.textContent = 'Not connected';
-                        statusDisplay.classList.remove('connected');
+                        ratingContainer.classList.remove('visible');
+                        ratingToggle.classList.remove('active');
+                        localStorage.setItem("ratingVisible", "false");
+                        ratingContainer.style.pointerEvents = "none"; // Add this line
                     }
                 }
 
-                function showNotification(message, isError = false) {
-                    // Create notification element
-                    const notification = document.createElement('div');
-                    notification.className = isError ? 'notification error' : 'notification';
-                    notification.textContent = message;
+                // Load rating visibility state from local storage
+                const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
+                updateRatingVisibility(isRatingVisible);
 
-                    // Add to body
-                    document.body.appendChild(notification);
+                // Toggle rating visibility on button click
+                ratingToggle.addEventListener('click', () => {
+                    const isCurrentlyVisible = ratingContainer.classList.contains('visible');
+                    updateRatingVisibility(!isCurrentlyVisible);
+                });
 
-                    // Remove after delay
-                    setTimeout(() => {
-                        notification.style.opacity = '0';
-                        setTimeout(() => {
-                            document.body.removeChild(notification);
-                        }, 300);
-                    }, 3000);
-                }
+                const ratingStars = document.getElementById("ratingStars");
+                const ratingFeedback = document.getElementById("ratingFeedback");
+                const ratingSuccess = document.getElementById("ratingSuccess");
+                const averageRatingDisplay = document.getElementById("averageRatingDisplay");
+                const averageStars = document.getElementById("averageStars");
+                const averageNumber = document.getElementById("averageNumber");
+                const ratingCount = document.getElementById("ratingCount");
+                const username = window.location.pathname.split('/').pop();
 
-                // If already connected, try to refresh the token on page load
-                if (isConnected) {
-                    // We'll try to refresh token when APIs are loaded
-                    const checkApisAndRefresh = setInterval(() => {
-                        if (gapiInited && gisInited) {
-                            clearInterval(checkApisAndRefresh);
-                            // Silently try to get a new token
-                            tokenClient.callback = async (resp) => {
-                                if (resp.error !== undefined) {
-                                    // Token refresh failed, mark as disconnected
-                                    localStorage.removeItem('googleCalendarConnected');
-                                    updateConnectionUI(false);
-                                    return;
-                                }
-                            };
-
-                            tokenClient.requestAccessToken({ prompt: '' });
-                        }
-                    }, 500);
-                }
-            });
-
-            // Drawer functionality
-            const drawerToggle = document.getElementById('drawerToggle');
-            const drawerClose = document.getElementById('drawerClose');
-            const drawer = document.getElementById('drawer');
-
-            function toggleDrawer() {
-                if (document.body.classList.contains('drawer-open')) {
-                    // If drawer is open, close it
-                    document.body.classList.remove('drawer-open');
-                    drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                    drawerToggle.style.right = '0';
-                } else {
-                    // If drawer is closed, open it
-                    document.body.classList.add('drawer-open');
-                    drawer.style.right = '0';
-                    drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-                }
-            }
-
-            drawerToggle.addEventListener('click', toggleDrawer);
-            drawerClose.addEventListener('click', toggleDrawer);
-
-            // Optional: Add drag functionality for the drawer
-            let isDragging = false;
-            let startX = 0;
-            let startRight = 0;
-
-            drawerToggle.addEventListener('mousedown', function (e) {
-                isDragging = true;
-                startX = e.clientX;
-                startRight = parseInt(window.getComputedStyle(drawer).right);
-                document.addEventListener('mousemove', moveDrawer);
-                document.addEventListener('mouseup', stopDragging);
-            });
-
-            drawerToggle.addEventListener('touchstart', function (e) {
-                isDragging = true;
-                startX = e.touches[0].clientX;
-                startRight = parseInt(window.getComputedStyle(drawer).right);
-                document.addEventListener('touchmove', moveDrawerTouch);
-                document.addEventListener('touchend', stopDragging);
-            });
-
-            function moveDrawer(e) {
-                if (!isDragging) return;
-                const diff = startX - e.clientX;
-                const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-                drawer.style.right = `-${newRight}px`;
-                drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
-
-                if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                    document.body.classList.add('drawer-open');
-                } else {
-                    document.body.classList.remove('drawer-open');
-                }
-            }
-
-            function moveDrawerTouch(e) {
-                if (!isDragging) return;
-                const diff = startX - e.touches[0].clientX;
-                const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-                drawer.style.right = `-${newRight}px`;
-                drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
-
-                if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                    document.body.classList.add('drawer-open');
-                } else {
-                    document.body.classList.remove('drawer-open');
-                }
-            }
-
-            function stopDragging() {
-                if (!isDragging) return;
-                isDragging = false;
-                document.removeEventListener('mousemove', moveDrawer);
-                document.removeEventListener('touchmove', moveDrawerTouch);
-
-                // Snap to open or closed position
-                if (document.body.classList.contains('drawer-open')) {
-                    drawer.style.right = '0';
-                    drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-                } else {
-                    drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                    drawerToggle.style.right = '0';
-                }
-            }
-            const currentLinkDisplay = document.getElementById('currentLinkDisplay');
-            currentLinkDisplay.textContent = window.location.href;
-
-            // Copy link functionality
-            const copyLinkButton = document.getElementById('copyLinkButton');
-            copyLinkButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => {
-                        copyLinkButton.textContent = 'Copied!';
-                        setTimeout(() => {
-                            copyLinkButton.textContent = 'Copy';
-                        }, 2000); // Reset button text after 2 seconds
-                    })
-                    .catch(err => {
-                        console.error('Failed to copy: ', err);
-                        copyLinkButton.textContent = 'Error';
-                        setTimeout(() => {
-                            copyLinkButton.textContent = 'Copy';
-                        }, 2000);
-                    });
-            });
-            document.addEventListener('DOMContentLoaded', () => {
-                const urlUsername = window.location.pathname.split('/').pop();
-                const examplePromptsContainer = document.querySelector('.example-prompts');
-                const drawerToggle = document.getElementById('drawerToggle');
-                const drawer = document.getElementById('drawer');
-
-                // Check if we're viewing our own AI
-                const currentUserToken = localStorage.getItem("token");
-
-                // Default to hiding drawer for all users initially
-                drawerToggle.style.display = 'none';
-                drawer.style.display = 'none';
-
-                if (currentUserToken) {
-                    // Decode the JWT token to get current user info
-                    try {
-                        const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
-                        const currentUsername = tokenData.username;
-
-                        if (urlUsername && currentUsername && urlUsername === currentUsername) {
-                            // This is the user's own AI
-                            document.querySelector('h1').innerHTML = "Chat with Your AI";
-                            
-                            // Show drawer components only for the AI owner
-                            drawerToggle.style.display = 'flex';
-                            drawer.style.display = 'block';
-
-                            examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Create a roadmap for me to study [Topic name]
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Write a tweet about my latest project
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What are the top projects/skills I should showcase?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Help me write a bio for my profile
-                                </div>
-                            `;
-                        } else if (urlUsername) {
-                            // This is someone else's AI
-                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                            // Set examples for someone else's AI
-                            examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What topics are you specialized in?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Can you tell me about you?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What makes your responses unique?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Show me an example of what you do best
-                                </div>
-                            `;
-                        } else {
-                            document.querySelector('h1').innerHTML = "Chat with AI";
-                        }
-                    } catch (error) {
-                        console.error("Error parsing token:", error);
-                        // Fallback to original behavior
-                        if (urlUsername) {
-                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                            examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What topics are you specialized in?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Can you tell me about you?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What makes your responses unique?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Show me an example of what you do best
-                                </div>
-                            `;
-                        } else {
-                            document.querySelector('h1').innerHTML = "Chat with AI";
-                        }
-                    }
-                } else {
-                    // No token (user not logged in), use original behavior
-                    if (urlUsername) {
-                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                        examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What topics are you specialized in?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Can you tell me about you?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What makes your responses unique?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Show me an example of what you do best
-                                </div>
-                            `;
-                    } else {
-                        document.querySelector('h1').innerHTML = "Chat with AI";
-                    }
-                }
-            });
-            function useExamplePrompt(element) {
-                const promptText = element.textContent.trim();
-                document.getElementById("queryInput").value = promptText;
-
-                // Focus on the input
-                document.getElementById("queryInput").focus();
-
-                // Adjust input height
-                const input = document.getElementById("queryInput");
-                input.style.height = "auto";
-                input.style.height = Math.min(input.scrollHeight, 100) + "px";
-            }
-
-            // Function to hide examples when conversation starts
-            function hideExamples() {
-                const examplesContainer = document.getElementById("examplesContainer");
-                if (examplesContainer) {
-                    examplesContainer.style.display = "none";
-                }
-            }
-            let chatHistory = [];
-
-            document.getElementById("submitButton").addEventListener("click", async function () {
-                const queryInput = document.getElementById("queryInput");
-                const query = queryInput.value.trim();
-                if (!query) return;
-
-                hideExamples();
-
-                const chatBox = document.getElementById("chatBox");
-                const submitButton = document.getElementById("submitButton");
-
-                // Add user message to chat history
-                chatHistory.push({ role: "user", content: query });
-
-                // Display user message
-                const userMessage = document.createElement("div");
-                userMessage.className = "message user-message";
-                userMessage.textContent = query;
-                chatBox.appendChild(userMessage);
-
-                // Clear input and disable button
-                queryInput.value = "";
-                queryInput.style.height = "40px";
-                submitButton.disabled = true;
-
-                // Show "loading" message
-                const botMessage = document.createElement("div");
-                botMessage.className = "message bot-message";
-
-                // Create the loading indicator with text and dots
-                const loadingIndicator = document.createElement("div");
-                loadingIndicator.className = "typing-indicator";
-
-                const indicatorText = document.createElement("span");
-                indicatorText.className = "typing-indicator-text";
-                indicatorText.textContent = "Thinking";
-                loadingIndicator.appendChild(indicatorText);
-
-                const typingDots = document.createElement("div");
-                typingDots.className = "typing-dots";
-                for (let i = 0; i < 3; i++) {
-                    const dot = document.createElement("div");
-                    dot.className = "dot";
-                    typingDots.appendChild(dot);
-                }
-
-                loadingIndicator.appendChild(typingDots);
-                botMessage.appendChild(loadingIndicator);
-
-                // Add progress bar
-                const progressContainer = document.createElement("div");
-                progressContainer.className = "progress-bar-container";
-
-                const progressBar = document.createElement("div");
-                progressBar.className = "progress-bar";
-                progressContainer.appendChild(progressBar);
-                botMessage.appendChild(progressContainer);
-
-                // Add AI status
-                const aiStatus = document.createElement("div");
-                aiStatus.className = "ai-status";
-                aiStatus.textContent = "Processing query...";
-                botMessage.appendChild(aiStatus);
-
-                chatBox.appendChild(botMessage);
-                botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                // Start randomized status updates
-                const statusMessages = [
-                    "Analyzing question...",
-                    "Retrieving information...",
-                    "Generating response...",
-                    "Formulating answer...",
-                    "Processing query...",
-                    "Creating thoughtful reply...",
-                    "Almost there..."
+                const feedbackTexts = [
+                    "",
+                    "Poor",
+                    "Below Average",
+                    "Average",
+                    "Good",
+                    "Excellent"
                 ];
 
-                let statusInterval = setInterval(() => {
-                    const randomIndex = Math.floor(Math.random() * statusMessages.length);
-                    aiStatus.textContent = statusMessages[randomIndex];
-                }, 2500);
+                ratingStars.addEventListener("mouseover", (event) => {
+                    if (event.target.classList.contains("star")) {
+                        const rating = parseInt(event.target.dataset.rating);
+                        const stars = ratingStars.querySelectorAll(".star");
 
-                try {
-                    const username = window.location.pathname.split('/').pop();
-                    console.log("Username:", username);
-                    console.log("Chat History:", chatHistory);
+                        // Reset all stars
+                        stars.forEach(star => star.classList.remove("active"));
 
-                    const token = localStorage.getItem("token");
-                    let response = null;
+                        // Highlight stars up to the hovered one
+                        for (let i = 0; i < rating; i++) {
+                            stars[i].classList.add("active");
+                        }
 
-                    const requestBody = { query, chatHistory };
-                    console.log("Request Body:", requestBody);
-
-                    if (!token) {
-                        response = await fetch(`/api/query/${username}`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(requestBody)
-                        });
-                    } else {
-                        response = await fetch(`/api/query/${username}`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify(requestBody)
-                        });
+                        // Show feedback text
+                        ratingFeedback.textContent = feedbackTexts[rating];
                     }
+                });
 
-                    const contentType = response.headers.get("content-type");
-                    console.log("Response Content-Type:", contentType);
+                // Reset stars when not hovering over the rating container
+                ratingStars.addEventListener("mouseleave", () => {
+                    const stars = ratingStars.querySelectorAll(".star");
+                    stars.forEach(star => star.classList.remove("active"));
+                    ratingFeedback.textContent = "";
+                });
 
-                    if (contentType && contentType.includes("application/json")) {
-                        const data = await response.json();
-                        console.log("Response Data:", data);
+                // Handle rating submission
+                ratingStars.addEventListener("click", async (event) => {
+                    if (event.target.classList.contains("star")) {
+                        const rating = parseInt(event.target.dataset.rating);
 
-                        if (data.success) {
-                            let responseText = data.response.trim();
-                            botMessage.innerHTML = ""; // Clear "Thinking..."
-
-                            // Add bot message to chat history
-                            chatHistory.push({ role: "assistant", content: responseText });
-
-                            // Limit chat history to last 10 messages to prevent memory issues
-                            if (chatHistory.length > 10) {
-                                chatHistory = chatHistory.slice(-10);
+                        try {
+                            const token = localStorage.getItem("token");
+                            if (!token) {
+                                alert("You must be logged in to rate.");
+                                location.href = '/login';
+                                return;
                             }
-                            console.log("Updated Chat History:", chatHistory);
 
-                            const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ \n]+\.(jpg|jpeg|png|gif))/gi;
-                            let match;
-                            let lastIndex = 0;
-
-                            // Log the response text for debugging
-                            console.log("Full response text:", responseText);
-
-                            // Configure marked to not add extra paragraphs
-                            marked.setOptions({
-                                gfm: true,
-                                breaks: true
+                            const response = await fetch(`/api/rate/${username}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: `Bearer ${token}`,
+                                },
+                                body: JSON.stringify({ rating }),
                             });
 
-                            while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
-                                console.log("Found Cloudinary URL:", match[0]); // Debug log
+                            const data = await response.json();
+                            if (response.ok) {
+                                // Show success message
+                                ratingSuccess.classList.add("visible");
+                                setTimeout(() => {
+                                    ratingSuccess.classList.remove("visible");
+                                }, 2000);
 
-                                // Add text before the image
-                                const textBeforeImage = responseText.substring(lastIndex, match.index).trim();
-                                if (textBeforeImage) {
-                                    const parsedText = marked.parse(textBeforeImage).trim();
-                                    botMessage.innerHTML += parsedText;
-                                }
-
-                                // Create and append the image
-                                const imgContainer = document.createElement("div");
-                                imgContainer.style.margin = "1rem 0";
-                                imgContainer.style.textAlign = "left";
-                                
-                                const img = document.createElement("img");
-                                img.src = match[0];
-                                img.style.maxWidth = "100%";
-                                img.style.maxHeight = "500px";
-                                img.style.display = "block";
-                                img.style.borderRadius = "8px";
-                                img.style.margin = "0"; // Remove auto margin
-                                img.alt = "Generated image";
-                                
-                                // Add error handling for image loading
-                                img.onerror = () => {
-                                    console.error("Failed to load image:", match[0]);
-                                    const errorText = document.createElement("div");
-                                    errorText.textContent = `Image URL: ${match[0]}`;
-                                    errorText.style.color = "red";
-                                    imgContainer.appendChild(errorText);
-                                };
-                                
-                                imgContainer.appendChild(img);
-                                
-                                // Look for a description in the text after the URL
-                                let nextNewline = responseText.indexOf('\n', match.index + match[0].length);
-                                if (nextNewline === -1) nextNewline = responseText.length;
-                                
-                                // Check if there's text between the URL and the next newline
-                                const possibleDescription = responseText.substring(match[0].length + match.index, nextNewline).trim();
-                                if (possibleDescription && !possibleDescription.startsWith('https://')) {
-                                    const descriptionEl = document.createElement("div");
-                                    descriptionEl.style.fontStyle = "italic";
-                                    descriptionEl.style.color = "#555";
-                                    descriptionEl.style.marginTop = "0.5rem";
-                                    descriptionEl.textContent = possibleDescription;
-                                    imgContainer.appendChild(descriptionEl);
-                                }
-                                
-                                botMessage.appendChild(imgContainer);
-                                lastIndex = cloudinaryUrlRegex.lastIndex;
+                                await fetchAverageRating(); // Refresh average rating
+                            } else {
+                                alert(data.message);
                             }
-
-                            // Add any remaining text after the last image
-                            const remainingText = responseText.substring(lastIndex).trim();
-                            if (remainingText) {
-                                const parsedText = marked.parse(remainingText).trim();
-                                botMessage.innerHTML += parsedText;
-                            }
-                        } else {
-                            console.error("Error in response:", data.message);
-                            botMessage.textContent = "Error: " + data.message;
+                        } catch (error) {
+                            console.error("Error rating:", error);
+                            alert("An error occurred while rating.");
                         }
-                    } else {
-                        const text = await response.text();
-                        console.error("Non-JSON response:", text);
-                        botMessage.textContent = "Error: Invalid response from server.";
                     }
-                } catch (error) {
-                    console.error("Error in chat:", error);
-                    botMessage.textContent = "Error processing query. Please try again.";
-                } finally {
-                    clearInterval(statusInterval); // Clear status interval in all cases
-                    submitButton.disabled = false;
-                    botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
+                });
 
-            // Allow Enter key to send messages
-            document.getElementById("queryInput").addEventListener("keydown", function (event) {
-                if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
-                    event.preventDefault(); // Prevent new line in textarea
-                    document.getElementById("submitButton").click();
-                }
-            });
+                // Function to render star rating
+                function renderStarRating(container, rating, size = "1rem") {
+                    container.innerHTML = ""; // Clear previous stars
 
-            document.getElementById("queryInput").addEventListener("input", function () {
-                this.style.height = "auto"; // Reset height to recalculate
-                this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
-            });
-            const ratingToggle = document.getElementById('ratingToggle');
-            const ratingContainer = document.getElementById('ratingContainer');
+                    // Calculate full and partial stars
+                    const fullStars = Math.floor(rating);
+                    const hasHalfStar = rating % 1 >= 0.5;
 
-            // Function to update rating visibility with animation
-            function updateRatingVisibility(show) {
-                if (show) {
-                    ratingContainer.classList.add('visible');
-                    ratingToggle.classList.add('active');
-                    localStorage.setItem("ratingVisible", "true");
-                    ratingContainer.style.pointerEvents = "auto"; // Add this line
-                } else {
-                    ratingContainer.classList.remove('visible');
-                    ratingToggle.classList.remove('active');
-                    localStorage.setItem("ratingVisible", "false");
-                    ratingContainer.style.pointerEvents = "none"; // Add this line
-                }
-            }
-
-            // Load rating visibility state from local storage
-            const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
-            updateRatingVisibility(isRatingVisible);
-
-            // Toggle rating visibility on button click
-            ratingToggle.addEventListener('click', () => {
-                const isCurrentlyVisible = ratingContainer.classList.contains('visible');
-                updateRatingVisibility(!isCurrentlyVisible);
-            });
-
-            const ratingStars = document.getElementById("ratingStars");
-            const ratingFeedback = document.getElementById("ratingFeedback");
-            const ratingSuccess = document.getElementById("ratingSuccess");
-            const averageRatingDisplay = document.getElementById("averageRatingDisplay");
-            const averageStars = document.getElementById("averageStars");
-            const averageNumber = document.getElementById("averageNumber");
-            const ratingCount = document.getElementById("ratingCount");
-            const username = window.location.pathname.split('/').pop();
-
-            const feedbackTexts = [
-                "",
-                "Poor",
-                "Below Average",
-                "Average",
-                "Good",
-                "Excellent"
-            ];
-
-            ratingStars.addEventListener("mouseover", (event) => {
-                if (event.target.classList.contains("star")) {
-                    const rating = parseInt(event.target.dataset.rating);
-                    const stars = ratingStars.querySelectorAll(".star");
-
-                    // Reset all stars
-                    stars.forEach(star => star.classList.remove("active"));
-
-                    // Highlight stars up to the hovered one
-                    for (let i = 0; i < rating; i++) {
-                        stars[i].classList.add("active");
+                    // Add full stars
+                    for (let i = 0; i < fullStars; i++) {
+                        const star = document.createElement("span");
+                        star.className = "star star-filled";
+                        star.style.fontSize = size;
+                        star.style.cursor = "default";
+                        star.textContent = "★";
+                        container.appendChild(star);
                     }
 
-                    // Show feedback text
-                    ratingFeedback.textContent = feedbackTexts[rating];
+                    // Add half star if needed
+                    if (hasHalfStar) {
+                        const halfStar = document.createElement("span");
+                        halfStar.className = "star star-half";
+                        halfStar.style.fontSize = size;
+                        halfStar.style.cursor = "default";
+                        container.appendChild(halfStar);
+                    }
+
+                    // Add empty stars
+                    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                    for (let i = 0; i < emptyStars; i++) {
+                        const star = document.createElement("span");
+                        star.className = "star";
+                        star.style.fontSize = size;
+                        star.style.cursor = "default";
+                        star.textContent = "★";
+                        container.appendChild(star);
+                    }
                 }
-            });
 
-            // Reset stars when not hovering over the rating container
-            ratingStars.addEventListener("mouseleave", () => {
-                const stars = ratingStars.querySelectorAll(".star");
-                stars.forEach(star => star.classList.remove("active"));
-                ratingFeedback.textContent = "";
-            });
-
-            // Handle rating submission
-            ratingStars.addEventListener("click", async (event) => {
-                if (event.target.classList.contains("star")) {
-                    const rating = parseInt(event.target.dataset.rating);
-
+                async function fetchAverageRating() {
                     try {
-                        const token = localStorage.getItem("token");
-                        if (!token) {
-                            alert("You must be logged in to rate.");
-                            location.href = '/login';
-                            return;
-                        }
-
-                        const response = await fetch(`/api/rate/${username}`, {
-                            method: "POST",
+                        const targetUsername = window.location.pathname.split('/').pop();
+                        const response = await fetch(`/api/user/profile/${targetUsername}`, {
+                            method: "GET",
                             headers: {
                                 "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
+                                Authorization: `Bearer ${localStorage.getItem("token")}`,
                             },
-                            body: JSON.stringify({ rating }),
                         });
 
-                        const data = await response.json();
                         if (response.ok) {
-                            // Show success message
-                            ratingSuccess.classList.add("visible");
-                            setTimeout(() => {
-                                ratingSuccess.classList.remove("visible");
-                            }, 2000);
+                            const data = await response.json();
+                            let totalRating = 0;
 
-                            await fetchAverageRating(); // Refresh average rating
+                            if (data.ratings && data.ratings.length > 0) {
+                                data.ratings.forEach(rating => {
+                                    totalRating += rating.rating;
+                                });
+
+                                const averageRating = totalRating / data.ratings.length;
+
+                                // Update the average rating display
+                                renderStarRating(averageStars, averageRating, "0.9rem");
+                                averageNumber.textContent = `${averageRating.toFixed(1)}`;
+                                ratingCount.textContent = `(${data.ratings.length})`;
+                            } else {
+                                averageStars.innerHTML = "";
+                                averageNumber.textContent = "No ratings";
+                                ratingCount.textContent = "";
+                            }
                         } else {
-                            alert(data.message);
+                            console.log("Error fetching profile");
                         }
                     } catch (error) {
-                        console.error("Error rating:", error);
-                        alert("An error occurred while rating.");
+                        console.error("Error fetching average rating:", error);
+                        averageNumber.textContent = "Error";
                     }
                 }
+
+                fetchAverageRating(); // Fetch rating on page load
+
+                
+                // Add this function to clear chat history when the page is about to unload
+                window.addEventListener('beforeunload', function() {
+                    chatHistory = [];
+                });
+                console.log(chatHistory);
+
             });
-
-            // Function to render star rating
-            function renderStarRating(container, rating, size = "1rem") {
-                container.innerHTML = ""; // Clear previous stars
-
-                // Calculate full and partial stars
-                const fullStars = Math.floor(rating);
-                const hasHalfStar = rating % 1 >= 0.5;
-
-                // Add full stars
-                for (let i = 0; i < fullStars; i++) {
-                    const star = document.createElement("span");
-                    star.className = "star star-filled";
-                    star.style.fontSize = size;
-                    star.style.cursor = "default";
-                    star.textContent = "★";
-                    container.appendChild(star);
-                }
-
-                // Add half star if needed
-                if (hasHalfStar) {
-                    const halfStar = document.createElement("span");
-                    halfStar.className = "star star-half";
-                    halfStar.style.fontSize = size;
-                    halfStar.style.cursor = "default";
-                    container.appendChild(halfStar);
-                }
-
-                // Add empty stars
-                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-                for (let i = 0; i < emptyStars; i++) {
-                    const star = document.createElement("span");
-                    star.className = "star";
-                    star.style.fontSize = size;
-                    star.style.cursor = "default";
-                    star.textContent = "★";
-                    container.appendChild(star);
-                }
-            }
-
-            async function fetchAverageRating() {
-                try {
-                    const targetUsername = window.location.pathname.split('/').pop();
-                    const response = await fetch(`/api/user/profile/${targetUsername}`, {
-                        method: "GET",
-                        headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                        },
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        let totalRating = 0;
-
-                        if (data.ratings && data.ratings.length > 0) {
-                            data.ratings.forEach(rating => {
-                                totalRating += rating.rating;
-                            });
-
-                            const averageRating = totalRating / data.ratings.length;
-
-                            // Update the average rating display
-                            renderStarRating(averageStars, averageRating, "0.9rem");
-                            averageNumber.textContent = `${averageRating.toFixed(1)}`;
-                            ratingCount.textContent = `(${data.ratings.length})`;
-                        } else {
-                            averageStars.innerHTML = "";
-                            averageNumber.textContent = "No ratings";
-                            ratingCount.textContent = "";
-                        }
-                    } else {
-                        console.log("Error fetching profile");
-                    }
-                } catch (error) {
-                    console.error("Error fetching average rating:", error);
-                    averageNumber.textContent = "Error";
-                }
-            }
-
-            fetchAverageRating(); // Fetch rating on page load
-
-            
-            // Add this function to clear chat history when the page is about to unload
-            window.addEventListener('beforeunload', function() {
-                chatHistory = [];
-            });
-            console.log(chatHistory);
 
         </script>
 </body>
