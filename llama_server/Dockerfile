@@ -8,10 +8,9 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core waitress google-generativeai nltk
-
+RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core waitress google-generativeai
 # Expose port
 EXPOSE 8080
 
 # Run the app using waitress
-CMD ["waitress-serve", "--host=0.0.0.0", "--port=8080", "llama_service:app"]
+CMD ["python", "-m", "llama_service"]

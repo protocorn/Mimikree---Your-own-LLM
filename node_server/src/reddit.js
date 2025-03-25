@@ -1,25 +1,43 @@
-const {
-  REDDIT_CLIENT_ID,
-  REDDIT_CLIENT_SECRET,
-  REDDIT_USER_AGENT,
-  REDDIT_USERNAME,
-  REDDIT_PASSOWORD
-} = require("../config/apiKeys")
-
 const express = require("express");
 const router = express.Router();
-
 const snoowrap = require('snoowrap');
 const dotenv = require("dotenv");
+
 dotenv.config();
 
-const reddit = new snoowrap({
-  userAgent: REDDIT_USER_AGENT,  // Set a user agent
-  clientId: REDDIT_CLIENT_ID,
-  clientSecret: REDDIT_CLIENT_SECRET,
-  username: REDDIT_USERNAME,
-  password: REDDIT_PASSOWORD
-});
+// Validate required environment variables
+const requiredEnvVars = {
+    REDDIT_CLIENT_ID: process.env.REDDIT_CLIENT_ID,
+    REDDIT_CLIENT_SECRET: process.env.REDDIT_CLIENT_SECRET,
+    REDDIT_USER_AGENT: process.env.REDDIT_USER_AGENT,
+    REDDIT_USERNAME: process.env.REDDIT_USERNAME,
+    REDDIT_PASSWORD: process.env.REDDIT_PASSWORD
+};
+
+// Check for missing environment variables
+const missingVars = Object.entries(requiredEnvVars)
+    .filter(([key, value]) => !value)
+    .map(([key]) => key);
+
+if (missingVars.length > 0) {
+    console.error('Missing required environment variables:', missingVars.join(', '));
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+}
+
+let reddit;
+try {
+    reddit = new snoowrap({
+        userAgent: requiredEnvVars.REDDIT_USER_AGENT,
+        clientId: requiredEnvVars.REDDIT_CLIENT_ID,
+        clientSecret: requiredEnvVars.REDDIT_CLIENT_SECRET,
+        username: requiredEnvVars.REDDIT_USERNAME,
+        password: requiredEnvVars.REDDIT_PASSWORD
+    });
+    console.log('Reddit client initialized successfully');
+} catch (error) {
+    console.error('Error initializing Reddit client:', error);
+    throw error;
+}
 
 async function getRedditUserData(username) {
   try {

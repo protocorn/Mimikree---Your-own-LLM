@@ -19,11 +19,15 @@ const cloudinary = require('cloudinary').v2;
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+// View engine setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'public'));
 
 // Add Hugging Face API configuration
-const HUGGING_FACE_API_KEY = "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";
-const HUGGING_FACE_API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large";
+const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
+const HUGGING_FACE_API_URL = process.env.HUGGING_FACE_API_URL;
 
 // MongoDB Connection Setup - Moved to the top
 mongoose.connect(process.env.MONGO_URI, {
@@ -119,7 +123,7 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// JWT Secret Key (stored in .env file for security)
+// JWT Secret Key from environment variables
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const envd = process.env.NODE_ENV || "production"; // Default to production
@@ -902,4 +906,14 @@ app.post('/api/generate-caption', async (req, res) => {
             error: error.message 
         });
     }
+});
+
+// Add endpoint for Google Calendar configuration
+app.get("/api/config/google-calendar", (req, res) => {
+    res.json({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        apiKey: process.env.GOOGLE_CALENDAR_API_KEY,
+        discoveryDoc: process.env.GOOGLE_CALENDAR_DISCOVERY_DOC || 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+        scopes: process.env.GOOGLE_CALENDAR_SCOPES || 'https://www.googleapis.com/auth/calendar.readonly'
+    });
 });

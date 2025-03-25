@@ -1028,13 +1028,28 @@
                 const connectButton = document.getElementById('calendarConnectButton');
                 const statusDisplay = document.getElementById('calendarConnectionStatus');
 
-                // Your OAuth client ID from Google Cloud Console
-                // IMPORTANT: You must create this in Google Cloud Console
-                const CLIENT_ID = '305246459078-5lele352pmn10a5mhhjrdd32p58n2qtn.apps.googleusercontent.com';
-                const API_KEY = 'AIzaSyD7bzWL5TA3WuFG5NRWQQARlERqOZ-aXlg';
+                // Replace the hardcoded configuration with dynamic loading
+                let CLIENT_ID;
+                let API_KEY;
+                let DISCOVERY_DOC;
+                let SCOPES;
 
-                const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
-                const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
+                // Fetch Google Calendar configuration
+                async function loadGoogleCalendarConfig() {
+                    try {
+                        const response = await fetch('/api/config/google-calendar');
+                        const config = await response.json();
+                        CLIENT_ID = config.clientId;
+                        API_KEY = config.apiKey;
+                        DISCOVERY_DOC = config.discoveryDoc;
+                        SCOPES = config.scopes;
+                        // Initialize Google Calendar after config is loaded
+                        loadGapiClient();
+                    } catch (error) {
+                        console.error('Error loading Google Calendar configuration:', error);
+                        showNotification('Error loading calendar configuration', true);
+                    }
+                }
 
                 let tokenClient;
                 let gapiInited = false;

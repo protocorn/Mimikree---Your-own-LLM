@@ -15,6 +15,12 @@ primary_region = 'iad'
   # Remove or set to false.
   auto_stop_machines = false
 
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 500
+    soft_limit = 300
+
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'

@@ -1,8 +1,12 @@
 const axios = require("axios");
-//const { GITHUB_API_URL, GITHUB_TOKEN, USER_AGENT } = require("../config/apiKeys");
-const GITHUB_API_URL= "https://api.github.com/";
-const GITHUB_TOKEN = "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"; // Replace with actual token
-const USER_AGENT = "protocorn";
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const GITHUB_API_URL = process.env.GITHUB_API_URL;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const USER_AGENT = process.env.GITHUB_USER_AGENT;
+
 // Fetch GitHub Profile
 const getGitHubProfile = async (username) => {
     try {
@@ -12,6 +16,10 @@ const getGitHubProfile = async (username) => {
                 "User-Agent": USER_AGENT,
             },
         });
+
+        if (!response.data) {
+            throw new Error("No data received from GitHub API");
+        }
 
         return {
             login: response.data.login,
@@ -24,7 +32,10 @@ const getGitHubProfile = async (username) => {
         };
     } catch (error) {
         console.error("Error fetching GitHub profile:", error.message);
-        return { error: "Failed to fetch GitHub profile" };
+        if (error.response) {
+            console.error("GitHub API Error:", error.response.status, error.response.data);
+        }
+        return null;
     }
 };
 
@@ -37,6 +48,10 @@ const getGitHubRepositories = async (username) => {
                 "User-Agent": USER_AGENT,
             },
         });
+
+        if (!Array.isArray(response.data)) {
+            throw new Error("Invalid response format from GitHub API");
+        }
 
         // Collect repos data including name, description, and README content
         const repos = await Promise.all(
@@ -52,7 +67,10 @@ const getGitHubRepositories = async (username) => {
         return repos;
     } catch (error) {
         console.error("Error fetching repositories:", error.message);
-        return { error: "Failed to fetch repositories" };
+        if (error.response) {
+            console.error("GitHub API Error:", error.response.status, error.response.data);
+        }
+        return [];
     }
 };
 
@@ -110,11 +128,18 @@ router.post("/profile", async (req, res) => {
 
     try {
         const profileData = await getGitHubProfile(username);
+        if (!profileData) {
+            return res.status(404).json({ error: "GitHub profile not found" });
+        }
+
         const reposData = await getGitHubRepositories(username);
+        if (!Array.isArray(reposData)) {
+            return res.status(500).json({ error: "Failed to fetch repositories" });
+        }
 
         // Combine profile and repos data into one object
         const result = {
-            success:true,
+            success: true,
             profile: profileData,
             repositories: reposData,
         };
