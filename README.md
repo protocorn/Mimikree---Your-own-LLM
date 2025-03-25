@@ -1,6 +1,10 @@
 # Mimikree - Your Personalized AI Assistant
 
+[Mimikree Website](https://mimikree.com/)
+
 Mimikree is a powerful AI assistant platform that creates personalized AI models by understanding your unique needs, preferences, and goals through your data.
+
+Contact me at: chordiasahil24@gmail.com
 
 ## 🌟 Features
 
@@ -13,6 +17,7 @@ Mimikree is a powerful AI assistant platform that creates personalized AI models
   - Reddit integration
   - Google Calendar integration
 - **Document Processing**: Support for PDF uploads and parsing
+- **Image Uploads**: Users can now upload images to further personalize their AI model.
 - **Secure Authentication**: JWT-based user authentication system
 - **Cloud Storage**: Image and file storage using Cloudinary
 - **User Profiles**: Comprehensive user profiles with customizable settings
