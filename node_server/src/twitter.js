@@ -5,7 +5,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const { TWITTER_USERNAME, TWITTER_PASSWORD } = require("../config/apiKeys");
+const TWITTER_USERNAME = process.env.TWITTER_USERNAME;
+const TWITTER_PASSWORD = process.env.TWITTER_PASSWORD;
 
 const TWITTER_LOGIN_URL = "https://twitter.com/login";
 
