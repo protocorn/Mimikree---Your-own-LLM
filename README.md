@@ -137,7 +137,7 @@ The project is configured for deployment on various platforms:
 
 ## 📝 License
 
-ISC License
+[GNU GPL V3.0](https://github.com/protocorn/Mimikree---Your-own-LLM?tab=GPL-3.0-1-ov-file)
 
 ## 🤝 Contributing
 
