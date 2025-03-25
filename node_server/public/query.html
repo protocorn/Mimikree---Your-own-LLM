@@ -1136,37 +1136,48 @@
                             drawerToggle.style.display = 'flex';
                             drawer.style.display = 'block';
 
-                            examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Create a roadmap for me to study [Topic name]
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Write a tweet about my latest project
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What are the top projects/skills I should showcase?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Help me write a bio for my profile
-                                </div>
-                            `;
+                            const prompts = [
+                                "Create a roadmap for me to study [Topic name]",
+                                "Write a tweet about my latest project",
+                                "What are the top projects/skills I should showcase?",
+                                "Help me write a bio for my profile"
+                            ];
+
+                            examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                                `<div class="example-prompt">${prompt}</div>`
+                            ).join('');
+
+                            // Add click event listeners to example prompts
+                            examplePromptsContainer.querySelectorAll('.example-prompt').forEach(prompt => {
+                                prompt.addEventListener('click', function() {
+                                    const queryInput = document.getElementById("queryInput");
+                                    queryInput.value = this.textContent.trim();
+                                    queryInput.focus();
+                                });
+                            });
                         } else if (urlUsername) {
                             // This is someone else's AI
                             document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                            examplePromptsContainer.innerHTML = `
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What topics are you specialized in?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Can you tell me about you?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    What makes your responses unique?
-                                </div>
-                                <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                    Show me an example of what you do best
-                                </div>
-                            `;
+                            
+                            const prompts = [
+                                "What topics are you specialized in?",
+                                "Can you tell me about you?",
+                                "What makes your responses unique?",
+                                "Show me an example of what you do best"
+                            ];
+
+                            examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                                `<div class="example-prompt">${prompt}</div>`
+                            ).join('');
+
+                            // Add click event listeners to example prompts
+                            examplePromptsContainer.querySelectorAll('.example-prompt').forEach(prompt => {
+                                prompt.addEventListener('click', function() {
+                                    const queryInput = document.getElementById("queryInput");
+                                    queryInput.value = this.textContent.trim();
+                                    queryInput.focus();
+                                });
+                            });
                         } else {
                             document.querySelector('h1').innerHTML = "Chat with AI";
                         }
@@ -1538,15 +1549,9 @@
 
                 function useExamplePrompt(element) {
                     const promptText = element.textContent.trim();
-                    document.getElementById("queryInput").value = promptText;
-
-                    // Focus on the input
-                    document.getElementById("queryInput").focus();
-
-                    // Adjust input height
-                    const input = document.getElementById("queryInput");
-                    input.style.height = "auto";
-                    input.style.height = Math.min(input.scrollHeight, 100) + "px";
+                    const queryInput = document.getElementById("queryInput");
+                    queryInput.value = promptText;
+                    queryInput.focus();
                 }
 
                 // Function to hide examples when conversation starts
