@@ -31,306 +31,804 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background: #F4F8F9;
-            /* Light background color */
+            background: linear-gradient(135deg, #f4f8f9 0%, #e6f0f3 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-x: hidden; /* Prevent horizontal scrolling at the root level */
+            width: 100%;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: auto;
-            background: rgba(255, 255, 255, 0.9);
-            /* Light form background */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(10px);
+            transition: all var(--transition-speed) ease;
         }
 
         .button-holder {
-            max-width: 600px;
+            max-width: 650px;
             margin: auto;
+            margin-bottom: 10px;
         }
-
 
         .box {
             margin-top: 20px;
-            border-radius: 10px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            /* Lighter box background */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            background: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .box:hover {
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            /* Remove the translateY animation */
         }
 
-        h2,
-        h3 {
+        h2, h3 {
             color: #2A3C3F;
-            /* Dark teal for text */
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
         }
 
-        select,
-        textarea,
-        input[type="text"],
-        input[type="file"] {
+        /* Apply consistent button styling to all buttons */
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Back to main page button */
+        .button-holder button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        select, textarea, input[type="text"], input[type="file"] {
             width: 98%;
-            padding: 10px;
-            margin-bottom: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
             border: 1px solid #D1E1E3;
-            /* Light gray border */
-            border-radius: 4px;
+            border-radius: 8px;
             background-color: #ffffff;
-            /* White background for inputs */
             color: #2A3C3F;
-            /* Dark text for clarity */
+            font-size: 14px;
+            transition: border 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        select:focus, textarea:focus, input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(77, 104, 255, 0.1);
         }
 
-        select {
-            appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%232A3C3F" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 20px;
+        /* Input field height consistency */
+        input[type="text"] {
+            height: 45px;
+            box-sizing: border-box;
         }
 
-        #personalityTraits {
+        .section-header {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .info-icon {
+            background-color: #f0f7ff;
+            color: var(--primary-color);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 8px;
+            border: 1px solid var(--primary-light);
+            transition: all 0.2s ease;
+        }
+        
+        .info-icon:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #fff;
+            color: var(--text-color);
+            text-align: left;
+            border-radius: 8px;
+            padding: 10px 15px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e6e6e6;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #fff transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Input with info container */
+        .input-with-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            min-width: 250px; /* Ensure a minimum width */
+        }
+        
+        /* Platform input container */
+        .platform-input {
+            display: flex;
             gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        
+        /* Platform button styling */
+        .platform-input button {
+            min-width: 160px; /* Fixed width for all platform buttons */
+            height: 45px; /* Consistent height with inputs */
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            flex-shrink: 0; /* Prevent button from shrinking */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Platform icon styling */
+        .platform-icon {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            margin-right: 5px;
+            object-fit: contain;
+        }
+        
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            backdrop-filter: blur(3px);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 25px;
+            border: 1px solid #eaeaea;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: modalopen 0.4s;
+        }
+        
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-30px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close:hover {
+            color: var(--primary-color);
+        }
+        
+        .modal-body {
+            padding: 10px 0;
+        }
+        
+        .modal-footer {
+            text-align: right;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+            margin-top: 15px;
+        }
+        
+        .modal-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+        
+        .modal-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        /* File input styling */
+        .file-input-container {
+            position: relative;
             margin-bottom: 15px;
         }
 
+        .custom-file-input {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        .custom-file-label {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #f0f7ff;
+            color: var(--primary-color);
+            border: 1px dashed var(--primary-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .custom-file-label:hover {
+            background-color: #e0f0ff;
+        }
+
+        .custom-file-label i {
+            margin-right: 8px;
+        }
+        
+        /* Image gallery */
+        #imagesList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .image-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .image-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            /* Remove transform */
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .image-caption, .image-description {
+            padding: 10px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .image-caption {
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            font-style: italic;
+            color: #555;
+        }
+        
+        .caption-loading {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .image-description {
+            background: white;
+            border-top: 1px solid #eee;
+            font-weight: 500;
+        }
+        
+        .image-item button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+            padding: 0;
+            min-width: auto;
+            line-height: 1;
+        }
+        
+        .image-item button:hover {
+            opacity: 1;
+        }
+        
+        /* PDF list styling */
+        #pdfList {
+            margin-top: 15px;
+        }
+        
+        .pdf-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        
+        .pdf-item:hover {
+            border-color: #ddd;
+            background-color: #fcfcfc;
+        }
+        
+        .pdf-icon {
+            display: inline-block;
+            margin-right: 10px;
+            color: #e74c3c;
+            font-size: 20px;
+        }
+        
+        .pdf-item p {
+            flex-grow: 1;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .pdf-item button {
+            background-color: #FF6B6B;
+            color: white;
+            border: none;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            padding: 0;
+            min-width: auto;
+            line-height: 1;
+        }
+        
+        .pdf-item button:hover {
+            background-color: #FF4949;
+        }
+        
+        /* Input group */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-group input {
+            flex-grow: 1;
+        }
+        
+        .input-group button {
+            min-width: 100px;
+        }
+        
+        /* Interest input and button group */
+        .interest-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .interest-input-group input {
+            flex: 1;
+        }
+        
+        /* Interest items */
+        #interestsList {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .interest-item {
+            background-color: #F4F8F9;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e6eaed;
+            transition: all 0.2s ease;
+        }
+        
+        .interest-item:hover {
+            background-color: #e9f0f2;
+        }
+        
+        .interest-item button {
+            background-color: #FF6B6B;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            line-height: 1;
+            font-size: 16px;
+            border-radius: 50%;
+        }
+        
+        .interest-item button:hover {
+            background-color: #FF4949;
+        }
+        
+        /* Personality traits */
+        #personalityTraits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
         #personalityTraits label {
             display: flex;
             align-items: center;
             cursor: pointer;
+            background-color: #f5f7fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #e6eaed;
+            transition: all 0.2s ease;
         }
-
-        input[type="checkbox"] {
+        
+        #personalityTraits label:hover {
+            background-color: #e9edf2;
+        }
+        
+        #personalityTraits input[type="checkbox"] {
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border: 2px solid #D1E1E3;
             border-radius: 4px;
             margin-right: 8px;
             position: relative;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
-
-        input[type="checkbox"]:checked {
+        
+        #personalityTraits input[type="checkbox"]:checked {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
-
-        input[type="checkbox"]:checked::before {
-            content: "\2713";
+        
+        #personalityTraits input[type="checkbox"]:checked::before {
+            content: "✓";
             position: absolute;
             color: white;
-            font-size: 16px;
+            font-size: 14px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
         }
 
-        textarea {
-            width: 95%;
-            min-height: 100px;
-            resize: vertical;
+        /* Remove transform from all hover states */
+        .platform-input button:hover,
+        .navigation button:hover,
+        .interest-item button:hover,
+        .pdf-item button:hover {
+            transform: none;
         }
-
-        #interestsList {
-            margin-top: 10px;
-        }
-
-        .interest-item {
-            background-color: #F4F8F9;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .interest-item button {
-            background-color: #FF6B6B;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-
-        .interest-item button:hover {
-            background-color: #FF4949;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            /* Soft green for buttons */
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        button:hover {
-            background-color: var(--primary-dark);
-            /* Darker green on hover */
-        }
-
+        
+        /* Navigation button positioning */
         .navigation {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            margin-top: 25px;
         }
-
-        .link-item,
-        .image-item,
-        .pdf-item {
-            background-color: #ffffff;
-            padding: 10px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            border: 1px solid #D1E1E3;
-            /* Subtle border */
-        }
-
-        .image-preview {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-        }
-
-        .image-caption {
-            font-style: italic;
-            color: #666;
-            margin: 8px 0;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-
-        .image-description {
-            margin: 8px 0;
-            padding: 8px;
-            background: #fff;
-            border-radius: 4px;
-        }
-
-        .caption-loading {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0;
-            padding: 8px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-
-        .caption-spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .predefined-links {
-            margin-top: 20px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #E1E1E1;
-            padding-bottom: 15px;
-        }
-
-        .platform-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .platform-input input {
-            flex: 1;
-        }
-
-        .platform-icon {
-            width: 24px;
-            height: 24px;
-            vertical-align: middle;
-            margin-right: 5px;
-        }
-
-        .step {
-            display: none;
-        }
-
-        .step.active {
-            display: block;
-        }
-
-        .step-indicator span {
-            display: inline-block;
-            padding: 5px 10px;
-            margin: 2px;
-            border-radius: 50%;
-            background-color: #E1E1E1;
-            /* Light gray for inactive steps */
-        }
-
-        .step-indicator .active-step {
-            background-color: #5CB85C;
-            /* Green for active step */
-            color: white;
-        }
-
-        .success-message {
-            display: none;
-            color: #5CB85C;
-            /* Green success message */
-            font-weight: bold;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .platform-input button {
-            min-width: 50px;
-            max-width: 180px;
-            width: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
+        
+        /* For the first step, ensure Next button is aligned right */
         #step1 .navigation {
             justify-content: flex-end;
         }
-
+        
+        /* Ensure consistent styling for all action buttons */
+        .back-btn, .next-btn {
+            min-width: 100px;
+        }
+        
+        /* Success message */
+        .success-message {
+            display: none;
+            color: #28a745;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Step indicator styling */
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        
+        .step-indicator span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            margin: 0 8px;
+            border-radius: 50%;
+            background-color: #E1E1E1;
+            color: #555;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .step-indicator span::after {
+            content: "";
+            position: absolute;
+            right: -12px;
+            width: 16px;
+            height: 2px;
+            background-color: #E1E1E1;
+        }
+        
+        .step-indicator span:last-child::after {
+            display: none;
+        }
+        
+        .step-indicator .active-step {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(77, 104, 255, 0.3);
+        }
+        
+        /* Ensure all buttons have consistent border radius */
+        button, 
+        .modal-btn,
+        .platform-input button,
+        .navigation button,
+        #submitBtn {
+            border-radius: 8px;
+        }
+        
+        /* Override specific styling for circular buttons */
+        .interest-item button,
+        .pdf-item button,
+        .image-item button {
+            border-radius: 50%;
+        }
+        
+        /* Back to main page button specific styling */
+        .main-page-btn {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #e4e7ed;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .main-page-btn:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* Media queries for responsive layout */
+        @media (max-width: 576px) {
+            .platform-input {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .input-with-info {
+                width: 100%;
+            }
+            
+            .platform-input button {
+                width: 100%;
+                min-width: auto;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .box {
+                padding: 15px;
+            }
+            
+            /* Adjust for smaller screens */
+            .navigation button {
+                padding: 10px 15px;
+            }
+            
+            /* Smaller tooltips on mobile */
+            .tooltip .tooltiptext {
+                width: 220px;
+            }
+            
+            /* Adjust image gallery for mobile */
+            #imagesList {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+        
+        /* Basic step styling */
+        .step {
+            display: none;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        /* Warning message and terms styling */
         .warning-message {
             background-color: #fff3cd;
             border: 1px solid #ffeeba;
             color: #856404;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 15px;
+            border-radius: 8px;
             margin-bottom: 15px;
+            font-size: 14px;
         }
-
+        
         .terms-agreement {
             margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
         }
-
+        
         .terms-agreement a {
-            color: #5CB85C;
+            color: var(--primary-color);
             text-decoration: none;
         }
-
+        
         .terms-agreement a:hover {
             text-decoration: underline;
         }
-
+        
+        /* Loading overlay */
         #loading-overlay {
             display: none;
             position: fixed;
@@ -344,7 +842,7 @@
             align-items: center;
             backdrop-filter: blur(3px);
         }
-
+        
         .loading-container {
             background-color: white;
             padding: 30px;
@@ -354,7 +852,7 @@
             max-width: 400px;
             width: 80%;
         }
-
+        
         .spinner {
             margin: 0 auto 20px;
             border: 5px solid #f3f3f3;
@@ -364,7 +862,7 @@
             height: 60px;
             animation: spin 1.5s linear infinite;
         }
-
+        
         .progress-container {
             height: 8px;
             background-color: #f3f3f3;
@@ -372,7 +870,7 @@
             margin: 20px 0;
             overflow: hidden;
         }
-
+        
         .progress-bar {
             height: 100%;
             width: 0%;
@@ -380,28 +878,69 @@
             border-radius: 4px;
             transition: width 0.3s ease;
         }
-
+        
         #loading-text {
             margin: 10px 0;
             font-weight: 600;
             color: var(--text-color);
         }
-
+        
         #loading-percentage {
             font-size: 18px;
             font-weight: bold;
             color: var(--primary-color);
             margin: 5px 0;
         }
-
+        
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Caption spinner */
+        .caption-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Predefined links section */
+        .predefined-links {
+            margin-top: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #E1E1E1;
+            padding-bottom: 15px;
+        }
+        
+        /* Success message styling */
+        .success-message {
+            display: none;
+            color: #28a745;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        /* Link item styling */
+        .link-item {
+            background-color: #ffffff;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            transition: all 0.2s ease;
+        }
+        
+        .link-item:hover {
+            border-color: #ddd;
+            background-color: #fcfcfc;
         }
     </style>
 </head>
@@ -418,7 +957,7 @@
         </div>
     </div>
     <div style="margin-bottom:10px" class="button-holder">
-        <button onclick="location.href='/'">
+        <button onclick="location.href='/'" class="main-page-btn">
             ← Back to Main page
         </button>
     </div>
@@ -432,10 +971,22 @@
         </div>
         <div class="step active" id="step1">
             <div class="box" id="linksBox">
-                <h2>Social Profiles</h2>
+                <div class="section-header">
+                    <h2>Social Profiles</h2>
+                    <div class="tooltip">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">Adding your social profiles helps us create a more personalized model of you. The more data you provide, the better your model will be.</span>
+                    </div>
+                </div>
                 <div class="predefined-links">
                     <div class="platform-input">
-                        <input type="text" id="githubUsername" placeholder="GitHub Username">
+                        <div class="input-with-info">
+                            <input type="text" id="githubUsername" placeholder="GitHub Username">
+                            <div class="tooltip">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">We'll collect your GitHub profile data, repository names, README files, and descriptions to better understand your technical interests and contributions.</span>
+                            </div>
+                        </div>
                         <button onclick="addGitHub()" style="background-color: #2A3C3F;">
                             <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                                 class="platform-icon" alt="GitHub">
@@ -444,8 +995,14 @@
                     </div>
 
                     <div class="platform-input">
-                        <input type="text" id="linkedinUsername"
-                            placeholder="(https://www.linkedin.com/in/profile-name)">
+                        <div class="input-with-info">
+                            <input type="text" id="linkedinUsername"
+                                placeholder="(https://www.linkedin.com/in/profile-name)">
+                            <div class="tooltip">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">We'll collect your LinkedIn profile data to understand your professional experience and skills.</span>
+                            </div>
+                        </div>
                         <button onclick="addLinkedIn()" style="background-color:#0077B5">
                             <img src="https://static.vecteezy.com/system/resources/previews/018/910/724/non_2x/linkedin-logo-linkedin-symbol-linkedin-icon-free-free-vector.jpg"
                                 class="platform-icon" alt="LinkedIn">
@@ -454,7 +1011,13 @@
                     </div>
 
                     <div class="platform-input">
-                        <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
+                        <div class="input-with-info">
+                            <input type="text" id="twitterUsername" placeholder="Twitter (X) Username">
+                            <div class="tooltip">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">We'll collect your most recent tweets (up to 10) to better understand your interests and communication style.</span>
+                            </div>
+                        </div>
                         <button onclick="addTwitter()" style="background:#000">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png"
                                 class="platform-icon" alt="Twitter">
@@ -463,8 +1026,13 @@
                     </div>
 
                     <div class="platform-input">
-
-                        <input type="text" id="mediumUsername" placeholder="Medium Username">
+                        <div class="input-with-info">
+                            <input type="text" id="mediumUsername" placeholder="Medium Username">
+                            <div class="tooltip">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">We'll collect all your published Medium articles to understand your writing style and topics of interest.</span>
+                            </div>
+                        </div>
                         <button onclick="addMedium()" style="background:#efefef; color:black;">
                             <img src="https://www.svgrepo.com/show/354057/medium-icon.svg" class="platform-icon"
                                 alt="Medium">
@@ -473,8 +1041,13 @@
                     </div>
 
                     <div class="platform-input">
-
-                        <input type="text" id="redditUsername" placeholder="Reddit Username">
+                        <div class="input-with-info">
+                            <input type="text" id="redditUsername" placeholder="Reddit Username">
+                            <div class="tooltip">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">We'll collect your recent Reddit posts to understand your interests and participation in online communities.</span>
+                            </div>
+                        </div>
                         <button onclick="addReddit()" style="background:#FF4500;">
                             <img src="https://img.icons8.com/ios_filled/512/FFFFFF/reddit.png" class="platform-icon"
                                 alt="Reddit">
@@ -483,22 +1056,24 @@
                     </div>
                 </div>
 
-                <!-- <h3>Other Links</h3>
-                <input type="text" id="linkInput" placeholder="Enter any other link">
-                <button onclick="addLink()">Add Custom Link</button>-->
                 <h3>Added Links</h3>
                 <div id="linksList"></div>
             </div>
 
             <div class="navigation">
-                <button onclick="nextStep(1)">Next</button>
+                <button onclick="checkAndProceed(1)" class="next-btn">Next</button>
             </div>
         </div>
 
         <div class="step" id="step2">
-
             <div class="box" id="selfAssessmentBox">
-                <h2>Self-Assessment</h2>
+                <div class="section-header">
+                    <h2>Self-Assessment</h2>
+                    <div class="tooltip">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">Your self-assessment helps us understand your personality, interests, and communication style for a more accurate digital model.</span>
+                    </div>
+                </div>
                 <h3>Communication Style</h3>
                 <select id="communicationStyle">
                     <option value="">Select your communication style</option>
@@ -524,72 +1099,210 @@
                 <p id="charCount" style="margin-top:-8px">Characters remaining: 500</p>
 
                 <h3>Interests and Hobbies</h3>
-                <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
-                <button onclick="addInterest()">Add Interest</button>
+                <div class="interest-input-group">
+                    <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
+                    <button onclick="addInterest()">Add Interest</button>
+                </div>
                 <div id="interestsList"></div>
             </div>
 
             <div class="navigation">
-                <button onclick="prevStep(2)">Back</button>
-                <button onclick="nextStep(2)">Next</button>
+                <button onclick="prevStep(2)" class="back-btn">Back</button>
+                <button onclick="checkAndProceed(2)" class="next-btn">Next</button>
             </div>
         </div>
 
         <!-- Step 3: Add PDFs -->
         <div class="step" id="step3">
-
             <div class="box" id="pdfBox">
-                <h2>PDF Documents</h2>
-                <input type="file" id="pdfInput" name="pdfInput" accept=".pdf" multiple>
-                <button onclick="addPDFs()">Add PDFs</button>
+                <div class="section-header">
+                    <h2>PDF Documents</h2>
+                    <div class="tooltip">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">Adding PDF documents helps us understand your knowledge areas, writing style, and subject expertise. Maximum 5 pages per PDF.</span>
+                    </div>
+                </div>
+                
+                <div class="file-input-container">
+                    <label for="pdfInput" class="custom-file-label">
+                        <i class="fas fa-file-pdf"></i> Choose PDF Files (Max 5 pages per PDF)
+                    </label>
+                    <input type="file" id="pdfInput" name="pdfInput" accept=".pdf" multiple class="custom-file-input">
+                </div>
+                
+                <button onclick="addPDFs()" style="width: 100%;">Upload PDFs</button>
                 <div id="pdfList"></div>
             </div>
 
             <div class="navigation">
-                <button onclick="prevStep(3)">Back</button>
-                <button onclick="nextStep(3)">Next</button>
+                <button onclick="prevStep(3)" class="back-btn">Back</button>
+                <button onclick="checkAndProceed(3)" class="next-btn">Next</button>
             </div>
         </div>
 
         <div class="step" id="step4">
-
             <div class="box" id="imageBox">
-                <h2>Images</h2>
-                <input type="file" id="imageInput" accept="image/*" multiple>
-                <input type="text" id="imageDescription" placeholder="Image description">
-                <button onclick="addImages()">Add Images</button>
+                <div class="section-header">
+                    <h2>Images</h2>
+                    <div class="tooltip">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">Adding images helps us understand your visual preferences, personal interests, and content you engage with.</span>
+                    </div>
+                </div>
+                
+                <div class="file-input-container">
+                    <label for="imageInput" class="custom-file-label">
+                        <i class="fas fa-images"></i> Choose Images
+                    </label>
+                    <input type="file" id="imageInput" accept="image/*" multiple class="custom-file-input">
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="imageDescription" placeholder="Add a description for these images">
+                    <button onclick="addImages()">Add Images</button>
+                </div>
+                
                 <div id="imagesList"></div>
             </div>
             <div class="navigation">
-                <button onclick="prevStep(4)">Back</button>
-                <button onclick="nextStep(4)">Next</button>
+                <button onclick="prevStep(4)" class="back-btn">Back</button>
+                <button onclick="checkAndProceed(4)" class="next-btn">Next</button>
             </div>
         </div>
 
         <div class="step" id="step5">
-            <h2>Final Submission</h2>
-            <div class="warning-message">
-                <p><strong>Warning:</strong> Data once added cannot be deleted individually. You can only delete your
-                    entire account if you wish to remove your data.</p>
+            <div class="section-header">
+                <h2>Final Submission</h2>
+                <div class="tooltip">
+                    <span class="info-icon">i</span>
+                    <span class="tooltiptext">Review your information before final submission. Your data will be securely processed to create your personalized model.</span>
+                </div>
             </div>
-            <div class="terms-agreement">
-                <input type="checkbox" id="termsAgreement" required>
-                <label for="termsAgreement">I agree to the <a href="/privacy-policy" target="_blank">Privacy Policy and
-                        Terms of Service</a></label>
-            </div>
-            <div class="submit-section">
-                <button id="submitBtn" style="width: 100%; margin-top:10px;" onclick="submitData()">Submit All
-                    Information</button>
-                <div id="successMessage" class="success-message">✅ Data submitted successfully! Go & test your Model !!
+            <div class="box">
+                <div class="warning-message">
+                    <p><strong>Warning:</strong> Data once added cannot be deleted individually. You can only delete your
+                        entire account if you wish to remove your data.</p>
+                </div>
+                <div class="terms-agreement">
+                    <input type="checkbox" id="termsAgreement" required>
+                    <label for="termsAgreement">I agree to the <a href="/privacy-policy" target="_blank">Privacy Policy and
+                            Terms of Service</a></label>
+                </div>
+                <div class="submit-section">
+                    <button id="submitBtn" style="width: 100%; margin-top:15px; padding: 15px; border-radius: 8px; font-weight: 600; font-size: 16px;" onclick="submitData()">Submit All Information</button>
+                    <div id="successMessage" class="success-message">✅ Data submitted successfully! Go & test your Model !!</div>
                 </div>
             </div>
             <div class="navigation">
-                <button onclick="prevStep(5)">Back</button>
+                <button onclick="prevStep(5)" class="back-btn">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="warningModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Wait a moment!</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="warningMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn" id="continueBtn">Continue Anyway</button>
+                <button class="modal-btn" style="background-color: #f8f9fa; color: #333; margin-right: 10px;" id="goBackBtn">Go Back</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Modal related functions
+        const modal = document.getElementById('warningModal');
+        const closeBtn = document.querySelector('.close');
+        const continueBtn = document.getElementById('continueBtn');
+        const goBackBtn = document.getElementById('goBackBtn');
+        const warningMessage = document.getElementById('warningMessage');
+        
+        // Close the modal when clicking the X button
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+        
+        // Close the modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        
+        // Check and show warning if needed before proceeding to next step
+        function checkAndProceed(step) {
+            let warningNeeded = false;
+            let warningText = "";
+            
+            // Step 1: Check social profiles
+            if (step === 1) {
+                const linksList = document.getElementById('linksList');
+                if (linksList.children.length === 0) {
+                    warningNeeded = true;
+                    warningText = "Not adding social media data? Your model won't be able to understand your online presence and interests. This significantly reduces personalization.";
+                }
+            }
+            
+            // Step 2: Check self-assessment
+            else if (step === 2) {
+                const communicationStyle = document.getElementById('communicationStyle').value;
+                const personalityTraits = document.querySelectorAll('#personalityTraits input:checked');
+                const writingSample = document.getElementById('writingSample').value;
+                const interests = document.querySelectorAll('#interestsList .interest-item');
+                
+                if (!communicationStyle || personalityTraits.length === 0 || !writingSample || interests.length === 0) {
+                    warningNeeded = true;
+                    warningText = "Missing self-assessment data? This information helps your model understand your personality and communication style. Without it, your model will be less accurate.";
+                }
+            }
+            
+            // Step 3: Check PDFs
+            else if (step === 3) {
+                const pdfList = document.getElementById('pdfList');
+                if (pdfList.children.length === 0) {
+                    warningNeeded = true;
+                    warningText = "Not adding any PDF documents? PDFs can provide rich context about your knowledge areas and interests, making your model more comprehensive.";
+                }
+            }
+            
+            // Step 4: Check images
+            else if (step === 4) {
+                const imagesList = document.getElementById('imagesList');
+                if (imagesList.children.length === 0) {
+                    warningNeeded = true;
+                    warningText = "Not adding any images? Images help your model understand your visual preferences and interests. This makes your model more well-rounded.";
+                }
+            }
+            
+            if (warningNeeded) {
+                // Set the warning message
+                warningMessage.textContent = warningText;
+                
+                // Show the modal
+                modal.style.display = "block";
+                
+                // Set up the continue button to proceed to next step
+                continueBtn.onclick = function() {
+                    modal.style.display = "none";
+                    nextStep(step);
+                }
+                
+                // Set up the go back button to close the modal
+                goBackBtn.onclick = function() {
+                    modal.style.display = "none";
+                }
+            } else {
+                // If no warning needed, proceed directly
+                nextStep(step);
+            }
+        }
+        
         function showLoading(message = "Processing your data...") {
             const loadingOverlay = document.getElementById('loading-overlay');
             const loadingText = document.getElementById('loading-text');
@@ -804,9 +1517,9 @@
                     const interestItem = document.createElement('div');
                     interestItem.className = 'interest-item';
                     interestItem.innerHTML = `
-                        <span class="interest-text"></span> <button onclick="this.parentElement.remove()">Remove</button>
+                        <span class="interest-text">${interest}</span>
+                        <button onclick="this.parentElement.remove()" title="Remove interest">×</button>
                     `;
-                    interestItem.querySelector('.interest-text').textContent = interest; // Use textContent
                     interestsList.appendChild(interestItem);
                 });
             }
@@ -915,7 +1628,7 @@
                                 <span>Generating caption...</span>
                             </div>
                             <div class="image-description">${manualDescription}</div>
-                            <button onclick="this.parentElement.remove()">Remove</button>
+                            <button onclick="this.parentElement.remove()" title="Remove image">×</button>
                         `;
                         imagesList.appendChild(imageItem);
 
@@ -954,13 +1667,13 @@
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
-                <div style="display: flex;">
-    <a href="${url}" target="_blank">
-        <img src="${getPlatformIcon(platform)}" class="platform-icon">
-        ${platform} (${new URL(url).pathname.split('/').pop()})
-    </a>
-    <button onclick="this.parentElement.parentElement.remove()" style="margin-left: auto;">Remove</button>
-</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+                    <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
+                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+                        <span>${platform} (${new URL(url).pathname.split('/').pop()})</span>
+                    </a>
+                    <button onclick="this.parentElement.parentElement.remove()" title="Remove link" style="background-color: #FF6B6B; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">×</button>
+                </div>
                 `;
                 linksList.appendChild(linkItem);
             }
@@ -976,12 +1689,12 @@
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
-                <div style="display: flex;">
-    <a href="${url}" target="_blank">
-        <img src="${getPlatformIcon(platform)}" class="platform-icon">
-        ${platform} (${new URL(url).pathname.split('/').pop()})
-    </a>
-</div>
+                <div style="display: flex; align-items: center; padding: 8px 0;">
+                    <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
+                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
+                        <span>${platform} (${new URL(url).pathname.split('/').pop()})</span>
+                    </a>
+                </div>
                 `;
                 linksList.appendChild(linkItem);
             }
@@ -1005,9 +1718,9 @@
                 const interestItem = document.createElement('div');
                 interestItem.className = 'interest-item';
                 interestItem.innerHTML = `
-            <span class="interest-text">${interestsInput.value}</span>
-            <button onclick="this.parentElement.remove()">Remove</button>
-        `;
+                    <span class="interest-text">${interestsInput.value}</span>
+                    <button onclick="this.parentElement.remove()" title="Remove interest">×</button>
+                `;
                 interestsList.appendChild(interestItem);
                 interestsInput.value = '';
             }
@@ -1240,9 +1953,10 @@
                     const pdfItem = document.createElement('div');
                     pdfItem.className = 'pdf-item';
                     pdfItem.innerHTML = `
-<div style="display: flex; align-items: center;">  
-    <p style="flex-grow: 1; margin-right: 10px;">${file.name}</p> <button onclick="this.parentElement.parentElement.remove()">Remove</button>
-</div>`;
+                        <i class="pdf-icon">📄</i>
+                        <p>${file.name}</p>
+                        <button onclick="this.parentElement.remove()" title="Remove PDF">×</button>
+                    `;
                     
                     try {
                         const typedarray = new Uint8Array(await file.arrayBuffer());
@@ -1251,12 +1965,10 @@
                         // Check page count
                         if (pdf.numPages > 5) {
                             pdfItem.innerHTML = `
-                                <div style="display: flex; align-items: center;">
-                                    <p style="flex-grow: 1; margin-right: 10px; color: red;">
-                                        Error: ${file.name} has ${pdf.numPages} pages. Maximum allowed is 5 pages.
-                                    </p>
-                                    <button onclick="this.parentElement.parentElement.remove()">Dismiss</button>
-                                </div>`;
+                                <i class="pdf-icon" style="color: #dc3545;">⚠️</i>
+                                <p style="color: #dc3545;"><strong>${file.name}</strong> - Error: ${pdf.numPages} pages. Maximum allowed is 5 pages.</p>
+                                <button onclick="this.parentElement.remove()" title="Dismiss">×</button>
+                            `;
                             pdfList.appendChild(pdfItem);
                             continue; // Skip processing this file further
                         }
@@ -1270,10 +1982,10 @@
                     } catch (error) {
                         console.error("Error processing PDF:", error);
                         pdfItem.innerHTML = `
-                            <div style="display: flex; align-items: center;">
-                                <p style="flex-grow: 1; margin-right: 10px; color: red;">Error processing ${file.name}</p>
-                                <button onclick="this.parentElement.parentElement.remove()">Dismiss</button>
-                            </div>`;
+                            <i class="pdf-icon" style="color: #dc3545;">⚠️</i>
+                            <p style="color: #dc3545;"><strong>${file.name}</strong> - Error processing file</p>
+                            <button onclick="this.parentElement.remove()" title="Dismiss">×</button>
+                        `;
                         pdfList.appendChild(pdfItem);
                     }
                 }
@@ -1305,6 +2017,45 @@
                 return 'Failed to generate caption';
             }
         }
+
+        // Add event listeners for file inputs to update their labels
+        document.addEventListener('DOMContentLoaded', function() {
+            // For the PDF input
+            const pdfInput = document.getElementById('pdfInput');
+            const pdfLabel = document.querySelector('label[for="pdfInput"]');
+            
+            pdfInput.addEventListener('change', function() {
+                const fileCount = this.files.length;
+                if (fileCount > 0) {
+                    pdfLabel.textContent = fileCount === 1 
+                        ? `1 PDF file selected` 
+                        : `${fileCount} PDF files selected`;
+                } else {
+                    pdfLabel.innerHTML = '<i class="fas fa-file-pdf"></i> Choose PDF Files (Max 5 pages per PDF)';
+                }
+            });
+            
+            // For the image input
+            const imageInput = document.getElementById('imageInput');
+            const imageLabel = document.querySelector('label[for="imageInput"]');
+            
+            imageInput.addEventListener('change', function() {
+                const fileCount = this.files.length;
+                if (fileCount > 0) {
+                    imageLabel.textContent = fileCount === 1 
+                        ? `1 image selected` 
+                        : `${fileCount} images selected`;
+                } else {
+                    imageLabel.innerHTML = '<i class="fas fa-images"></i> Choose Images';
+                }
+            });
+            
+            // Add FontAwesome for icons
+            const fontAwesome = document.createElement('link');
+            fontAwesome.rel = 'stylesheet';
+            fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+            document.head.appendChild(fontAwesome);
+        });
     </script>
 </body>
 
