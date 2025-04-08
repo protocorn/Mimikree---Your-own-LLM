@@ -4,79 +4,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Interface</title>
-    <link rel="icon" type="image/png" href="/Mimikree_logo.png">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Talking with your own LLM</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://apis.google.com/js/api.js"></script>
     <script src="https://accounts.google.com/gsi/client"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #4d68ff;
-            --primary-light: #e6f2ff;
-            --primary-dark: #0056b3;
-            --secondary-color: #efefef;
-            --text-color: #333;
-            --background-color: #f4f4f9;
+            --primary-dark: #3b50c7;
+            --primary-light: #f0f4ff;
+            --secondary-color: #6c79ff;
             --border-radius: 12px;
-            --transition-speed: 0.3s;
+            --text-color: #333;
+            --dark-color: #222;
+            --transition: 0.3s;
             --drawer-width: 300px;
+            --drawer-width-mobile: 250px;
         }
-
+        
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-        }
-
-        body {
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            overflow-x: hidden;
+        }
+        
+        body {
+            background-color: #f5f5f7;
+            color: #333;
+            overflow-y: auto;
             position: relative;
+            min-height: 100vh;
+            padding-bottom: 65px;
         }
 
         .container {
-            max-width: 100%;
-            height: calc(100vh - 4rem);
+            max-width: calc(90% - 4rem);
+            width: 1000px;
+            min-height: calc(100vh - 4rem);
             display: flex;
             flex-direction: column;
-            margin: 2rem;
+            margin: 2rem auto;
             padding: 2rem;
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             border-radius: var(--border-radius);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: margin-right var(--transition-speed);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.8s ease-out;
+            box-sizing: border-box;
+        }
+
+        .container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
         }
 
         h1 {
             text-align: center;
-            margin: 0.5rem 0;
-            color: var(--primary-color);
+            margin: 0.5rem 0 1.5rem;
+            color: var(--dark-color);
+            font-size: 2.2rem;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1:after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 10px;
         }
 
         .chat-box {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
             background: #fff;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+            min-height: 400px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .chat-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-box::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+
+        .chat-box::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
         }
 
         .message {
-            margin: 0.5rem 0;
-            padding: 0.8rem 1rem;
+            margin: 0.8rem 0;
+            padding: 1rem 1.2rem;
             border-radius: 18px;
             max-width: 80%;
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: pre-wrap;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            animation: messageAnim 0.5s forwards ease-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes messageAnim {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message pre {
@@ -86,8 +164,11 @@
             max-width: 100%;
             background: #f4f4f4;
             padding: 0.5rem;
-            border-radius: 4px;
+            border-radius: 6px;
             margin: 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border: 1px solid #e0e0e0;
         }
 
         .message code {
@@ -96,6 +177,8 @@
             padding: 0.2rem 0.4rem;
             border-radius: 3px;
             font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+            color: var(--primary-dark);
         }
 
         .message p {
@@ -125,136 +208,212 @@
         .message img {
             max-width: 100%;
             height: auto;
-            border-radius: 4px;
+            border-radius: 6px;
             margin: 0.5rem 0;
         }
 
         .user-message {
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             margin-left: auto;
             border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 15px rgba(77, 104, 255, 0.3);
         }
 
         .bot-message {
-            background: var(--secondary-color);
+            background: white;
             color: var(--text-color);
             border-bottom-left-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .input-box {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
             flex-direction: row;
             align-items: flex-end;
+            position: relative;
         }
 
         #queryInput {
             flex: 1;
-            padding: 0.8rem;
+            padding: 1rem 1.2rem;
             border: 1px solid #ddd;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             font-size: 1rem;
             resize: vertical;
-            min-height: 40px;
-            max-height: 100px;
+            min-height: 60px;
+            max-height: 150px;
             overflow-y: auto;
             box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        #queryInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(77, 104, 255, 0.2);
         }
 
         button {
-            padding: 0.8rem 1.5rem;
+            padding: 0.8rem 1.8rem;
             border: none;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
-            border-radius: 24px;
+            border-radius: 30px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: var(--transition);
             font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(77, 104, 255, 0.3);
+        }
+
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        button:hover:before {
+            left: 0;
         }
 
         button:hover {
-            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(77, 104, 255, 0.4);
         }
 
         button:disabled {
-            background: #b3d7ff;
+            background: linear-gradient(135deg, #b3c2ff, #a6b1e1);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 15px rgba(77, 104, 255, 0.1);
+        }
+
+        .back-to-main {
+            margin-bottom: 30px;
+            display: inline-block;
         }
 
         .back-to-main button {
-            padding: 0.8rem 1.5rem;
+            padding: 12px 25px;
             border: none;
-            background: var(--primary-color);
+            background-color: rgba(255, 255, 255, 0.2);
             color: white;
-            border-radius: 24px;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-            font-size: 1rem;
+            transition: var(--transition);
+            font-size: 15px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-to-main button i {
+            margin-right: 8px;
+            font-size: 18px;
         }
 
         .back-to-main button:hover {
-            background-color: var(--primary-dark);
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
         .copy-link-container {
             display: flex;
             align-items: center;
             margin-top: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 0.5rem;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
         .copy-link-display {
             flex-grow: 1;
             padding: 0.5rem;
-            border: 1px solid #ccc;
+            border: none;
             border-radius: 4px;
             font-size: 0.9rem;
             overflow-x: auto;
             white-space: nowrap;
+            background-color: transparent;
+            color: #555;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .copy-link-button {
             padding: 0.5rem 1rem;
             margin-left: 0.5rem;
-            background-color: var(--primary-color);
+            background-color: #4d68ff;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(77, 104, 255, 0.3);
+        }
+
+        .copy-link-button:hover {
+            background-color: #3b50c7;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(77, 104, 255, 0.4);
         }
 
         .header-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-            position: relative;
-            z-index: 2;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-to-main {
+            display: flex;
+            align-items: center;
         }
 
         .rating-toggle {
-            position: relative;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            background-color: var(--primary-light);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            gap: 6px;
             cursor: pointer;
-            transition: all var(--transition-speed) ease;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            background-color: rgba(77, 104, 255, 0.1);
+            transition: var(--transition);
+            font-weight: 500;
+            font-size: 0.95rem;
         }
 
         .rating-toggle:hover {
-            background-color: #d9e9ff;
+            background-color: #e6edff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(77, 104, 255, 0.2);
         }
 
         .rating-toggle-icon {
             font-size: 1.2rem;
-            transition: transform var(--transition-speed) ease;
+            transition: transform var(--transition) ease;
         }
 
         .rating-toggle.active .rating-toggle-icon {
@@ -268,7 +427,7 @@
             padding: 1rem;
             margin-top: 0.5rem;
             border: 1px solid #eaeaea;
-            transition: all var(--transition-speed) ease;
+            transition: all var(--transition) ease;
             overflow: hidden;
             position: relative;
             min-height: 0;
@@ -300,7 +459,7 @@
             height: auto;
             min-height: 60px;
             opacity: 0;
-            transition: opacity var(--transition-speed) ease;
+            transition: opacity var(--transition) ease;
         }
 
         .rating-container.visible .rating-content {
@@ -334,17 +493,18 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: #ddd;
-            transition: color var(--transition-speed), transform 0.1s;
+            transition: color 0.2s, transform 0.2s;
             line-height: 1;
         }
 
         .star:hover {
-            transform: scale(1.1);
+            transform: scale(1.2);
         }
 
         .star:hover,
         .star.active {
             color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
 
         .rating-feedback {
@@ -410,7 +570,7 @@
             border-radius: 4px;
             font-size: 0.8rem;
             opacity: 0;
-            transition: all var(--transition-speed);
+            transition: all var(--transition);
             z-index: 10;
         }
 
@@ -421,18 +581,29 @@
 
         .typing-indicator {
             display: flex;
-            align-items: center;
-            padding: 8px 12px;
+            flex-direction: column;
+            background-color: #f8f8f8;
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin: 0.8rem 0;
+            max-width: 80%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            animation: messageAnim 0.3s forwards ease-out;
+            border-bottom-left-radius: 4px;
         }
 
         .typing-indicator-text {
             margin-right: 10px;
             font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
 
         .typing-dots {
             display: flex;
             align-items: center;
+            margin-bottom: 8px;
         }
 
         .dot {
@@ -440,7 +611,7 @@
             height: 8px;
             margin: 0 2px;
             border-radius: 50%;
-            background-color: #666;
+            background-color: #888;
             animation: pulse 1.5s infinite;
         }
 
@@ -453,13 +624,10 @@
         }
 
         @keyframes pulse {
-            0%,
-            50%,
-            100% {
+            0%, 50%, 100% {
                 transform: scale(1);
                 opacity: 0.7;
             }
-
             25% {
                 transform: scale(1.2);
                 opacity: 1;
@@ -468,54 +636,27 @@
 
         .progress-bar-container {
             width: 100%;
-            height: 6px;
+            height: 4px;
             background-color: #e0e0e0;
-            border-radius: 3px;
+            border-radius: 2px;
             overflow: hidden;
-            margin-top: 8px;
         }
 
         .progress-bar {
             height: 100%;
             width: 0%;
             background-color: var(--primary-color);
-            border-radius: 3px;
-            transition: width 0.3s ease;
+            border-radius: 2px;
             animation: progress-animation 10s ease-in-out;
         }
 
         @keyframes progress-animation {
-            0% {
-                width: 5%;
-            }
-
-            10% {
-                width: 15%;
-            }
-
-            25% {
-                width: 30%;
-            }
-
-            50% {
-                width: 45%;
-            }
-
-            75% {
-                width: 65%;
-            }
-
-            90% {
-                width: 80%;
-            }
-
-            97% {
-                width: 90%;
-            }
-
-            100% {
-                width: 95%;
-            }
+            0% { width: 5%; }
+            25% { width: 30%; }
+            50% { width: 50%; }
+            75% { width: 75%; }
+            95% { width: 95%; }
+            100% { width: 95%; }
         }
 
         .ai-status {
@@ -541,13 +682,13 @@
             cursor: pointer;
             z-index: 1000;
             box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right var(--transition-speed);
+            transition: right 0.3s ease;
         }
 
         .drawer-toggle-arrow {
             color: white;
             font-size: 1.2rem;
-            transition: transform var(--transition-speed);
+            transition: transform 0.3s ease;
         }
 
         .drawer {
@@ -558,7 +699,7 @@
             height: 100vh;
             background-color: white;
             box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
-            transition: right var(--transition-speed);
+            transition: right 0.3s ease;
             z-index: 999;
             padding: 2rem 1rem;
             overflow-y: auto;
@@ -593,7 +734,14 @@
         }
 
         .drawer-section {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 1.5rem;
+        }
+
+        .drawer-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
         }
 
         .drawer-section-title {
@@ -621,8 +769,14 @@
             transform: rotate(180deg);
         }
 
-        body.drawer-open .container {
-            margin-right: calc(var(--drawer-width) + 2rem);
+        /* Only apply margin shift on large screens */
+        @media (min-width: 769px) {
+            body.drawer-open .container {
+                margin-right: calc(var(--drawer-width) + 2rem);
+                margin-left: 2rem;
+                max-width: calc(100% - var(--drawer-width) - 4rem);
+                width: calc(100% - var(--drawer-width) - 4rem);
+            }
         }
 
         .examples-container {
@@ -656,7 +810,7 @@
             padding: 1rem;
             border-radius: var(--border-radius);
             cursor: pointer;
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            transition: transform var(--transition), box-shadow var(--transition);
             border: 1px solid rgba(77, 104, 255, 0.15);
             font-size: 0.95rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -675,9 +829,16 @@
                 font-size: 0.9rem;
             }
 
+            .container {
+                margin: 1rem;
+                width: calc(100% - 2rem);
+                max-width: calc(100% - 2rem);
+            }
+
             body.drawer-open .container {
-                margin-right: 2rem;
-                transform: translateX(calc(-1 * var(--drawer-width) / 2));
+                margin: 1rem;
+                width: calc(100% - 2rem);
+                max-width: calc(100% - 2rem);
             }
         }
 
@@ -685,6 +846,9 @@
             .container {
                 margin: 0.5rem;
                 padding: 0.8rem;
+                width: calc(100% - 1rem);
+                max-width: calc(100% - 1rem);
+                box-sizing: border-box;
             }
 
             .chat-box {
@@ -716,6 +880,7 @@
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 0.75rem;
+                min-height: 100px;
             }
 
             .rating-left,
@@ -736,32 +901,37 @@
                 font-size: 2.0rem;
             }
 
+            /* Mobile drawer styles */
             .drawer {
-                width: 85vw;
+                width: var(--drawer-width-mobile);
+                right: calc(-1 * var(--drawer-width-mobile));
             }
 
             body.drawer-open .drawer-toggle {
-                right: 85vw;
+                right: var(--drawer-width-mobile);
             }
 
+            /* Ensure drawer is overlaid and doesn't push content */
             body.drawer-open .container {
-                transform: translateX(-40vw);
+                transform: none;
+                margin: 0.5rem;
+                width: calc(100% - 1rem);
+                max-width: calc(100% - 1rem);
+                position: relative;
+                left: 0;
             }
-
-            :root {
-                --drawer-width: 85vw;
+            
+            /* Ensure drawer toggle overlays content */
+            .drawer-toggle {
+                position: fixed;
+                z-index: 1001; /* Higher than drawer */
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
             }
-
+            
             .example-prompts {
                 grid-template-columns: 1fr;
-            }
-
-            .rating-container.visible {
-                min-height: 140px;
-            }
-
-            .rating-content {
-                min-height: 100px;
             }
 
             h1 {
@@ -922,21 +1092,393 @@
         .notification.error {
             background-color: #EA4335;
         }
+
+        #sharing-box {
+            background-color: transparent;
+            border-radius: 12px;
+            padding: 20px 0;
+            margin-top: 20px;
+            text-align: center;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        #sharing-box h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .social-share {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .share-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .share-button i {
+            margin-right: 8px;
+            font-size: 14px;
+        }
+
+        .twitter-share {
+            background-color: #1DA1F2;
+        }
+
+        .twitter-share:hover {
+            background-color: #0c85d0;
+        }
+
+        .facebook-share {
+            background-color: #4267B2;
+        }
+
+        .facebook-share:hover {
+            background-color: #365899;
+        }
+
+        .email-share {
+            background-color: #DD4B39;
+        }
+
+        .email-share:hover {
+            background-color: #c23321;
+        }
+
+        /* Remove the link container in the drawer since we already have one */
+        .link-container {
+            display: none;
+        }
+
+        /* Drawer overlay background for mobile */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 998; /* Just below drawer but above content */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Show overlay when drawer is open on mobile */
+        @media (max-width: 768px) {
+            body.drawer-open .drawer-overlay {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        .share-AI-banner {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 8px 20px rgba(110, 142, 251, 0.3);
+            transition: all 0.3s ease;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .share-AI-banner:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(110, 142, 251, 0.4);
+        }
+        
+        .share-AI-banner:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 0h2v20H9V0zm25.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm-20 20l1.732 1-10 17.32-1.732-1 10-17.32zM58.16 4.134l1 1.732-17.32 10-1-1.732 17.32-10zm-40 40l1 1.732-17.32 10-1-1.732 17.32-10zM80 9v2H60V9h20zM20 69v2H0v-2h20zm79.32-55l-1 1.732-17.32-10L82 4l17.32 10zm-80 80l-1 1.732-17.32-10L2 84l17.32 10zm96.546-75.84l-1.732 1-10-17.32 1.732-1 10 17.32zm-100 100l-1.732 1-10-17.32 1.732-1 10 17.32zM38.16 24.134l1 1.732-17.32 10-1-1.732 17.32-10zM60 29v2H40v-2h20zm19.32 5l-1 1.732-17.32-10L62 24l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM111 40h-2V20h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zM40 49v2H20v-2h20zm19.32 5l-1 1.732-17.32-10L42 44l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM91 60h-2V40h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM39.32 74l-1 1.732-17.32-10L22 64l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM71 80h-2V60h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM120 89v2h-20v-2h20zm-84.134 9.16l-1.732 1-10-17.32 1.732-1 10 17.32zM51 100h-2V80h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM100 109v2H80v-2h20zm19.32 5l-1 1.732-17.32-10 1-1.732 17.32 10zM31 120h-2v-20h2v20z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.2;
+        }
+        
+        .share-AI-content {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .share-AI-icon {
+            font-size: 36px;
+            margin-right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .share-AI-text h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .share-AI-text p {
+            margin: 0;
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .share-AI-actions {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .share-link-input {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 15px;
+            border-radius: 6px 0 0 6px;
+            color: #444;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .copy-link-button {
+            padding: 12px 20px;
+            background: #ffffff;
+            color: #6e8efb;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-link-button:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+        
+        .pulse-effect {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .share-AI-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .share-AI-icon {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            
+            .share-AI-actions {
+                flex-direction: column;
+            }
+            
+            .share-link-input {
+                width: 100%;
+                border-radius: 6px;
+                margin-bottom: 10px;
+            }
+            
+            .copy-link-button {
+                width: 100%;
+                border-radius: 6px;
+            }
+        }
+
+        .copy-tooltip {
+            position: fixed;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .copy-tooltip:after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .copy-tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Share Button in Header */
+        .share-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(110, 142, 251, 0.15), rgba(167, 119, 227, 0.15));
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-left: 10px;
+            box-shadow: 0 2px 5px rgba(110, 142, 251, 0.1);
+            border: 1px solid rgba(110, 142, 251, 0.2);
+        }
+
+        .share-toggle:hover {
+            background: linear-gradient(135deg, rgba(110, 142, 251, 0.25), rgba(167, 119, 227, 0.25));
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(110, 142, 251, 0.2);
+        }
+
+        .share-toggle-icon {
+            transition: var(--transition);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Drawer share section styles */
+        .drawer-share-section .share-AI-banner {
+            margin: 0;
+            box-shadow: none;
+            border-radius: 8px;
+        }
+
+        .drawer-share-section .share-AI-content {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .drawer-share-section .share-AI-icon {
+            margin-right: 0;
+            margin-bottom: 15px;
+        }
+
+        .drawer-share-section .share-AI-text h3 {
+            font-size: 1.1rem;
+        }
+
+        .drawer-share-section .share-AI-text p {
+            font-size: 0.9rem;
+        }
+
+        .drawer-share-section .share-AI-actions {
+            width: 100%;
+            flex-direction: column;
+            margin-top: 15px;
+        }
+
+        .drawer-share-section .share-link-input {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .drawer-share-section .copy-link-button {
+            width: 100%;
+            border-radius: 6px;
+        }
+
+        /* Media query for responsive layout */
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-direction: row;
+                gap: 8px;
+            }
+            
+            .rating-toggle, .share-toggle {
+                padding: 6px 10px;
+                font-size: 0.9rem;
+            }
+            
+            .share-toggle span:not(.share-toggle-icon) {
+                display: none;
+            }
+            
+            .rating-toggle span:not(.rating-toggle-icon) {
+                display: none;
+            }
+        }
     </style>
 </head>
 
 <body>
-
     <div class="container">
         <div class="header-container">
             <div class="back-to-main">
-                <button onclick="window.location.href='/'">← Back to Main Page</button>
+                <button onclick="window.location.href='/'">
+                    <i class="fas fa-arrow-left"></i> Back to Main Page
+                </button>
             </div>
 
-            <!-- New Rating Toggle Button -->
-            <div class="rating-toggle" id="ratingToggle">
-                <span>Ratings</span>
-                <span class="rating-toggle-icon">▼</span>
+            <div class="header-actions">
+                <!-- Rating Toggle Button -->
+                <div class="rating-toggle" id="ratingToggle">
+                    <span>Ratings</span>
+                    <span class="rating-toggle-icon">▼</span>
+                </div>
+
+                <!-- Share Button -->
+                <div class="share-toggle" id="shareToggle">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Share</span>
+                </div>
             </div>
         </div>
 
@@ -969,19 +1511,17 @@
             <div id="examplesContainer" class="examples-container">
                 <h3>Welcome! Try asking me:</h3>
                 <div class="example-prompts">
-
+                    <!-- Example prompts will be dynamically populated -->
                 </div>
             </div>
         </div>
         <div class="input-box">
-            <textarea id="queryInput" placeholder="Enter your query" required></textarea>
-            <button id="submitButton">Send</button>
+            <textarea id="queryInput" placeholder="Enter your question..." required></textarea>
+            <button id="submitButton">
+                Send
+            </button>
         </div>
-        <div class="copy-link-container">
-            <div class="copy-link-display" id="currentLinkDisplay">
-            </div>
-            <button class="copy-link-button" id="copyLinkButton">Copy</button>
-        </div>
+        <!-- Removing the share components from here as they will be in the drawer -->
     </div>
 
     <!-- Drawer Toggle Button -->
@@ -989,16 +1529,17 @@
         <span class="drawer-toggle-arrow">◄</span>
     </div>
 
+    <!-- Drawer overlay for mobile -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
     <!-- Drawer Panel -->
     <div class="drawer" id="drawer">
         <div class="drawer-header">
-            <div class="drawer-title">Integrate Services</div>
+            <div class="drawer-title">Settings & Sharing</div>
             <button class="drawer-close" id="drawerClose">×</button>
         </div>
         <div class="drawer-content">
-            <div class="drawer-section">
-                <div class="drawer-section-title">This is in testing phase</div>
-            </div>
+            <!-- Services Section - Now First -->
             <div class="drawer-section">
                 <div class="drawer-section-title">Connected Services</div>
                 <div class="drawer-section-content">
@@ -1021,987 +1562,1031 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Share Section - Now Second -->
+            <div class="drawer-section drawer-share-section">
+                <div class="drawer-section-title">Share Your AI</div>
+                <div class="share-AI-banner">
+                    <div class="share-AI-content">
+                        <div class="share-AI-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <div class="share-AI-text">
+                            <h3>🚀 Showcase Your Digital Twin!</h3>
+                            <p>Share your personalized AI with friends, colleagues, and the world.</p>
+                        </div>
+                    </div>
+                    <div class="share-AI-actions">
+                        <input type="text" class="share-link-input" id="currentLinkDisplay" readonly value="">
+                        <button class="copy-link-button pulse-effect" id="copyLinkButton">
+                            <i class="fas fa-share-alt"></i> Share Now
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Additional sharing options -->
+                <div id="sharing-box" style="margin-top: 20px;">
+                    <h3>Share On Social Media</h3>
+                    <div class="social-share">
+                        <a href="#" class="share-button twitter-share" id="twitter-share"><i class="fab fa-twitter"></i> Twitter</a>
+                        <a href="#" class="share-button facebook-share" id="facebook-share"><i class="fab fa-facebook-f"></i> Facebook</a>
+                        <a href="#" class="share-button email-share" id="email-share"><i class="fas fa-envelope"></i> Email</a>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const connectButton = document.getElementById('calendarConnectButton');
-                const statusDisplay = document.getElementById('calendarConnectionStatus');
-                const urlUsername = window.location.pathname.split('/').pop();
-                const examplePromptsContainer = document.querySelector('.example-prompts');
-                const drawerToggle = document.getElementById('drawerToggle');
-                const drawer = document.getElementById('drawer');
-
-                // Initialize drawer functionality
-                function toggleDrawer() {
-                    if (document.body.classList.contains('drawer-open')) {
-                        document.body.classList.remove('drawer-open');
-                        drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                        drawerToggle.style.right = '0';
-                    } else {
-                        document.body.classList.add('drawer-open');
-                        drawer.style.right = '0';
-                        drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-                    }
+    <script>
+    // Preloader
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            document.querySelector('.preloader').classList.add('fade-out');
+        }, 500);
+        
+    });
+    
+    // Function to apply animation to new messages
+    function animateMessage(messageElement) {
+        gsap.from(messageElement, {
+            y: 20,
+            opacity: 0,
+            duration: 0.5,
+            ease: "power2.out"
+        });
+    }
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            const connectButton = document.getElementById('calendarConnectButton');
+            const statusDisplay = document.getElementById('calendarConnectionStatus');
+            const urlUsername = window.location.pathname.split('/').pop();
+            const examplePromptsContainer = document.querySelector('.example-prompts');
+            const drawerToggle = document.getElementById('drawerToggle');
+            const drawer = document.getElementById('drawer');
+            const drawerClose = document.getElementById('drawerClose');
+            const drawerOverlay = document.getElementById('drawerOverlay');
+            const shareToggle = document.getElementById('shareToggle');
+            
+            // Simple drawer toggle functionality
+            function toggleDrawer() {
+                document.body.classList.toggle('drawer-open');
+            }
+            
+            // Function to open drawer and show share section
+            function openDrawerToShare() {
+                document.body.classList.add('drawer-open');
+                // Scroll to share section if needed
+                const shareSection = document.querySelector('.drawer-share-section');
+                if (shareSection) {
+                    shareSection.scrollIntoView({ behavior: 'smooth' });
                 }
+            }
+            
+            // Add click event listeners
+            drawerToggle.addEventListener('click', toggleDrawer);
+            drawerClose.addEventListener('click', toggleDrawer);
+            drawerOverlay.addEventListener('click', toggleDrawer);
+            
+            // Share button click handler
+            if (shareToggle) {
+                shareToggle.addEventListener('click', openDrawerToShare);
+            }
+            
+            // Check if previously connected
+            const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
+            updateConnectionUI(isConnected);
 
-                drawerToggle.addEventListener('click', toggleDrawer);
-                document.getElementById('drawerClose').addEventListener('click', toggleDrawer);
+            // Hide sharing elements on mobile if not the user's own AI
+            const currentUserToken = localStorage.getItem("token");
+            let isOwnAI = false;
+            
+            // Default to hiding drawer for all users initially
+            drawerToggle.style.display = 'none';
+            drawer.style.display = 'none';
+            
+            // Also hide share toggle by default
+            if (shareToggle) {
+                shareToggle.style.display = 'none';
+            }
 
-                // Optional: Add drag functionality for the drawer
-                let isDragging = false;
-                let startX = 0;
-                let startRight = 0;
+            // Initialize example prompts and UI based on user state
+            if (currentUserToken) {
+                try {
+                    const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
+                    const currentUsername = tokenData.username;
 
-                drawerToggle.addEventListener('mousedown', function (e) {
-                    isDragging = true;
-                    startX = e.clientX;
-                    startRight = parseInt(window.getComputedStyle(drawer).right);
-                    document.addEventListener('mousemove', moveDrawer);
-                    document.addEventListener('mouseup', stopDragging);
-                });
-
-                drawerToggle.addEventListener('touchstart', function (e) {
-                    isDragging = true;
-                    startX = e.touches[0].clientX;
-                    startRight = parseInt(window.getComputedStyle(drawer).right);
-                    document.addEventListener('touchmove', moveDrawerTouch);
-                    document.addEventListener('touchend', stopDragging);
-                });
-
-                function moveDrawer(e) {
-                    if (!isDragging) return;
-                    const diff = startX - e.clientX;
-                    const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-                    drawer.style.right = `-${newRight}px`;
-                    drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
-
-                    if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                        document.body.classList.add('drawer-open');
-                    } else {
-                        document.body.classList.remove('drawer-open');
-                    }
-                }
-
-                function moveDrawerTouch(e) {
-                    if (!isDragging) return;
-                    const diff = startX - e.touches[0].clientX;
-                    const newRight = Math.max(0, Math.min(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')), startRight - diff));
-                    drawer.style.right = `-${newRight}px`;
-                    drawerToggle.style.right = `${parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) - newRight}px`;
-
-                    if (newRight < parseInt(getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')) / 2) {
-                        document.body.classList.add('drawer-open');
-                    } else {
-                        document.body.classList.remove('drawer-open');
-                    }
-                }
-
-                function stopDragging() {
-                    if (!isDragging) return;
-                    isDragging = false;
-                    document.removeEventListener('mousemove', moveDrawer);
-                    document.removeEventListener('touchmove', moveDrawerTouch);
-
-                    // Snap to open or closed position
-                    if (document.body.classList.contains('drawer-open')) {
-                        drawer.style.right = '0';
-                        drawerToggle.style.right = getComputedStyle(document.documentElement).getPropertyValue('--drawer-width');
-                    } else {
-                        drawer.style.right = `-${getComputedStyle(document.documentElement).getPropertyValue('--drawer-width')}`;
-                        drawerToggle.style.right = '0';
-                    }
-                }
-
-                // Check if previously connected
-                const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
-                updateConnectionUI(isConnected);
-
-                // Default to hiding drawer for all users initially
-                drawerToggle.style.display = 'none';
-                drawer.style.display = 'none';
-
-                // Initialize example prompts and UI based on user state
-                const currentUserToken = localStorage.getItem("token");
-                if (currentUserToken) {
-                    try {
-                        const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
-                        const currentUsername = tokenData.username;
-
-                        if (urlUsername && currentUsername && urlUsername === currentUsername) {
-                            // This is the user's own AI
-                            document.querySelector('h1').innerHTML = "Chat with Your AI";
-                            
-                            // Show drawer components only for the AI owner
-                            drawerToggle.style.display = 'flex';
-                            drawer.style.display = 'block';
-
-                            const prompts = [
-                                "Create a roadmap for me to study [Topic name]",
-                                "Write a tweet about my latest project",
-                                "What are the top projects/skills I should showcase?",
-                                "Help me write a bio for my profile"
-                            ];
-
-                            examplePromptsContainer.innerHTML = prompts.map(prompt => 
-                                `<div class="example-prompt">${prompt}</div>`
-                            ).join('');
-
-                            // Add click event listeners to example prompts
-                            examplePromptsContainer.querySelectorAll('.example-prompt').forEach(prompt => {
-                                prompt.addEventListener('click', function() {
-                                    const queryInput = document.getElementById("queryInput");
-                                    queryInput.value = this.textContent.trim();
-                                    queryInput.focus();
-                                });
-                            });
-                        } else if (urlUsername) {
-                            // This is someone else's AI
-                            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                            
-                            const prompts = [
-                                "What topics are you specialized in?",
-                                "Can you tell me about you?",
-                                "What makes your responses unique?",
-                                "Show me an example of what you do best"
-                            ];
-
-                            examplePromptsContainer.innerHTML = prompts.map(prompt => 
-                                `<div class="example-prompt">${prompt}</div>`
-                            ).join('');
-
-                            // Add click event listeners to example prompts
-                            examplePromptsContainer.querySelectorAll('.example-prompt').forEach(prompt => {
-                                prompt.addEventListener('click', function() {
-                                    const queryInput = document.getElementById("queryInput");
-                                    queryInput.value = this.textContent.trim();
-                                    queryInput.focus();
-                                });
-                            });
-                        } else {
-                            document.querySelector('h1').innerHTML = "Chat with AI";
+                    if (urlUsername && currentUsername && urlUsername === currentUsername) {
+                        // This is the user's own AI
+                        document.querySelector('h1').innerHTML = "Chat with Your AI";
+                        isOwnAI = true;
+                        
+                        // Show drawer components for the AI owner
+                        drawerToggle.style.display = 'flex';
+                        drawer.style.display = 'block';
+                        
+                        // Show share toggle button
+                        if (shareToggle) {
+                            shareToggle.style.display = 'flex';
                         }
-                    } catch (error) {
-                        console.error("Error parsing token:", error);
-                        handleDefaultUI(urlUsername, examplePromptsContainer);
-                    }
-                } else {
-                    handleDefaultUI(urlUsername, examplePromptsContainer);
-                }
 
-                // Function to handle default UI state
-                function handleDefaultUI(username, container) {
-                    if (username) {
-                        document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
-                        container.innerHTML = `
-                            <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                What topics are you specialized in?
-                            </div>
-                            <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                Can you tell me about you?
-                            </div>
-                            <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                What makes your responses unique?
-                            </div>
-                            <div class="example-prompt" onclick="useExamplePrompt(this)">
-                                Show me an example of what you do best
-                            </div>
-                        `;
+                        const prompts = [
+                            "Create a roadmap for me to study [Topic name]",
+                            "Write a tweet about my latest project",
+                            "What are the top projects/skills I should showcase?",
+                            "Help me write a bio for my profile"
+                        ];
+
+                        examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                            `<div class="example-prompt">${prompt}</div>`
+                        ).join('');
+                        
+                        // Update share link display with current URL
+                        const currentLink = window.location.href;
+                        const linkDisplay = document.getElementById('currentLinkDisplay');
+                        if (linkDisplay) {
+                            linkDisplay.value = currentLink;
+                        }
+                        
+                        // Set up the social share links
+                        const twitterShare = document.getElementById('twitter-share');
+                        const facebookShare = document.getElementById('facebook-share');
+                        const emailShare = document.getElementById('email-share');
+                        
+                        if (twitterShare) {
+                            twitterShare.href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentLink)}&text=${encodeURIComponent('Check out my personalized AI assistant!')}`;
+                        }
+                        
+                        if (facebookShare) {
+                            facebookShare.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentLink)}`;
+                        }
+                        
+                        if (emailShare) {
+                            emailShare.href = `mailto:?subject=${encodeURIComponent('Check out my personalized AI assistant')}&body=${encodeURIComponent('I wanted to share my personalized AI assistant with you: ' + currentLink)}`;
+                        }
+                        
+                        // Handle copy button click
+                        const copyLinkButton = document.getElementById('copyLinkButton');
+                        if (copyLinkButton) {
+                            copyLinkButton.addEventListener('click', function() {
+                                const linkInput = document.getElementById('currentLinkDisplay');
+                                if (linkInput) {
+                                    linkInput.select();
+                                    document.execCommand('copy');
+                                    
+                                    // Show copy tooltip
+                                    showCopyTooltip(this, 'Link copied!');
+                                }
+                            });
+                        }
                     } else {
-                        document.querySelector('h1').innerHTML = "Chat with AI";
+                        // Not the user's own AI
+                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                        
+                        // Show share toggle for visitors too if appropriate
+                        if (shareToggle) {
+                            shareToggle.style.display = 'flex';
+                        }
+                        
+                        const prompts = [
+                            `What are ${urlUsername}'s skills?`,
+                            `Tell me about ${urlUsername}'s background`,
+                            `What projects has ${urlUsername} worked on?`,
+                            `What is ${urlUsername}'s experience in [field]?`
+                        ];
+
+                        examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                            `<div class="example-prompt">${prompt}</div>`
+                        ).join('');
                     }
+                } catch (error) {
+                    console.error("Error parsing token:", error);
+                }
+            } else {
+                // No user logged in
+                document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                
+                // Show share toggle for visitors too
+                if (shareToggle) {
+                    shareToggle.style.display = 'flex';
+                }
+                
+                const prompts = [
+                    `What are ${urlUsername}'s skills?`,
+                    `Tell me about ${urlUsername}'s background`,
+                    `What projects has ${urlUsername} worked on?`,
+                    `What is ${urlUsername}'s experience in [field]?`
+                ];
+
+                examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                    `<div class="example-prompt">${prompt}</div>`
+                ).join('');
+            }
+            
+            // Function to show a copy tooltip
+            function showCopyTooltip(element, text) {
+                // Create tooltip element if it doesn't exist
+                let tooltip = document.querySelector('.copy-tooltip');
+                if (!tooltip) {
+                    tooltip = document.createElement('div');
+                    tooltip.className = 'copy-tooltip';
+                    document.body.appendChild(tooltip);
+                }
+                
+                // Position tooltip near the element
+                const rect = element.getBoundingClientRect();
+                tooltip.textContent = text;
+                tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+                
+                // Show tooltip
+                tooltip.classList.add('show');
+                
+                // Hide tooltip after 2 seconds
+                setTimeout(() => {
+                    tooltip.classList.remove('show');
+                }, 2000);
+            }
+
+            // Function to handle default UI state
+            function handleDefaultUI(username, container) {
+                if (username) {
+                    document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
+                    container.innerHTML = `
+                        <div class="example-prompt" onclick="useExamplePrompt(this)">
+                            What topics are you specialized in?
+                        </div>
+                        <div class="example-prompt" onclick="useExamplePrompt(this)">
+                            Can you tell me about you?
+                        </div>
+                        <div class="example-prompt" onclick="useExamplePrompt(this)">
+                            What makes your responses unique?
+                        </div>
+                        <div class="example-prompt" onclick="useExamplePrompt(this)">
+                            Show me an example of what you do best
+                        </div>
+                    `;
+                } else {
+                    document.querySelector('h1').innerHTML = "Chat with AI";
+                }
+            }
+
+            // Replace the hardcoded configuration with dynamic loading
+            let CLIENT_ID;
+            let API_KEY;
+            let DISCOVERY_DOC;
+            let SCOPES;
+            let tokenClient = null;
+            let gapiInited = false;
+            let gisInited = false;
+
+            // Initialize Google Identity Services SDK
+            function initializeGisClient() {
+                try {
+                    if (!CLIENT_ID || !SCOPES) {
+                        console.error('Client ID or Scopes not loaded yet');
+                        return;
+                    }
+                    
+                    tokenClient = google.accounts.oauth2.initTokenClient({
+                        client_id: CLIENT_ID,
+                        scope: SCOPES,
+                        callback: '', // defined later
+                    });
+                    gisInited = true;
+                    maybeEnableButtons();
+                } catch (error) {
+                    console.error('Error initializing GIS client:', error);
+                    showNotification('Error initializing Google Calendar', true);
+                }
+            }
+
+            // Load the API client and auth2 library
+            async function loadGapiClient() {
+                return new Promise((resolve, reject) => {
+                    gapi.load('client', async () => {
+                        try {
+                            await gapi.client.init({
+                                apiKey: API_KEY,
+                                discoveryDocs: [DISCOVERY_DOC],
+                            });
+                            gapiInited = true;
+                            maybeEnableButtons();
+                            resolve();
+                        } catch (error) {
+                            console.error('Error initializing GAPI client:', error);
+                            reject(error);
+                        }
+                    });
+                });
+            }
+
+            // Enable the button if libraries are loaded
+            function maybeEnableButtons() {
+                if (gapiInited && gisInited) {
+                    connectButton.disabled = false;
+                }
+            }
+
+            // Fetch Google Calendar configuration
+            async function loadGoogleCalendarConfig() {
+                try {
+                    const response = await fetch('/api/config/google-calendar');
+                    const config = await response.json();
+                    CLIENT_ID = config.clientId;
+                    API_KEY = config.apiKey;
+                    DISCOVERY_DOC = config.discoveryDoc;
+                    SCOPES = config.scopes;
+                    
+                    // Initialize Google APIs only after config is loaded
+                    await loadGapiClient();
+                    
+                    google.accounts.id.initialize({
+                        client_id: CLIENT_ID,
+                        auto_select: false,
+                        callback: (response) => { }
+                    });
+                    
+                    initializeGisClient();
+                } catch (error) {
+                    console.error('Error loading Google Calendar configuration:', error);
+                    showNotification('Error loading calendar configuration', true);
+                }
+            }
+
+            function connectToGoogleCalendar() {
+                if (!tokenClient) {
+                    console.error('Token client not initialized');
+                    showNotification('Google Calendar not initialized yet. Please try again.', true);
+                    return;
                 }
 
-                // Replace the hardcoded configuration with dynamic loading
-                let CLIENT_ID;
-                let API_KEY;
-                let DISCOVERY_DOC;
-                let SCOPES;
-                let tokenClient = null;
-                let gapiInited = false;
-                let gisInited = false;
-
-                // Initialize Google Identity Services SDK
-                function initializeGisClient() {
-                    try {
-                        if (!CLIENT_ID || !SCOPES) {
-                            console.error('Client ID or Scopes not loaded yet');
+                try {
+                    // Request an access token
+                    tokenClient.callback = async (resp) => {
+                        if (resp.error !== undefined) {
+                            showNotification('Error connecting to Google Calendar', true);
                             return;
                         }
-                        
-                        tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: CLIENT_ID,
-                            scope: SCOPES,
-                            callback: '', // defined later
-                        });
-                        gisInited = true;
-                        maybeEnableButtons();
-                    } catch (error) {
-                        console.error('Error initializing GIS client:', error);
-                        showNotification('Error initializing Google Calendar', true);
-                    }
-                }
 
-                // Load the API client and auth2 library
-                async function loadGapiClient() {
-                    return new Promise((resolve, reject) => {
-                        gapi.load('client', async () => {
-                            try {
-                                await gapi.client.init({
-                                    apiKey: API_KEY,
-                                    discoveryDocs: [DISCOVERY_DOC],
-                                });
-                                gapiInited = true;
-                                maybeEnableButtons();
-                                resolve();
-                            } catch (error) {
-                                console.error('Error initializing GAPI client:', error);
-                                reject(error);
-                            }
-                        });
-                    });
-                }
+                        try {
+                            // Analyze calendar patterns immediately after getting token
+                            await analyzeCalendarPatterns();
+                            
+                            // Store connection state
+                            localStorage.setItem('googleCalendarConnected', 'true');
+                            localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
+                            
+                            // Update UI
+                            updateConnectionUI(true);
+                            showNotification('Connected to Google Calendar successfully!');
+                        } catch (error) {
+                            console.error('Error during calendar connection:', error);
+                            showNotification('Error connecting to calendar', true);
+                            // Reset connection state on error
+                            localStorage.removeItem('googleCalendarConnected');
+                            localStorage.removeItem('googleCalendarConnectedAt');
+                            updateConnectionUI(false);
+                        }
+                    };
 
-                // Enable the button if libraries are loaded
-                function maybeEnableButtons() {
-                    if (gapiInited && gisInited) {
-                        connectButton.disabled = false;
-                    }
-                }
-
-                // Fetch Google Calendar configuration
-                async function loadGoogleCalendarConfig() {
-                    try {
-                        const response = await fetch('/api/config/google-calendar');
-                        const config = await response.json();
-                        CLIENT_ID = config.clientId;
-                        API_KEY = config.apiKey;
-                        DISCOVERY_DOC = config.discoveryDoc;
-                        SCOPES = config.scopes;
-                        
-                        // Initialize Google APIs only after config is loaded
-                        await loadGapiClient();
-                        
-                        google.accounts.id.initialize({
-                            client_id: CLIENT_ID,
-                            auto_select: false,
-                            callback: (response) => { }
-                        });
-                        
-                        initializeGisClient();
-                    } catch (error) {
-                        console.error('Error loading Google Calendar configuration:', error);
-                        showNotification('Error loading calendar configuration', true);
-                    }
-                }
-
-                function connectToGoogleCalendar() {
-                    if (!tokenClient) {
-                        console.error('Token client not initialized');
-                        showNotification('Google Calendar not initialized yet. Please try again.', true);
+                    if (!gapi.client || typeof gapi.client.getToken !== 'function') {
+                        showNotification('Google Calendar API not initialized yet. Please try again.', true);
                         return;
                     }
 
+                    if (gapi.client.getToken() === null) {
+                        // Prompt the user to select a Google Account and ask for consent
+                        tokenClient.requestAccessToken({ prompt: 'consent' });
+                    } else {
+                        // Skip display of account chooser and consent dialog
+                        tokenClient.requestAccessToken({ prompt: '' });
+                    }
+                } catch (error) {
+                    console.error('Error in connectToGoogleCalendar:', error);
+                    showNotification('Error connecting to Google Calendar', true);
+                }
+            }
+
+            // Start loading the configuration
+            loadGoogleCalendarConfig();
+
+            // Add click event listener for connect button
+            connectButton.addEventListener('click', async () => {
+                if (connectButton.textContent === 'Connect') {
+                    connectToGoogleCalendar();
+                } else {
+                    disconnectFromGoogleCalendar();
+                }
+            });
+
+            function disconnectFromGoogleCalendar() {
+                try {
+                    // Check if gapi.client exists and has a token
+                    if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
+                        const token = gapi.client.getToken();
+                        if (token !== null) {
+                            google.accounts.oauth2.revoke(token.access_token);
+                            gapi.client.setToken('');
+                        }
+                    }
+
+                    // Update local storage and UI regardless of token revocation
+                    localStorage.removeItem('googleCalendarConnected');
+                    localStorage.removeItem('googleCalendarConnectedAt');
+                    localStorage.removeItem('calendarBusyBlocks');
+                    updateConnectionUI(false);
+
+                    // Notify server about disconnection
+                    const authToken = localStorage.getItem('token');
+                    if (authToken) {
+                        fetch('/api/calendar/disconnect', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        });
+                    }
+
+                    showNotification('Disconnected from Google Calendar');
+                } catch (error) {
+                    console.error('Error during disconnection:', error);
+                    showNotification('Error during disconnection', true);
+                    
+                    // Still update UI to show disconnected state
+                    localStorage.removeItem('googleCalendarConnected');
+                    localStorage.removeItem('googleCalendarConnectedAt');
+                    localStorage.removeItem('calendarBusyBlocks');
+                    updateConnectionUI(false);
+                }
+            }
+
+            function updateConnectionUI(isConnected) {
+                if (isConnected) {
+                    connectButton.textContent = 'Disconnect';
+                    connectButton.classList.add('disconnect');
+                    statusDisplay.textContent = 'Connected';
+                    statusDisplay.classList.add('connected');
+
+                    // If connection time exists, show it
+                    const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
+                    if (connectedAt) {
+                        const connectedDate = new Date(connectedAt);
+                        const formattedDate = connectedDate.toLocaleString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        statusDisplay.textContent = `Connected since ${formattedDate}`;
+                    }
+                } else {
+                    connectButton.textContent = 'Connect';
+                    connectButton.classList.remove('disconnect');
+                    statusDisplay.textContent = 'Not connected';
+                    statusDisplay.classList.remove('connected');
+                }
+            }
+
+            function showNotification(message, isError = false) {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = isError ? 'notification error' : 'notification';
+                notification.textContent = message;
+
+                // Add to body
+                document.body.appendChild(notification);
+
+                // Remove after delay
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+
+            async function analyzeCalendarPatterns() {
+                try {
+                    // Get events for the next 30 days
+                    const now = new Date();
+                    const thirtyDaysFromNow = new Date();
+                    thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+                    const response = await gapi.client.calendar.events.list({
+                        'calendarId': 'primary',
+                        'timeMin': now.toISOString(),
+                        'timeMax': thirtyDaysFromNow.toISOString(),
+                        'showDeleted': false,
+                        'singleEvents': true,
+                        'orderBy': 'startTime'
+                    });
+
+                    const events = response.result.items;
+                    
+                    // Group events by date
+                    const busyBlocksByDate = new Map();
+                    
+                    events.forEach(event => {
+                        if (!event.start || !event.end) return;
+                        
+                        const startDateTime = new Date(event.start.dateTime || event.start.date);
+                        const endDateTime = new Date(event.end.dateTime || event.end.date);
+                        const dateKey = startDateTime.toISOString().split('T')[0];
+                        
+                        if (!busyBlocksByDate.has(dateKey)) {
+                            busyBlocksByDate.set(dateKey, []);
+                        }
+                        
+                        busyBlocksByDate.get(dateKey).push({
+                            startTime: startDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                            endTime: endDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                            summary: event.summary || 'Busy'
+                        });
+                    });
+
+                    // Convert to array format for storage
+                    const busyBlocks = Array.from(busyBlocksByDate.entries()).map(([date, blocks]) => ({
+                        date: new Date(date),
+                        blocks: blocks.sort((a, b) => a.startTime.localeCompare(b.startTime))
+                    }));
+
+                    // Store in localStorage for client-side use
+                    localStorage.setItem('calendarBusyBlocks', JSON.stringify(busyBlocks));
+
+                    // Send to server
+                    const authToken = localStorage.getItem('token');
+                    if (!authToken) {
+                        throw new Error('Authentication token not found');
+                    }
+
+                    const serverResponse = await fetch('/api/calendar/patterns', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ busyBlocks })
+                    });
+
+                    if (!serverResponse.ok) {
+                        throw new Error('Failed to store calendar patterns');
+                    }
+
+                    const responseData = await serverResponse.json();
+                    console.log('Calendar patterns stored successfully:', responseData);
+                    showNotification('Calendar patterns updated successfully');
+
+                } catch (error) {
+                    console.error('Error analyzing calendar patterns:', error);
+                    showNotification('Error updating calendar patterns', true);
+                    throw error;
+                }
+            }
+
+            // Copy link functionality
+            const currentLinkDisplay = document.getElementById('currentLinkDisplay');
+            currentLinkDisplay.value = window.location.href;
+
+            const copyLinkButton = document.getElementById('copyLinkButton');
+            copyLinkButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => {
+                        // Give visual feedback
+                        copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        copyLinkButton.style.background = '#4CAF50';
+                        copyLinkButton.style.color = 'white';
+                        
+                        // Show a tooltip
+                        const tooltip = document.createElement('div');
+                        tooltip.className = 'copy-tooltip';
+                        tooltip.textContent = 'Link copied! Share it with friends';
+                        document.body.appendChild(tooltip);
+                        
+                        // Position tooltip
+                        const buttonRect = copyLinkButton.getBoundingClientRect();
+                        tooltip.style.top = (buttonRect.top - 40) + 'px';
+                        tooltip.style.left = (buttonRect.left + buttonRect.width/2 - tooltip.offsetWidth/2) + 'px';
+                        
+                        // Animate in
+                        setTimeout(() => tooltip.classList.add('show'), 10);
+                        
+                        // Remove tooltip after delay
+                        setTimeout(() => {
+                            tooltip.classList.remove('show');
+                            setTimeout(() => document.body.removeChild(tooltip), 300);
+                        }, 2000);
+                        
+                        // Reset button after delay
+                        setTimeout(() => {
+                            copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                            copyLinkButton.style.background = '';
+                            copyLinkButton.style.color = '';
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        copyLinkButton.innerHTML = '<i class="fas fa-times"></i> Error';
+                        setTimeout(() => {
+                            copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                        }, 2000);
+                    });
+            });
+
+            function useExamplePrompt(element) {
+                const promptText = element.textContent.trim();
+                const queryInput = document.getElementById("queryInput");
+                queryInput.value = promptText;
+                queryInput.focus();
+            }
+
+            // Function to hide examples when conversation starts
+            function hideExamples() {
+                const examplesContainer = document.getElementById("examplesContainer");
+                if (examplesContainer) {
+                    examplesContainer.style.display = "none";
+                }
+            }
+            
+            // Add this function to clear chat history when the page is about to unload
+            window.addEventListener('beforeunload', function() {
+                chatHistory = [];
+            });
+            
+            // Initialize chat history
+            let chatHistory = [];
+
+            document.getElementById("submitButton").addEventListener("click", async function () {
+                const queryInput = document.getElementById("queryInput");
+                const submitButton = document.getElementById("submitButton");
+                const queryText = queryInput.value.trim();
+
+                if (!queryText) return;
+
+                // Disable input and button during processing
+                queryInput.disabled = true;
+                submitButton.disabled = true;
+                
+                // Clear the input right away
+                queryInput.value = "";
+
+                // Create and add user message to chat
+                const chatBox = document.getElementById("chatBox");
+                
+                // Remove examples container if it exists
+                const examplesContainer = document.getElementById("examplesContainer");
+                if (examplesContainer) {
+                    examplesContainer.remove();
+                }
+
+                const userMessage = document.createElement("div");
+                userMessage.className = "message user-message";
+                userMessage.textContent = queryText;
+                chatBox.appendChild(userMessage);
+
+                // Apply animation to user message
+                animateMessage(userMessage);
+                
+                // Scroll to the bottom
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                // Show typing indicator
+                showTypingIndicator();
+
+                try {
+                    // Perform fetch request to get response
+                    const response = await fetch(`/api/query/${username}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : ''
+                        },
+                        body: JSON.stringify({
+                            query: queryText,
+                            chatHistory: chatHistory
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to get response from server');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Add user message to chat history
+                    chatHistory.push({
+                        role: "user",
+                        content: queryText
+                    });
+                    
+                    // Add bot response to chat history
+                    if (data.success && data.response) {
+                        chatHistory.push({
+                            role: "assistant",
+                            content: data.response
+                        });
+                    
+                        // Display bot response
+                        const botMessage = document.createElement("div");
+                        botMessage.className = "message bot-message";
+                        
+                        // Process markdown and add to HTML
+                        // Clean up excessive newlines before parsing markdown
+                        const cleanedResponse = data.response.replace(/\n{3,}/g, '\n\n');
+                        botMessage.innerHTML = marked.parse(cleanedResponse);
+                        
+                        // Hide typing indicator
+                        hideTypingIndicator();
+                        
+                        // Append message and apply animation
+                        chatBox.appendChild(botMessage);
+                        animateMessage(botMessage);
+                        
+                        // Scroll to the bottom
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    } else {
+                        throw new Error(data.message || 'Unknown error');
+                    }
+                    
+                    // Re-enable input
+                    queryInput.disabled = false;
+                    submitButton.disabled = false;
+                    queryInput.focus();
+                    
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    
+                    // Hide typing indicator
+                    hideTypingIndicator();
+                    
+                    // Show error message
+                    const errorMessage = document.createElement("div");
+                    errorMessage.className = "message bot-message";
+                    errorMessage.innerHTML = error.message && error.message !== 'Failed to get response from server' ? 
+                        `Error: ${error.message}` : 
+                        "Sorry, there was an error processing your request. Please try again.";
+                    chatBox.appendChild(errorMessage);
+                    animateMessage(errorMessage);
+                    
+                    // Re-enable input
+                    queryInput.disabled = false;
+                    submitButton.disabled = false;
+                    queryInput.focus();
+                }
+            });
+
+            // Allow Enter key to send messages
+            document.getElementById("queryInput").addEventListener("keydown", function (event) {
+                if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
+                    event.preventDefault(); // Prevent new line in textarea
+                    document.getElementById("submitButton").click();
+                }
+            });
+
+            document.getElementById("queryInput").addEventListener("input", function () {
+                this.style.height = "auto"; // Reset height to recalculate
+                this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
+            });
+            const ratingToggle = document.getElementById('ratingToggle');
+            const ratingContainer = document.getElementById('ratingContainer');
+
+            // Function to update rating visibility with animation
+            function updateRatingVisibility(show) {
+                if (show) {
+                    ratingContainer.classList.add('visible');
+                    ratingToggle.classList.add('active');
+                    localStorage.setItem("ratingVisible", "true");
+                    ratingContainer.style.pointerEvents = "auto"; // Add this line
+                } else {
+                    ratingContainer.classList.remove('visible');
+                    ratingToggle.classList.remove('active');
+                    localStorage.setItem("ratingVisible", "false");
+                    ratingContainer.style.pointerEvents = "none"; // Add this line
+                }
+            }
+
+            // Load rating visibility state from local storage
+            const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
+            updateRatingVisibility(isRatingVisible);
+
+            // Toggle rating visibility on button click
+            ratingToggle.addEventListener('click', () => {
+                const isCurrentlyVisible = ratingContainer.classList.contains('visible');
+                updateRatingVisibility(!isCurrentlyVisible);
+            });
+
+            const ratingStars = document.getElementById("ratingStars");
+            const ratingFeedback = document.getElementById("ratingFeedback");
+            const ratingSuccess = document.getElementById("ratingSuccess");
+            const averageRatingDisplay = document.getElementById("averageRatingDisplay");
+            const averageStars = document.getElementById("averageStars");
+            const averageNumber = document.getElementById("averageNumber");
+            const ratingCount = document.getElementById("ratingCount");
+            const username = window.location.pathname.split('/').pop();
+
+            const feedbackTexts = [
+                "",
+                "Poor",
+                "Below Average",
+                "Average",
+                "Good",
+                "Excellent"
+            ];
+
+            ratingStars.addEventListener("mouseover", (event) => {
+                if (event.target.classList.contains("star")) {
+                    const rating = parseInt(event.target.dataset.rating);
+                    const stars = ratingStars.querySelectorAll(".star");
+
+                    // Reset all stars
+                    stars.forEach(star => star.classList.remove("active"));
+
+                    // Highlight stars up to the hovered one
+                    for (let i = 0; i < rating; i++) {
+                        stars[i].classList.add("active");
+                    }
+
+                    // Show feedback text
+                    ratingFeedback.textContent = feedbackTexts[rating];
+                }
+            });
+
+            // Reset stars when not hovering over the rating container
+            ratingStars.addEventListener("mouseleave", () => {
+                const stars = ratingStars.querySelectorAll(".star");
+                stars.forEach(star => star.classList.remove("active"));
+                ratingFeedback.textContent = "";
+            });
+
+            // Handle rating submission
+            ratingStars.addEventListener("click", async (event) => {
+                if (event.target.classList.contains("star")) {
+                    const rating = parseInt(event.target.dataset.rating);
+
                     try {
-                        // Request an access token
-                        tokenClient.callback = async (resp) => {
-                            if (resp.error !== undefined) {
-                                showNotification('Error connecting to Google Calendar', true);
-                                return;
-                            }
-
-                            try {
-                                // Analyze calendar patterns immediately after getting token
-                                await analyzeCalendarPatterns();
-                                
-                                // Store connection state
-                                localStorage.setItem('googleCalendarConnected', 'true');
-                                localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
-                                
-                                // Update UI
-                                updateConnectionUI(true);
-                                showNotification('Connected to Google Calendar successfully!');
-                            } catch (error) {
-                                console.error('Error during calendar connection:', error);
-                                showNotification('Error connecting to calendar', true);
-                                // Reset connection state on error
-                                localStorage.removeItem('googleCalendarConnected');
-                                localStorage.removeItem('googleCalendarConnectedAt');
-                                updateConnectionUI(false);
-                            }
-                        };
-
-                        if (!gapi.client || typeof gapi.client.getToken !== 'function') {
-                            showNotification('Google Calendar API not initialized yet. Please try again.', true);
+                        const token = localStorage.getItem("token");
+                        if (!token) {
+                            alert("You must be logged in to rate.");
+                            location.href = '/login';
                             return;
                         }
 
-                        if (gapi.client.getToken() === null) {
-                            // Prompt the user to select a Google Account and ask for consent
-                            tokenClient.requestAccessToken({ prompt: 'consent' });
-                        } else {
-                            // Skip display of account chooser and consent dialog
-                            tokenClient.requestAccessToken({ prompt: '' });
-                        }
-                    } catch (error) {
-                        console.error('Error in connectToGoogleCalendar:', error);
-                        showNotification('Error connecting to Google Calendar', true);
-                    }
-                }
-
-                // Start loading the configuration
-                loadGoogleCalendarConfig();
-
-                // Add click event listener for connect button
-                connectButton.addEventListener('click', async () => {
-                    if (connectButton.textContent === 'Connect') {
-                        connectToGoogleCalendar();
-                    } else {
-                        disconnectFromGoogleCalendar();
-                    }
-                });
-
-                function disconnectFromGoogleCalendar() {
-                    try {
-                        // Check if gapi.client exists and has a token
-                        if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
-                            const token = gapi.client.getToken();
-                            if (token !== null) {
-                                google.accounts.oauth2.revoke(token.access_token);
-                                gapi.client.setToken('');
-                            }
-                        }
-
-                        // Update local storage and UI regardless of token revocation
-                        localStorage.removeItem('googleCalendarConnected');
-                        localStorage.removeItem('googleCalendarConnectedAt');
-                        localStorage.removeItem('calendarBusyBlocks');
-                        updateConnectionUI(false);
-
-                        // Notify server about disconnection
-                        const authToken = localStorage.getItem('token');
-                        if (authToken) {
-                            fetch('/api/calendar/disconnect', {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${authToken}`
-                                }
-                            });
-                        }
-
-                        showNotification('Disconnected from Google Calendar');
-                    } catch (error) {
-                        console.error('Error during disconnection:', error);
-                        showNotification('Error during disconnection', true);
-                        
-                        // Still update UI to show disconnected state
-                        localStorage.removeItem('googleCalendarConnected');
-                        localStorage.removeItem('googleCalendarConnectedAt');
-                        localStorage.removeItem('calendarBusyBlocks');
-                        updateConnectionUI(false);
-                    }
-                }
-
-                function updateConnectionUI(isConnected) {
-                    if (isConnected) {
-                        connectButton.textContent = 'Disconnect';
-                        connectButton.classList.add('disconnect');
-                        statusDisplay.textContent = 'Connected';
-                        statusDisplay.classList.add('connected');
-
-                        // If connection time exists, show it
-                        const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
-                        if (connectedAt) {
-                            const connectedDate = new Date(connectedAt);
-                            const formattedDate = connectedDate.toLocaleString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            });
-                            statusDisplay.textContent = `Connected since ${formattedDate}`;
-                        }
-                    } else {
-                        connectButton.textContent = 'Connect';
-                        connectButton.classList.remove('disconnect');
-                        statusDisplay.textContent = 'Not connected';
-                        statusDisplay.classList.remove('connected');
-                    }
-                }
-
-                function showNotification(message, isError = false) {
-                    // Create notification element
-                    const notification = document.createElement('div');
-                    notification.className = isError ? 'notification error' : 'notification';
-                    notification.textContent = message;
-
-                    // Add to body
-                    document.body.appendChild(notification);
-
-                    // Remove after delay
-                    setTimeout(() => {
-                        notification.style.opacity = '0';
-                        setTimeout(() => {
-                            document.body.removeChild(notification);
-                        }, 300);
-                    }, 3000);
-                }
-
-                async function analyzeCalendarPatterns() {
-                    try {
-                        // Get events for the next 30 days
-                        const now = new Date();
-                        const thirtyDaysFromNow = new Date();
-                        thirtyDaysFromNow.setDate(now.getDate() + 30);
-
-                        const response = await gapi.client.calendar.events.list({
-                            'calendarId': 'primary',
-                            'timeMin': now.toISOString(),
-                            'timeMax': thirtyDaysFromNow.toISOString(),
-                            'showDeleted': false,
-                            'singleEvents': true,
-                            'orderBy': 'startTime'
-                        });
-
-                        const events = response.result.items;
-                        
-                        // Group events by date
-                        const busyBlocksByDate = new Map();
-                        
-                        events.forEach(event => {
-                            if (!event.start || !event.end) return;
-                            
-                            const startDateTime = new Date(event.start.dateTime || event.start.date);
-                            const endDateTime = new Date(event.end.dateTime || event.end.date);
-                            const dateKey = startDateTime.toISOString().split('T')[0];
-                            
-                            if (!busyBlocksByDate.has(dateKey)) {
-                                busyBlocksByDate.set(dateKey, []);
-                            }
-                            
-                            busyBlocksByDate.get(dateKey).push({
-                                startTime: startDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                                endTime: endDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                                summary: event.summary || 'Busy'
-                            });
-                        });
-
-                        // Convert to array format for storage
-                        const busyBlocks = Array.from(busyBlocksByDate.entries()).map(([date, blocks]) => ({
-                            date: new Date(date),
-                            blocks: blocks.sort((a, b) => a.startTime.localeCompare(b.startTime))
-                        }));
-
-                        // Store in localStorage for client-side use
-                        localStorage.setItem('calendarBusyBlocks', JSON.stringify(busyBlocks));
-
-                        // Send to server
-                        const authToken = localStorage.getItem('token');
-                        if (!authToken) {
-                            throw new Error('Authentication token not found');
-                        }
-
-                        const serverResponse = await fetch('/api/calendar/patterns', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${authToken}`
-                            },
-                            body: JSON.stringify({ busyBlocks })
-                        });
-
-                        if (!serverResponse.ok) {
-                            throw new Error('Failed to store calendar patterns');
-                        }
-
-                        const responseData = await serverResponse.json();
-                        console.log('Calendar patterns stored successfully:', responseData);
-                        showNotification('Calendar patterns updated successfully');
-
-                    } catch (error) {
-                        console.error('Error analyzing calendar patterns:', error);
-                        showNotification('Error updating calendar patterns', true);
-                        throw error;
-                    }
-                }
-
-                // Copy link functionality
-                const currentLinkDisplay = document.getElementById('currentLinkDisplay');
-                currentLinkDisplay.textContent = window.location.href;
-
-                const copyLinkButton = document.getElementById('copyLinkButton');
-                copyLinkButton.addEventListener('click', () => {
-                    navigator.clipboard.writeText(window.location.href)
-                        .then(() => {
-                            copyLinkButton.textContent = 'Copied!';
-                            setTimeout(() => {
-                                copyLinkButton.textContent = 'Copy';
-                            }, 2000); // Reset button text after 2 seconds
-                        })
-                        .catch(err => {
-                            console.error('Failed to copy: ', err);
-                            copyLinkButton.textContent = 'Error';
-                            setTimeout(() => {
-                                copyLinkButton.textContent = 'Copy';
-                            }, 2000);
-                        });
-                });
-
-                function useExamplePrompt(element) {
-                    const promptText = element.textContent.trim();
-                    const queryInput = document.getElementById("queryInput");
-                    queryInput.value = promptText;
-                    queryInput.focus();
-                }
-
-                // Function to hide examples when conversation starts
-                function hideExamples() {
-                    const examplesContainer = document.getElementById("examplesContainer");
-                    if (examplesContainer) {
-                        examplesContainer.style.display = "none";
-                    }
-                }
-                let chatHistory = [];
-
-                document.getElementById("submitButton").addEventListener("click", async function () {
-                    const queryInput = document.getElementById("queryInput");
-                    const query = queryInput.value.trim();
-                    if (!query) return;
-
-                    hideExamples();
-
-                    const chatBox = document.getElementById("chatBox");
-                    const submitButton = document.getElementById("submitButton");
-
-                    // Add user message to chat history
-                    chatHistory.push({ role: "user", content: query });
-
-                    // Display user message
-                    const userMessage = document.createElement("div");
-                    userMessage.className = "message user-message";
-                    userMessage.textContent = query;
-                    chatBox.appendChild(userMessage);
-
-                    // Clear input and disable button
-                    queryInput.value = "";
-                    queryInput.style.height = "40px";
-                    submitButton.disabled = true;
-
-                    // Show "loading" message
-                    const botMessage = document.createElement("div");
-                    botMessage.className = "message bot-message";
-
-                    // Create the loading indicator with text and dots
-                    const loadingIndicator = document.createElement("div");
-                    loadingIndicator.className = "typing-indicator";
-
-                    const indicatorText = document.createElement("span");
-                    indicatorText.className = "typing-indicator-text";
-                    indicatorText.textContent = "Thinking";
-                    loadingIndicator.appendChild(indicatorText);
-
-                    const typingDots = document.createElement("div");
-                    typingDots.className = "typing-dots";
-                    for (let i = 0; i < 3; i++) {
-                        const dot = document.createElement("div");
-                        dot.className = "dot";
-                        typingDots.appendChild(dot);
-                    }
-
-                    loadingIndicator.appendChild(typingDots);
-                    botMessage.appendChild(loadingIndicator);
-
-                    // Add progress bar
-                    const progressContainer = document.createElement("div");
-                    progressContainer.className = "progress-bar-container";
-
-                    const progressBar = document.createElement("div");
-                    progressBar.className = "progress-bar";
-                    progressContainer.appendChild(progressBar);
-                    botMessage.appendChild(progressContainer);
-
-                    // Add AI status
-                    const aiStatus = document.createElement("div");
-                    aiStatus.className = "ai-status";
-                    aiStatus.textContent = "Processing query...";
-                    botMessage.appendChild(aiStatus);
-
-                    chatBox.appendChild(botMessage);
-                    botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-                    // Start randomized status updates
-                    const statusMessages = [
-                        "Analyzing question...",
-                        "Retrieving information...",
-                        "Generating response...",
-                        "Formulating answer...",
-                        "Processing query...",
-                        "Creating thoughtful reply...",
-                        "Almost there..."
-                    ];
-
-                    let statusInterval = setInterval(() => {
-                        const randomIndex = Math.floor(Math.random() * statusMessages.length);
-                        aiStatus.textContent = statusMessages[randomIndex];
-                    }, 2500);
-
-                    try {
-                        const username = window.location.pathname.split('/').pop();
-                        console.log("Username:", username);
-                        console.log("Chat History:", chatHistory);
-
-                        const token = localStorage.getItem("token");
-                        let response = null;
-
-                        const requestBody = { query, chatHistory };
-                        console.log("Request Body:", requestBody);
-
-                        if (!token) {
-                            response = await fetch(`/api/query/${username}`, {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify(requestBody)
-                            });
-                        } else {
-                            response = await fetch(`/api/query/${username}`, {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify(requestBody)
-                            });
-                        }
-
-                        const contentType = response.headers.get("content-type");
-                        console.log("Response Content-Type:", contentType);
-
-                        if (contentType && contentType.includes("application/json")) {
-                            const data = await response.json();
-                            console.log("Response Data:", data);
-
-                            if (data.success) {
-                                let responseText = data.response.trim();
-                                botMessage.innerHTML = ""; // Clear "Thinking..."
-
-                                // Add bot message to chat history
-                                chatHistory.push({ role: "assistant", content: responseText });
-
-                                // Limit chat history to last 10 messages to prevent memory issues
-                                if (chatHistory.length > 10) {
-                                    chatHistory = chatHistory.slice(-10);
-                                }
-                                console.log("Updated Chat History:", chatHistory);
-
-                                const cloudinaryUrlRegex = /(https:\/\/res\.cloudinary\.com\/[^ \n]+\.(jpg|jpeg|png|gif))/gi;
-                                let match;
-                                let lastIndex = 0;
-
-                                // Log the response text for debugging
-                                console.log("Full response text:", responseText);
-
-                                // Configure marked to not add extra paragraphs
-                                marked.setOptions({
-                                    gfm: true,
-                                    breaks: true
-                                });
-
-                                while ((match = cloudinaryUrlRegex.exec(responseText)) !== null) {
-                                    console.log("Found Cloudinary URL:", match[0]); // Debug log
-
-                                    // Add text before the image
-                                    const textBeforeImage = responseText.substring(lastIndex, match.index).trim();
-                                    if (textBeforeImage) {
-                                        const parsedText = marked.parse(textBeforeImage).trim();
-                                        botMessage.innerHTML += parsedText;
-                                    }
-
-                                    // Create and append the image
-                                    const imgContainer = document.createElement("div");
-                                    imgContainer.style.margin = "1rem 0";
-                                    imgContainer.style.textAlign = "left";
-                                    
-                                    const img = document.createElement("img");
-                                    img.src = match[0];
-                                    img.style.maxWidth = "100%";
-                                    img.style.maxHeight = "500px";
-                                    img.style.display = "block";
-                                    img.style.borderRadius = "8px";
-                                    img.style.margin = "0"; // Remove auto margin
-                                    img.alt = "Generated image";
-                                    
-                                    // Add error handling for image loading
-                                    img.onerror = () => {
-                                        console.error("Failed to load image:", match[0]);
-                                        const errorText = document.createElement("div");
-                                        errorText.textContent = `Image URL: ${match[0]}`;
-                                        errorText.style.color = "red";
-                                        imgContainer.appendChild(errorText);
-                                    };
-                                    
-                                    imgContainer.appendChild(img);
-                                    
-                                    // Look for a description in the text after the URL
-                                    let nextNewline = responseText.indexOf('\n', match.index + match[0].length);
-                                    if (nextNewline === -1) nextNewline = responseText.length;
-                                    
-                                    // Check if there's text between the URL and the next newline
-                                    const possibleDescription = responseText.substring(match[0].length + match.index, nextNewline).trim();
-                                    if (possibleDescription && !possibleDescription.startsWith('https://')) {
-                                        const descriptionEl = document.createElement("div");
-                                        descriptionEl.style.fontStyle = "italic";
-                                        descriptionEl.style.color = "#555";
-                                        descriptionEl.style.marginTop = "0.5rem";
-                                        descriptionEl.textContent = possibleDescription;
-                                        imgContainer.appendChild(descriptionEl);
-                                    }
-                                    
-                                    botMessage.appendChild(imgContainer);
-                                    lastIndex = cloudinaryUrlRegex.lastIndex;
-                                }
-
-                                // Add any remaining text after the last image
-                                const remainingText = responseText.substring(lastIndex).trim();
-                                if (remainingText) {
-                                    const parsedText = marked.parse(remainingText).trim();
-                                    botMessage.innerHTML += parsedText;
-                                }
-                            } else {
-                                console.error("Error in response:", data.message);
-                                botMessage.textContent = "Error: " + data.message;
-                            }
-                        } else {
-                            const text = await response.text();
-                            console.error("Non-JSON response:", text);
-                            botMessage.textContent = "Error: Invalid response from server.";
-                        }
-                    } catch (error) {
-                        console.error("Error in chat:", error);
-                        botMessage.textContent = "Error processing query. Please try again.";
-                    } finally {
-                        clearInterval(statusInterval); // Clear status interval in all cases
-                        submitButton.disabled = false;
-                        botMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-
-                // Allow Enter key to send messages
-                document.getElementById("queryInput").addEventListener("keydown", function (event) {
-                    if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
-                        event.preventDefault(); // Prevent new line in textarea
-                        document.getElementById("submitButton").click();
-                    }
-                });
-
-                document.getElementById("queryInput").addEventListener("input", function () {
-                    this.style.height = "auto"; // Reset height to recalculate
-                    this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
-                });
-                const ratingToggle = document.getElementById('ratingToggle');
-                const ratingContainer = document.getElementById('ratingContainer');
-
-                // Function to update rating visibility with animation
-                function updateRatingVisibility(show) {
-                    if (show) {
-                        ratingContainer.classList.add('visible');
-                        ratingToggle.classList.add('active');
-                        localStorage.setItem("ratingVisible", "true");
-                        ratingContainer.style.pointerEvents = "auto"; // Add this line
-                    } else {
-                        ratingContainer.classList.remove('visible');
-                        ratingToggle.classList.remove('active');
-                        localStorage.setItem("ratingVisible", "false");
-                        ratingContainer.style.pointerEvents = "none"; // Add this line
-                    }
-                }
-
-                // Load rating visibility state from local storage
-                const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
-                updateRatingVisibility(isRatingVisible);
-
-                // Toggle rating visibility on button click
-                ratingToggle.addEventListener('click', () => {
-                    const isCurrentlyVisible = ratingContainer.classList.contains('visible');
-                    updateRatingVisibility(!isCurrentlyVisible);
-                });
-
-                const ratingStars = document.getElementById("ratingStars");
-                const ratingFeedback = document.getElementById("ratingFeedback");
-                const ratingSuccess = document.getElementById("ratingSuccess");
-                const averageRatingDisplay = document.getElementById("averageRatingDisplay");
-                const averageStars = document.getElementById("averageStars");
-                const averageNumber = document.getElementById("averageNumber");
-                const ratingCount = document.getElementById("ratingCount");
-                const username = window.location.pathname.split('/').pop();
-
-                const feedbackTexts = [
-                    "",
-                    "Poor",
-                    "Below Average",
-                    "Average",
-                    "Good",
-                    "Excellent"
-                ];
-
-                ratingStars.addEventListener("mouseover", (event) => {
-                    if (event.target.classList.contains("star")) {
-                        const rating = parseInt(event.target.dataset.rating);
-                        const stars = ratingStars.querySelectorAll(".star");
-
-                        // Reset all stars
-                        stars.forEach(star => star.classList.remove("active"));
-
-                        // Highlight stars up to the hovered one
-                        for (let i = 0; i < rating; i++) {
-                            stars[i].classList.add("active");
-                        }
-
-                        // Show feedback text
-                        ratingFeedback.textContent = feedbackTexts[rating];
-                    }
-                });
-
-                // Reset stars when not hovering over the rating container
-                ratingStars.addEventListener("mouseleave", () => {
-                    const stars = ratingStars.querySelectorAll(".star");
-                    stars.forEach(star => star.classList.remove("active"));
-                    ratingFeedback.textContent = "";
-                });
-
-                // Handle rating submission
-                ratingStars.addEventListener("click", async (event) => {
-                    if (event.target.classList.contains("star")) {
-                        const rating = parseInt(event.target.dataset.rating);
-
-                        try {
-                            const token = localStorage.getItem("token");
-                            if (!token) {
-                                alert("You must be logged in to rate.");
-                                location.href = '/login';
-                                return;
-                            }
-
-                            const response = await fetch(`/api/rate/${username}`, {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    Authorization: `Bearer ${token}`,
-                                },
-                                body: JSON.stringify({ rating }),
-                            });
-
-                            const data = await response.json();
-                            if (response.ok) {
-                                // Show success message
-                                ratingSuccess.classList.add("visible");
-                                setTimeout(() => {
-                                    ratingSuccess.classList.remove("visible");
-                                }, 2000);
-
-                                await fetchAverageRating(); // Refresh average rating
-                            } else {
-                                alert(data.message);
-                            }
-                        } catch (error) {
-                            console.error("Error rating:", error);
-                            alert("An error occurred while rating.");
-                        }
-                    }
-                });
-
-                // Function to render star rating
-                function renderStarRating(container, rating, size = "1rem") {
-                    container.innerHTML = ""; // Clear previous stars
-
-                    // Calculate full and partial stars
-                    const fullStars = Math.floor(rating);
-                    const hasHalfStar = rating % 1 >= 0.5;
-
-                    // Add full stars
-                    for (let i = 0; i < fullStars; i++) {
-                        const star = document.createElement("span");
-                        star.className = "star star-filled";
-                        star.style.fontSize = size;
-                        star.style.cursor = "default";
-                        star.textContent = "★";
-                        container.appendChild(star);
-                    }
-
-                    // Add half star if needed
-                    if (hasHalfStar) {
-                        const halfStar = document.createElement("span");
-                        halfStar.className = "star star-half";
-                        halfStar.style.fontSize = size;
-                        halfStar.style.cursor = "default";
-                        container.appendChild(halfStar);
-                    }
-
-                    // Add empty stars
-                    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-                    for (let i = 0; i < emptyStars; i++) {
-                        const star = document.createElement("span");
-                        star.className = "star";
-                        star.style.fontSize = size;
-                        star.style.cursor = "default";
-                        star.textContent = "★";
-                        container.appendChild(star);
-                    }
-                }
-
-                async function fetchAverageRating() {
-                    try {
-                        const targetUsername = window.location.pathname.split('/').pop();
-                        const response = await fetch(`/api/user/profile/${targetUsername}`, {
-                            method: "GET",
+                        const response = await fetch(`/api/rate/${username}`, {
+                            method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
-                                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                                Authorization: `Bearer ${token}`,
                             },
+                            body: JSON.stringify({ rating }),
                         });
 
+                        const data = await response.json();
                         if (response.ok) {
-                            const data = await response.json();
-                            let totalRating = 0;
+                            // Show success message
+                            ratingSuccess.classList.add("visible");
+                            setTimeout(() => {
+                                ratingSuccess.classList.remove("visible");
+                            }, 2000);
 
-                            if (data.ratings && data.ratings.length > 0) {
-                                data.ratings.forEach(rating => {
-                                    totalRating += rating.rating;
-                                });
-
-                                const averageRating = totalRating / data.ratings.length;
-
-                                // Update the average rating display
-                                renderStarRating(averageStars, averageRating, "0.9rem");
-                                averageNumber.textContent = `${averageRating.toFixed(1)}`;
-                                ratingCount.textContent = `(${data.ratings.length})`;
-                            } else {
-                                averageStars.innerHTML = "";
-                                averageNumber.textContent = "No ratings";
-                                ratingCount.textContent = "";
-                            }
+                            await fetchAverageRating(); // Refresh average rating
                         } else {
-                            console.log("Error fetching profile");
+                            alert(data.message);
                         }
                     } catch (error) {
-                        console.error("Error fetching average rating:", error);
-                        averageNumber.textContent = "Error";
+                        console.error("Error rating:", error);
+                        alert("An error occurred while rating.");
                     }
                 }
-
-                fetchAverageRating(); // Fetch rating on page load
-
-                
-                // Add this function to clear chat history when the page is about to unload
-                window.addEventListener('beforeunload', function() {
-                    chatHistory = [];
-                });
-                console.log(chatHistory);
-
             });
 
-        </script>
+            // Function to render star rating
+            function renderStarRating(container, rating, size = "1rem") {
+                container.innerHTML = ""; // Clear previous stars
+
+                // Calculate full and partial stars
+                const fullStars = Math.floor(rating);
+                const hasHalfStar = rating % 1 >= 0.5;
+
+                // Add full stars
+                for (let i = 0; i < fullStars; i++) {
+                    const star = document.createElement("span");
+                    star.className = "star star-filled";
+                    star.style.fontSize = size;
+                    star.style.cursor = "default";
+                    star.textContent = "★";
+                    container.appendChild(star);
+                }
+
+                // Add half star if needed
+                if (hasHalfStar) {
+                    const halfStar = document.createElement("span");
+                    halfStar.className = "star star-half";
+                    halfStar.style.fontSize = size;
+                    halfStar.style.cursor = "default";
+                    container.appendChild(halfStar);
+                }
+
+                // Add empty stars
+                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+                for (let i = 0; i < emptyStars; i++) {
+                    const star = document.createElement("span");
+                    star.className = "star";
+                    star.style.fontSize = size;
+                    star.style.cursor = "default";
+                    star.textContent = "★";
+                    container.appendChild(star);
+                }
+            }
+
+            async function fetchAverageRating() {
+                try {
+                    const targetUsername = window.location.pathname.split('/').pop();
+                    const response = await fetch(`/api/user/profile/${targetUsername}`, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        let totalRating = 0;
+
+                        if (data.ratings && data.ratings.length > 0) {
+                            data.ratings.forEach(rating => {
+                                totalRating += rating.rating;
+                            });
+
+                            const averageRating = totalRating / data.ratings.length;
+
+                            // Update the average rating display
+                            renderStarRating(averageStars, averageRating, "0.9rem");
+                            averageNumber.textContent = `${averageRating.toFixed(1)}`;
+                            ratingCount.textContent = `(${data.ratings.length})`;
+                        } else {
+                            averageStars.innerHTML = "";
+                            averageNumber.textContent = "No ratings";
+                            ratingCount.textContent = "";
+                        }
+                    } else {
+                        console.log("Error fetching profile");
+                    }
+                } catch (error) {
+                    console.error("Error fetching average rating:", error);
+                    averageNumber.textContent = "Error";
+                }
+            }
+
+            fetchAverageRating(); // Fetch rating on page load
+
+            
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                const chatBox = document.getElementById("chatBox");
+                const typingIndicator = document.createElement("div");
+                typingIndicator.id = "typingIndicator";
+                typingIndicator.className = "typing-indicator";
+                typingIndicator.innerHTML = `
+                    <span class="typing-indicator-text">AI is thinking</span>
+                    <div class="typing-dots">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                `;
+                chatBox.appendChild(typingIndicator);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            
+            // Function to hide typing indicator
+            function hideTypingIndicator() {
+                const typingIndicator = document.getElementById("typingIndicator");
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+
+            // Function to add click handlers to example prompts
+            function setupExamplePrompts() {
+                const prompts = document.querySelectorAll('.example-prompt');
+                prompts.forEach(prompt => {
+                    prompt.addEventListener('click', function() {
+                        const queryInput = document.getElementById("queryInput");
+                        queryInput.value = this.textContent.trim();
+                        queryInput.focus();
+                    });
+                });
+            }
+            
+            // Call this function after example prompts are populated
+            setupExamplePrompts();
+
+        });
+
+    </script>
 </body>
 
 </html>
