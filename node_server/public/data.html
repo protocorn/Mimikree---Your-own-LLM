@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="Mimikree_logo.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         // Set a global variable to hold the pdfjsLib after it loads
         window.pdfjsLib = window.pdfjsLib || {}; // Initialize if not already present
@@ -23,28 +24,80 @@
             --primary-color: #4d68ff;
             --primary-light: #e6f2ff;
             --primary-dark: #0056b3;
-            --secondary-color: #e9ecef;
+            --secondary-color: #ff5c7d;
             --text-color: #333;
             --background-color: #f4f4f9;
             --border-radius: 12px;
             --transition-speed: 0.3s;
+            --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --dark-color: #1a1a2e;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #f4f8f9 0%, #e6f0f3 100%);
+            background: linear-gradient(135deg, rgba(28, 44, 108, 0.97), rgba(83, 21, 78, 0.97)), url('https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2800&q=80') center/cover;
+            background-attachment: fixed;
             color: var(--text-color);
             min-height: 100vh;
             overflow-x: hidden; /* Prevent horizontal scrolling */
             width: 100%;
             box-sizing: border-box;
+            position: relative;
         }
 
         html {
             overflow-x: hidden; /* Prevent horizontal scrolling at the root level */
             width: 100%;
+        }
+
+        /* Animated circles in background */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 0;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            right: 10%;
+            animation: floatAnimation 20s infinite linear alternate;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            bottom: 10%;
+            left: 10%;
+            animation: floatAnimation 15s infinite linear alternate-reverse;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            top: 40%;
+            left: 20%;
+            animation: floatAnimation 10s infinite linear alternate;
+        }
+
+        @keyframes floatAnimation {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            33% {
+                transform: translate(30px, -30px) rotate(120deg);
+            }
+            66% {
+                transform: translate(-20px, 20px) rotate(240deg);
+            }
+            100% {
+                transform: translate(10px, -10px) rotate(360deg);
+            }
         }
 
         .container {
@@ -53,9 +106,24 @@
             background: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: var(--border-radius);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             transition: all var(--transition-speed) ease;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .container:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
         }
 
         .button-holder {
@@ -86,8 +154,31 @@
         }
         
         h2 {
-            border-bottom: 2px solid var(--primary-light);
+            border-bottom: none;
             padding-bottom: 10px;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+            margin-bottom: 30px;
+            color: var(--dark-color);
+        }
+
+        h2:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 10px;
+        }
+        
+        h3 {
+            color: #2A3C3F;
+            font-weight: 600;
+            margin-bottom: 20px;
         }
 
         /* Apply consistent button styling to all buttons */
@@ -143,8 +234,8 @@
         .section-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
         }
         
         .info-icon {
@@ -162,6 +253,7 @@
             margin-left: 8px;
             border: 1px solid var(--primary-light);
             transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
         
         .info-icon:hover {
@@ -297,6 +389,16 @@
             color: var(--primary-color);
             border-bottom: none;
             padding-bottom: 0;
+            text-align: left;
+        }
+        
+        .modal .modal-header h2 {
+            text-align: left;
+            margin-bottom: 0;
+        }
+        
+        .modal .modal-header h2:after {
+            display: none;
         }
         
         .close {
@@ -416,6 +518,16 @@
             border-top: 1px solid #eee;
             font-style: italic;
             color: #555;
+        }
+        
+        .image-caption strong, .image-description strong {
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .caption-text, .description-text {
+            padding-left: 5px;
+            display: inline-block;
         }
         
         .caption-loading {
@@ -665,18 +777,12 @@
             text-align: center;
             font-weight: 600;
             margin-top: 20px;
-            animation: fadeInUp 0.5s ease;
+            animation: fadeIn 0.5s ease-out;
         }
         
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         /* Step indicator styling */
@@ -737,19 +843,26 @@
         
         /* Back to main page button specific styling */
         .main-page-btn {
-            background-color: #f8f9fa;
-            color: #333;
-            border: 1px solid #e4e7ed;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 15px;
+            padding: 12px 25px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 15px;
             font-weight: 500;
-            transition: all 0.2s ease;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
         }
         
         .main-page-btn:hover {
-            background-color: #e9ecef;
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
         
         /* Media queries for responsive layout */
@@ -942,10 +1055,98 @@
             border-color: #ddd;
             background-color: #fcfcfc;
         }
+        
+        /* Summary sections styling */
+        .summary-section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        
+        .summary-section:last-child {
+            border-bottom: none;
+        }
+        
+        .summary-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .summary-content {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .summary-content p {
+            margin: 8px 0;
+        }
+        
+        .summary-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .summary-item i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .summary-item img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+        
+        .summary-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .summary-tag {
+            background-color: #F4F8F9;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 13px;
+            border: 1px solid #e6eaed;
+        }
+        
+        /* Test model link styling */
+        .test-model-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: rgba(77, 104, 255, 0.1);
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .test-model-link:hover {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 3px 10px rgba(77, 104, 255, 0.3);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
 <body>
+    <!-- Background circles -->
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+    
     <div id="loading-overlay">
         <div class="loading-container">
             <div class="spinner"></div>
@@ -956,9 +1157,9 @@
             <p id="loading-percentage">0%</p>
         </div>
     </div>
-    <div style="margin-bottom:10px" class="button-holder">
+    <div style="margin-bottom:10px; display: flex; justify-content: center;" class="button-holder">
         <button onclick="location.href='/'" class="main-page-btn">
-            ← Back to Main page
+            <i class="fas fa-arrow-left"></i> Back to Main page
         </button>
     </div>
     <div class="container">
@@ -970,10 +1171,62 @@
             <span>5</span>
         </div>
         <div class="step active" id="step1">
+            <div class="box" id="selfAssessmentBox">
+                <div class="section-header">
+                    <h2>Self-Assessment</h2>
+                    <div class="tooltip" style="text-align: center;">
+                        <span class="info-icon">i</span>
+                        <span class="tooltiptext">Your self-assessment helps us understand your personality, interests, and communication style for a more accurate digital model.</span>
+                    </div>
+                </div>
+                <h3>Communication Style</h3>
+                <select id="communicationStyle">
+                    <option value="">Select your communication style</option>
+                    <option value="direct">Direct and straightforward</option>
+                    <option value="diplomatic">Diplomatic and tactful</option>
+                    <option value="casual">Casual and friendly</option>
+                    <option value="formal">Formal and professional</option>
+                </select>
+
+                <h3>Personality Traits</h3>
+                <div id="personalityTraits">
+                    <label><input type="checkbox" value="extroverted"> Extroverted</label>
+                    <label><input type="checkbox" value="introverted"> Introverted</label>
+                    <label><input type="checkbox" value="analytical"> Analytical</label>
+                    <label><input type="checkbox" value="creative"> Creative</label>
+                    <label><input type="checkbox" value="organized"> Organized</label>
+                    <label><input type="checkbox" value="adaptable"> Adaptable</label>
+                    <label><input type="checkbox" value="detail-oriented"> Detail-oriented</label>
+                    <label><input type="checkbox" value="empathetic"> Empathetic</label>
+                    <label><input type="checkbox" value="optimistic"> Optimistic</label>
+                    <label><input type="checkbox" value="pragmatic"> Pragmatic</label>
+                    <label><input type="checkbox" value="ambitious"> Ambitious</label>
+                    <label><input type="checkbox" value="patient"> Patient</label>
+                </div>
+
+                <h3>More About You</h3>
+                <textarea id="writingSample" rows="4" maxlength="500" placeholder="Write something about you..."
+                    oninput="updateCharCount()"></textarea>
+                <p id="charCount" style="margin-top:-8px">Characters remaining: 500</p>
+
+                <h3>Interests and Hobbies</h3>
+                <div class="interest-input-group">
+                    <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
+                    <button onclick="addInterest()">Add Interest</button>
+                </div>
+                <div id="interestsList"></div>
+            </div>
+
+            <div class="navigation">
+                <button onclick="checkAndProceed(1)" class="next-btn">Next</button>
+            </div>
+        </div>
+
+        <div class="step" id="step2">
             <div class="box" id="linksBox">
                 <div class="section-header">
                     <h2>Social Profiles</h2>
-                    <div class="tooltip">
+                    <div class="tooltip" style="text-align: center;">
                         <span class="info-icon">i</span>
                         <span class="tooltiptext">Adding your social profiles helps us create a more personalized model of you. The more data you provide, the better your model will be.</span>
                     </div>
@@ -1061,52 +1314,6 @@
             </div>
 
             <div class="navigation">
-                <button onclick="checkAndProceed(1)" class="next-btn">Next</button>
-            </div>
-        </div>
-
-        <div class="step" id="step2">
-            <div class="box" id="selfAssessmentBox">
-                <div class="section-header">
-                    <h2>Self-Assessment</h2>
-                    <div class="tooltip">
-                        <span class="info-icon">i</span>
-                        <span class="tooltiptext">Your self-assessment helps us understand your personality, interests, and communication style for a more accurate digital model.</span>
-                    </div>
-                </div>
-                <h3>Communication Style</h3>
-                <select id="communicationStyle">
-                    <option value="">Select your communication style</option>
-                    <option value="direct">Direct and straightforward</option>
-                    <option value="diplomatic">Diplomatic and tactful</option>
-                    <option value="casual">Casual and friendly</option>
-                    <option value="formal">Formal and professional</option>
-                </select>
-
-                <h3>Personality Traits</h3>
-                <div id="personalityTraits">
-                    <label><input type="checkbox" value="extroverted"> Extroverted</label>
-                    <label><input type="checkbox" value="introverted"> Introverted</label>
-                    <label><input type="checkbox" value="analytical"> Analytical</label>
-                    <label><input type="checkbox" value="creative"> Creative</label>
-                    <label><input type="checkbox" value="organized"> Organized</label>
-                    <label><input type="checkbox" value="adaptable"> Adaptable</label>
-                </div>
-
-                <h3>More About You</h3>
-                <textarea id="writingSample" rows="4" maxlength="500" placeholder="Write something about you..."
-                    oninput="updateCharCount()"></textarea>
-                <p id="charCount" style="margin-top:-8px">Characters remaining: 500</p>
-
-                <h3>Interests and Hobbies</h3>
-                <div class="interest-input-group">
-                    <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
-                    <button onclick="addInterest()">Add Interest</button>
-                </div>
-                <div id="interestsList"></div>
-            </div>
-
-            <div class="navigation">
                 <button onclick="prevStep(2)" class="back-btn">Back</button>
                 <button onclick="checkAndProceed(2)" class="next-btn">Next</button>
             </div>
@@ -1117,7 +1324,7 @@
             <div class="box" id="pdfBox">
                 <div class="section-header">
                     <h2>PDF Documents</h2>
-                    <div class="tooltip">
+                    <div class="tooltip" style="text-align: center;">
                         <span class="info-icon">i</span>
                         <span class="tooltiptext">Adding PDF documents helps us understand your knowledge areas, writing style, and subject expertise. Maximum 5 pages per PDF.</span>
                     </div>
@@ -1144,7 +1351,7 @@
             <div class="box" id="imageBox">
                 <div class="section-header">
                     <h2>Images</h2>
-                    <div class="tooltip">
+                    <div class="tooltip" style="text-align: center;">
                         <span class="info-icon">i</span>
                         <span class="tooltiptext">Adding images helps us understand your visual preferences, personal interests, and content you engage with.</span>
                     </div>
@@ -1173,12 +1380,44 @@
         <div class="step" id="step5">
             <div class="section-header">
                 <h2>Final Submission</h2>
-                <div class="tooltip">
+                <div class="tooltip" style="text-align: center;">
                     <span class="info-icon">i</span>
                     <span class="tooltiptext">Review your information before final submission. Your data will be securely processed to create your personalized model.</span>
                 </div>
             </div>
             <div class="box">
+                <h3>Information Summary</h3>
+                <div class="summary-section">
+                    <h4>Social Profiles</h4>
+                    <div id="summary-social-profiles" class="summary-content">
+                        <p>No social profiles added.</p>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h4>Self Assessment</h4>
+                    <div class="summary-content">
+                        <p><strong>Communication Style:</strong> <span id="summary-communication-style">Not specified</span></p>
+                        <p><strong>Personality Traits:</strong> <span id="summary-personality-traits">None selected</span></p>
+                        <p><strong>About You:</strong> <span id="summary-writing-sample">Not provided</span></p>
+                        <p><strong>Interests:</strong> <span id="summary-interests">None added</span></p>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h4>PDF Documents</h4>
+                    <div id="summary-pdfs" class="summary-content">
+                        <p>No PDF documents added.</p>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h4>Images</h4>
+                    <div id="summary-images" class="summary-content">
+                        <p>No images added.</p>
+                    </div>
+                </div>
+                
                 <div class="warning-message">
                     <p><strong>Warning:</strong> Data once added cannot be deleted individually. You can only delete your
                         entire account if you wish to remove your data.</p>
@@ -1190,7 +1429,7 @@
                 </div>
                 <div class="submit-section">
                     <button id="submitBtn" style="width: 100%; margin-top:15px; padding: 15px; border-radius: 8px; font-weight: 600; font-size: 16px;" onclick="submitData()">Submit All Information</button>
-                    <div id="successMessage" class="success-message">✅ Data submitted successfully! Go & test your Model !!</div>
+                    <div id="successMessage" class="success-message">✅ Data submitted successfully! <a href="/" class="test-model-link">Go & test your Model!</a></div>
                 </div>
             </div>
             <div class="navigation">
@@ -1240,17 +1479,8 @@
             let warningNeeded = false;
             let warningText = "";
             
-            // Step 1: Check social profiles
+            // Step 1: Check self-assessment
             if (step === 1) {
-                const linksList = document.getElementById('linksList');
-                if (linksList.children.length === 0) {
-                    warningNeeded = true;
-                    warningText = "Not adding social media data? Your model won't be able to understand your online presence and interests. This significantly reduces personalization.";
-                }
-            }
-            
-            // Step 2: Check self-assessment
-            else if (step === 2) {
                 const communicationStyle = document.getElementById('communicationStyle').value;
                 const personalityTraits = document.querySelectorAll('#personalityTraits input:checked');
                 const writingSample = document.getElementById('writingSample').value;
@@ -1259,6 +1489,15 @@
                 if (!communicationStyle || personalityTraits.length === 0 || !writingSample || interests.length === 0) {
                     warningNeeded = true;
                     warningText = "Missing self-assessment data? This information helps your model understand your personality and communication style. Without it, your model will be less accurate.";
+                }
+            }
+            
+            // Step 2: Check social profiles
+            else if (step === 2) {
+                const linksList = document.getElementById('linksList');
+                if (linksList.children.length === 0) {
+                    warningNeeded = true;
+                    warningText = "Not adding social media data? Your model won't be able to understand your online presence and interests. This significantly reduces personalization.";
                 }
             }
             
@@ -1389,12 +1628,22 @@
             document.getElementById(`step${step}`).classList.remove("active");
             document.getElementById(`step${step + 1}`).classList.add("active");
             updateStepIndicator(step + 1);
+            
+            // If moving to step 5 (final submission), populate the summary
+            if (step + 1 === 5) {
+                updateSummary();
+            }
         }
 
         function prevStep(step) {
             document.getElementById(`step${step}`).classList.remove("active");
             document.getElementById(`step${step - 1}`).classList.add("active");
             updateStepIndicator(step - 1);
+            
+            // If going back to step 5 (final submission), update the summary
+            if (step - 1 === 5) {
+                updateSummary();
+            }
         }
 
         function updateStepIndicator(step) {
@@ -1508,6 +1757,7 @@
 
             if (selfAssessment.writingSample) {
                 document.getElementById('writingSample').value = selfAssessment.writingSample;
+                updateCharCount(); // Update character count after populating
             }
 
             if (selfAssessment.interests) {
@@ -1553,7 +1803,8 @@
 
                 imageItem.innerHTML = `
                     <img src="${image.url}" class="image-preview">
-                    <p>${image.description}</p>
+                    <div class="image-caption"><strong>AI Caption:</strong> <span class="caption-text">${image.caption || ''}</span></div>
+                    <div class="image-description"><strong>Description:</strong> <span class="description-text">${image.description || ''}</span></div>
                 `;
 
                 imagesList.appendChild(imageItem);
@@ -1627,7 +1878,7 @@
                                 <div class="caption-spinner"></div>
                                 <span>Generating caption...</span>
                             </div>
-                            <div class="image-description">${manualDescription}</div>
+                            <div class="image-description"><strong>Description:</strong> <span class="description-text">${manualDescription}</span></div>
                             <button onclick="this.parentElement.remove()" title="Remove image">×</button>
                         `;
                         imagesList.appendChild(imageItem);
@@ -1638,7 +1889,7 @@
                         // Update HTML with caption
                         const captionLoadingDiv = imageItem.querySelector('.caption-loading');
                         captionLoadingDiv.className = 'image-caption';
-                        captionLoadingDiv.innerHTML = `<strong>AI Caption:</strong> ${caption}`;
+                        captionLoadingDiv.innerHTML = `<strong>AI Caption:</strong> <span class="caption-text">${caption}</span>`;
 
                         // Update progress
                         processedImages++;
@@ -1821,8 +2072,8 @@
             // Collect images with both captions and descriptions
             document.querySelectorAll('.image-item').forEach(item => {
                 const imageUrl = item.querySelector('img').src;
-                const caption = item.querySelector('.image-caption')?.textContent.replace('AI Caption:', '').trim() || '';
-                const description = item.querySelector('.image-description')?.textContent.trim() || '';
+                const caption = item.querySelector('.image-caption .caption-text')?.textContent.trim() || '';
+                const description = item.querySelector('.image-description .description-text')?.textContent.trim() || '';
                 
                 if (!loadedImageUrls.includes(imageUrl)) {
                     data.images.push({
@@ -2056,6 +2307,93 @@
             fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
             document.head.appendChild(fontAwesome);
         });
+
+        function updateSummary() {
+            // Social Profiles Summary
+            const linksList = document.getElementById('linksList');
+            const socialProfilesDiv = document.getElementById('summary-social-profiles');
+            
+            if (linksList.children.length > 0) {
+                let socialHtml = '';
+                Array.from(linksList.children).forEach(item => {
+                    const linkInfo = item.querySelector('a');
+                    if (linkInfo) {
+                        socialHtml += `<div class="summary-item">`;
+                        const icon = linkInfo.querySelector('img');
+                        if (icon) {
+                            socialHtml += `<img src="${icon.src}" alt="Platform Icon">`;
+                        } else {
+                            socialHtml += `<i class="fas fa-link"></i>`;
+                        }
+                        socialHtml += `<span>${linkInfo.textContent}</span></div>`;
+                    }
+                });
+                socialProfilesDiv.innerHTML = socialHtml || '<p>No social profiles added.</p>';
+            }
+            
+            // Self Assessment Summary
+            const communicationStyle = document.getElementById('communicationStyle').value;
+            document.getElementById('summary-communication-style').textContent = communicationStyle || 'Not specified';
+            
+            const personalityTraits = Array.from(document.querySelectorAll('#personalityTraits input:checked')).map(cb => cb.value);
+            if (personalityTraits.length > 0) {
+                let traitsHtml = '<div class="summary-info">';
+                personalityTraits.forEach(trait => {
+                    traitsHtml += `<span class="summary-tag">${trait}</span>`;
+                });
+                traitsHtml += '</div>';
+                document.getElementById('summary-personality-traits').innerHTML = traitsHtml;
+            } else {
+                document.getElementById('summary-personality-traits').textContent = 'None selected';
+            }
+            
+            const writingSample = document.getElementById('writingSample').value;
+            document.getElementById('summary-writing-sample').textContent = writingSample || 'Not provided';
+            
+            const interests = Array.from(document.querySelectorAll('#interestsList .interest-item .interest-text')).map(item => item.textContent.trim());
+            if (interests.length > 0) {
+                let interestsHtml = '<div class="summary-info">';
+                interests.forEach(interest => {
+                    interestsHtml += `<span class="summary-tag">${interest}</span>`;
+                });
+                interestsHtml += '</div>';
+                document.getElementById('summary-interests').innerHTML = interestsHtml;
+            } else {
+                document.getElementById('summary-interests').textContent = 'None added';
+            }
+            
+            // PDF Documents Summary
+            const pdfList = document.getElementById('pdfList');
+            const pdfsDiv = document.getElementById('summary-pdfs');
+            
+            if (pdfList.children.length > 0) {
+                let pdfsHtml = '';
+                Array.from(pdfList.children).forEach(item => {
+                    const pdfName = item.querySelector('p')?.textContent;
+                    if (pdfName) {
+                        pdfsHtml += `<div class="summary-item"><i class="fas fa-file-pdf"></i><span>${pdfName}</span></div>`;
+                    }
+                });
+                pdfsDiv.innerHTML = pdfsHtml || '<p>No PDF documents added.</p>';
+            }
+            
+            // Images Summary
+            const imagesList = document.getElementById('imagesList');
+            const imagesDiv = document.getElementById('summary-images');
+            
+            if (imagesList.children.length > 0) {
+                imagesDiv.innerHTML = `<p>${imagesList.children.length} image(s) added</p>`;
+                let imagesHtml = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
+                Array.from(imagesList.children).slice(0, 4).forEach(item => { // Show up to 4 thumbnails
+                    const imgSrc = item.querySelector('img')?.src;
+                    if (imgSrc) {
+                        imagesHtml += `<img src="${imgSrc}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;">`;
+                    }
+                });
+                imagesHtml += '</div>';
+                imagesDiv.innerHTML += imagesHtml;
+            }
+        }
     </script>
 </body>
 

@@ -978,12 +978,16 @@
             align-items: center;
             padding: 12px 0;
             border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .service-info {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex: 1;
+            min-width: 200px;
         }
 
         .service-details {
@@ -1006,33 +1010,47 @@
         }
 
         .service-button {
-            padding: 6px 12px;
+            padding: 6px 14px;
             border-radius: 16px;
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.3s;
             font-weight: 500;
+            min-width: 100px;
+            text-align: center;
         }
 
         #calendarConnectButton {
+            box-shadow: 0 2px 4px rgba(66, 133, 244, 0.3);
+        }
+        
+        #calendarConnectButton.connect {
             background-color: #4285F4;
             color: white;
             border: none;
         }
 
-        #calendarConnectButton:hover {
+        #calendarConnectButton.connect:hover {
             background-color: #3367D6;
+            box-shadow: 0 3px 6px rgba(66, 133, 244, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        #calendarConnectButton.connecting {
+            background-color: #f39c12;
+            color: white;
+            cursor: wait;
         }
 
         #calendarConnectButton.disconnect {
-            background-color: #f8f9fa;
-            color: #5f6368;
-            border: 1px solid #dadce0;
+            background-color: #D93025;
+            color: white;
+            border: none;
         }
 
         #calendarConnectButton.disconnect:hover {
-            background-color: #f1f3f4;
-            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3);
+            background-color: #C62828;
+            box-shadow: 0 1px 4px rgba(217, 48, 37, 0.3);
         }
 
         .events-preview {
@@ -1455,6 +1473,19 @@
                 display: none;
             }
         }
+
+        @media (max-width: 500px) {
+            .service-connection {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .service-button {
+                align-self: flex-start;
+                margin-top: 8px;
+                margin-left: 36px; /* Aligns with the service info text */
+            }
+        }
     </style>
 </head>
 
@@ -1655,6 +1686,9 @@
             // Check if previously connected
             const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
             updateConnectionUI(isConnected);
+            if (!isConnected) {
+                connectButton.classList.add('connect');
+            }
 
             // Hide sharing elements on mobile if not the user's own AI
             const currentUserToken = localStorage.getItem("token");
@@ -1913,6 +1947,37 @@
                 }
             }
 
+            function updateConnectionUI(isConnected) {
+                connectButton.classList.remove('connecting');
+                
+                if (isConnected) {
+                    connectButton.textContent = 'Disconnect';
+                    connectButton.classList.add('disconnect');
+                    connectButton.classList.remove('connect');
+                    statusDisplay.textContent = 'Connected';
+                    statusDisplay.classList.add('connected');
+
+                    // If connection time exists, show it
+                    const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
+                    if (connectedAt) {
+                        const connectedDate = new Date(connectedAt);
+                        const formattedDate = connectedDate.toLocaleString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        statusDisplay.textContent = `Connected since ${formattedDate}`;
+                    }
+                } else {
+                    connectButton.textContent = 'Connect';
+                    connectButton.classList.remove('disconnect');
+                    connectButton.classList.add('connect');
+                    statusDisplay.textContent = 'Not connected';
+                    statusDisplay.classList.remove('connected');
+                }
+            }
+
             function connectToGoogleCalendar() {
                 if (!tokenClient) {
                     console.error('Token client not initialized');
@@ -1921,9 +1986,22 @@
                 }
 
                 try {
+                    // Show connecting state
+                    connectButton.textContent = 'Connecting...';
+                    connectButton.classList.remove('disconnect');
+                    connectButton.classList.remove('connect');
+                    connectButton.classList.add('connecting');
+                    connectButton.disabled = true;
+
                     // Request an access token
                     tokenClient.callback = async (resp) => {
                         if (resp.error !== undefined) {
+                            // Reset button on error
+                            connectButton.textContent = 'Connect';
+                            connectButton.classList.remove('connecting');
+                            connectButton.classList.remove('disconnect');
+                            connectButton.classList.add('connect');
+                            connectButton.disabled = false;
                             showNotification('Error connecting to Google Calendar', true);
                             return;
                         }
@@ -1938,6 +2016,7 @@
                             
                             // Update UI
                             updateConnectionUI(true);
+                            connectButton.disabled = false;
                             showNotification('Connected to Google Calendar successfully!');
                         } catch (error) {
                             console.error('Error during calendar connection:', error);
@@ -1946,11 +2025,17 @@
                             localStorage.removeItem('googleCalendarConnected');
                             localStorage.removeItem('googleCalendarConnectedAt');
                             updateConnectionUI(false);
+                            connectButton.disabled = false;
                         }
                     };
 
                     if (!gapi.client || typeof gapi.client.getToken !== 'function') {
                         showNotification('Google Calendar API not initialized yet. Please try again.', true);
+                        connectButton.textContent = 'Connect';
+                        connectButton.classList.remove('connecting');
+                        connectButton.classList.remove('disconnect');
+                        connectButton.classList.add('connect');
+                        connectButton.disabled = false;
                         return;
                     }
 
@@ -1964,23 +2049,23 @@
                 } catch (error) {
                     console.error('Error in connectToGoogleCalendar:', error);
                     showNotification('Error connecting to Google Calendar', true);
+                    connectButton.textContent = 'Connect';
+                    connectButton.classList.remove('connecting');
+                    connectButton.classList.remove('disconnect');
+                    connectButton.classList.add('connect');
+                    connectButton.disabled = false;
                 }
             }
 
-            // Start loading the configuration
-            loadGoogleCalendarConfig();
-
-            // Add click event listener for connect button
-            connectButton.addEventListener('click', async () => {
-                if (connectButton.textContent === 'Connect') {
-                    connectToGoogleCalendar();
-                } else {
-                    disconnectFromGoogleCalendar();
-                }
-            });
-
             function disconnectFromGoogleCalendar() {
                 try {
+                    // Disable button during disconnection
+                    connectButton.textContent = 'Disconnecting...';
+                    connectButton.classList.remove('disconnect');
+                    connectButton.classList.remove('connect');
+                    connectButton.classList.add('connecting');
+                    connectButton.disabled = true;
+                    
                     // Check if gapi.client exists and has a token
                     if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
                         const token = gapi.client.getToken();
@@ -1995,6 +2080,7 @@
                     localStorage.removeItem('googleCalendarConnectedAt');
                     localStorage.removeItem('calendarBusyBlocks');
                     updateConnectionUI(false);
+                    connectButton.disabled = false;
 
                     // Notify server about disconnection
                     const authToken = localStorage.getItem('token');
@@ -2017,33 +2103,7 @@
                     localStorage.removeItem('googleCalendarConnectedAt');
                     localStorage.removeItem('calendarBusyBlocks');
                     updateConnectionUI(false);
-                }
-            }
-
-            function updateConnectionUI(isConnected) {
-                if (isConnected) {
-                    connectButton.textContent = 'Disconnect';
-                    connectButton.classList.add('disconnect');
-                    statusDisplay.textContent = 'Connected';
-                    statusDisplay.classList.add('connected');
-
-                    // If connection time exists, show it
-                    const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
-                    if (connectedAt) {
-                        const connectedDate = new Date(connectedAt);
-                        const formattedDate = connectedDate.toLocaleString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        statusDisplay.textContent = `Connected since ${formattedDate}`;
-                    }
-                } else {
-                    connectButton.textContent = 'Connect';
-                    connectButton.classList.remove('disconnect');
-                    statusDisplay.textContent = 'Not connected';
-                    statusDisplay.classList.remove('connected');
+                    connectButton.disabled = false;
                 }
             }
 
@@ -2583,6 +2643,18 @@
             
             // Call this function after example prompts are populated
             setupExamplePrompts();
+
+            // Start loading the configuration
+            loadGoogleCalendarConfig();
+
+            // Add click event listener for connect button
+            connectButton.addEventListener('click', async () => {
+                if (connectButton.textContent === 'Connect') {
+                    connectToGoogleCalendar();
+                } else if (connectButton.textContent === 'Disconnect') {
+                    disconnectFromGoogleCalendar();
+                }
+            });
 
         });
 
