@@ -23,15 +23,15 @@
     <style>
         :root {
             --primary-color: #4d68ff;
-            --primary-dark: #3b50c7;
-            --primary-light: #f0f4ff;
-            --secondary-color: #6c79ff;
-            --border-radius: 12px;
+            --secondary-color: #ff5c7d;
+            --primary-dark: #3a4fbf;
             --text-color: #333;
-            --dark-color: #222;
+            --light-color: #f4f4f4;
+            --dark-color: #333;
+            --border-radius: 8px;
             --transition: 0.3s;
-            --drawer-width: 300px;
-            --drawer-width-mobile: 250px;
+            --drawer-width: 350px; /* Changed back to fixed width for desktop */
+            --drawer-width-mobile: 80vw; /* 80% viewport width for mobile */
         }
         
         * {
@@ -44,31 +44,34 @@
         body {
             background-color: #f5f5f7;
             color: #333;
-            overflow-y: auto;
+            overflow: hidden; /* Changed from overflow-y: auto to prevent whole page scrolling */
             position: relative;
-            min-height: 100vh;
-            padding-bottom: 65px;
+            height: 100vh; /* Use full viewport height */
+            margin: 0;
+            padding: 0;
         }
 
         .container {
-            max-width: calc(90% - 4rem);
-            width: 1000px;
-            min-height: calc(100vh - 4rem);
+            margin-left: 300px; /* Increased from 280px to add more margin */
+            max-width: calc(90% - 300px); /* Adjusted to match the new margin */
+            width: auto;
+            height: 100vh; /* Use full viewport height */
             display: flex;
             flex-direction: column;
-            margin: 2rem auto;
-            padding: 2rem;
+            transition: margin-left 0.3s ease, max-width 0.3s ease, margin-right 0.3s ease, width 0.3s ease;
+            padding: 0; /* Remove padding from container */
             background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
+            border-radius: 12px; /* Remove border radius for full-height layout */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            transition: all var(--transition);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
             animation: fadeIn 0.8s ease-out;
             box-sizing: border-box;
+            margin-top: 0; /* Remove top margin */
+            margin-bottom: 0; /* Remove bottom margin */
         }
 
         .container:before {
@@ -78,43 +81,34 @@
             left: 0;
             width: 100%;
             height: 5px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background: linear-gradient(90deg, #4d68ff, #ff5c7d);
+            z-index: 5; /* Ensure it's above other elements */
         }
 
         h1 {
             text-align: center;
-            margin: 0.5rem 0 1.5rem;
+            margin: 0 0 0.5rem; /* Reduced margin */
+            padding: 0 1rem; /* Reduced padding */
             color: var(--dark-color);
-            font-size: 2.2rem;
+            font-size: 1.8rem; /* Reduced font size */
             font-weight: 700;
             position: relative;
-            padding-bottom: 15px;
-        }
-
-        h1:after {
-            content: '';
-            position: absolute;
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 10px;
+            z-index: 4; /* Ensure it's above chat box */
+            background: rgba(255, 255, 255, 0.95); /* Match container background */
         }
 
         .chat-box {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: var(--border-radius);
+            flex: 1; /* Take remaining space */
+            overflow-y: auto; /* Make scrollable */
+            padding: 1.5rem 2rem 1.5rem 2.5rem; /* Match container left padding */
+            border: none; /* Remove border */
+            border-radius: 0;
             background: #fff;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0; /* Remove margin */
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
-            min-height: 400px;
             position: relative;
             transition: var(--transition);
+            height: 100%; /* Use all available height */
         }
 
         .chat-box::-webkit-scrollbar {
@@ -242,6 +236,11 @@
             flex-direction: row;
             align-items: flex-end;
             position: relative;
+            padding: 1rem 2rem 1rem 2.5rem; /* Match container padding */
+            background: rgba(255, 255, 255, 0.98); /* Slightly more opaque than container */
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 5; /* Ensure it's above other elements */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05); /* Add shadow to separate visually */
         }
 
         #queryInput {
@@ -318,22 +317,16 @@
         }
 
         .back-to-main button {
-            padding: 12px 25px;
-            border: none;
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 15px;
-            font-weight: 500;
-            font-family: 'Poppins', sans-serif;
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            border: 1px solid rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            gap: 6px;
+            color: var(--text-color);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 6px 10px; /* Reduced padding */
+            font-weight: 500;
+            font-size: 0.9rem; /* Reduced font size */
         }
 
         .back-to-main button i {
@@ -393,7 +386,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            padding: 0.75rem 1.5rem 0.75rem 2rem; /* Reduced padding */
+            z-index: 4; /* Ensure it's above chat box */
+            background: rgba(255, 255, 255, 0.95); /* Match container background */
+            position: relative; /* For proper stacking */
+            margin-bottom: 0; /* Remove margin */
         }
 
         .back-to-main {
@@ -404,25 +401,26 @@
         .rating-toggle {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px; /* Reduced gap */
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 5px 10px; /* Reduced padding */
             border-radius: 20px;
-            background-color: rgba(77, 104, 255, 0.1);
-            transition: var(--transition);
+            background: linear-gradient(135deg, rgba(110, 142, 251, 0.15), rgba(167, 119, 227, 0.15));
+            transition: all 0.3s ease;
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 1rem; /* Reduced font size */
+            box-shadow: 0 2px 5px rgba(110, 142, 251, 0.1);
+            border: 1px solid rgba(110, 142, 251, 0.2);
         }
 
         .rating-toggle:hover {
-            background-color: #e6edff;
+            background: linear-gradient(135deg, rgba(110, 142, 251, 0.25), rgba(167, 119, 227, 0.25));
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(77, 104, 255, 0.2);
+            box-shadow: 0 4px 8px rgba(110, 142, 251, 0.2);
         }
 
         .rating-toggle-icon {
-            font-size: 1.2rem;
-            transition: transform var(--transition) ease;
+            transition: var(--transition);
         }
 
         .rating-toggle.active .rating-toggle-icon {
@@ -679,10 +677,10 @@
         .drawer-toggle {
             position: fixed;
             right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 30px;
-            height: 60px;
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Perfect centering */
+            width: 34px;
+            height: 64px;
             background-color: var(--primary-color);
             border-radius: 8px 0 0 8px;
             display: flex;
@@ -690,16 +688,59 @@
             justify-content: center;
             cursor: pointer;
             z-index: 1000;
-            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-            transition: right 0.3s ease;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            color: white;
+            border: none;
+        }
+        
+        .drawer-toggle:hover {
+            background-color: var(--primary-dark);
+            box-shadow: -3px 0 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .drawer-toggle:active {
+            transform: translateY(-50%) scale(0.95);
         }
 
         .drawer-toggle-arrow {
-            color: white;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: transform 0.3s ease;
         }
+        
+        body.drawer-open .drawer-toggle {
+            right: var(--drawer-width); /* Use the variable instead of hardcoded 80vw */
+        }
+        
+        body.drawer-open .drawer-toggle-arrow {
+            transform: rotate(180deg);
+        }
 
+        /* Small screen adjustments for drawer toggle */
+        @media (max-width: 480px) {
+            .drawer-toggle {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                right: 15px;
+            }
+            
+            .drawer-toggle-arrow {
+                transform: rotate(90deg);
+            font-size: 1.2rem;
+            }
+            
+            body.drawer-open .drawer-toggle {
+                right: var(--drawer-width); /* Use the variable instead of hardcoded 80vw */
+                background: #f44336; /* Red color when open */
+            }
+            
+            body.drawer-open .drawer-toggle-arrow {
+                transform: rotate(-90deg);
+            }
+        }
+
+        /* Drawer Panel */
         .drawer {
             position: fixed;
             top: 0;
@@ -771,15 +812,220 @@
         }
 
         body.drawer-open .drawer-toggle {
-            right: var(--drawer-width);
+            right: var(--drawer-width); /* Use the variable instead of hardcoded 80vw */
         }
-
+        
         body.drawer-open .drawer-toggle-arrow {
             transform: rotate(180deg);
         }
 
+        /* Toggle Sidebar Button */
+        .toggle-sidebar {
+            position: fixed;
+            left: 280px;
+            top: 20px;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 101;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            color: var(--primary-color);
+        }
+        
+        .toggle-sidebar:hover {
+            background-color: #f9f9f9;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .toggle-sidebar.hidden {
+            left: 20px;
+        }
+        
+        .toggle-sidebar i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        /* Mobile adjustments for toggle sidebar */
+        @media (max-width: 480px) {
+            /* Position toggle sidebar button better with improved styling */
+            .toggle-sidebar {
+                top: 15px;
+                left: 15px;
+                width: 42px;
+                height: 42px;
+                z-index: 1002;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                background: white;
+                color: var(--primary-color);
+                border: none;
+            }
+            
+            .toggle-sidebar:active {
+                transform: scale(0.95);
+            }
+            
+            .toggle-sidebar.hidden i {
+                transform: rotate(180deg);
+            }
+            
+            .toggle-sidebar i {
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Drawer Panel */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: calc(-1 * var(--drawer-width));
+            width: var(--drawer-width);
+            height: 100vh;
+            background-color: white;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 999;
+            padding: 2rem 1rem;
+            overflow-y: auto;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .drawer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .drawer-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+        }
+
+        .drawer-content {
+            margin-bottom: 1rem;
+        }
+
+        .drawer-section {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 1.5rem;
+        }
+
+        .drawer-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .drawer-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .drawer-section-content {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* When drawer is open */
+        body.drawer-open .drawer {
+            right: 0;
+        }
+        
+        /* Drawer overlay background for mobile */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0); /* Completely transparent by default (desktop) */
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998; /* Just below drawer but above content */
+            pointer-events: none; /* Allow clicking through the overlay */
+        }
+        
+        /* Show overlay when drawer is open on mobile */
+        body.drawer-open .drawer-overlay {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: none; /* Keep allowing clicks through the overlay */
+        }
+        
+        /* Only use background color and pointer-events on mobile */
+        @media (max-width: 768px) {
+            .drawer-overlay {
+                background-color: rgba(0, 0, 0, 0.2); /* Only show background on mobile */
+                pointer-events: auto; /* Block interaction on mobile only */
+            }
+            
+            body.drawer-open .drawer-overlay {
+                pointer-events: auto; /* Block interaction on mobile only */
+            }
+        }
+
+        /* Mobile adjustments for drawer */
+        @media (max-width: 480px) {
+            /* Mobile drawer toggle styling - same as desktop */
+            .drawer-toggle {
+                width: 34px;
+                height: 64px;
+                border-radius: 8px 0 0 8px;
+                right: 0;
+            }
+            
+            .drawer-toggle-arrow {
+                transform: none;
+                font-size: 1.1rem;
+        }
+
+        body.drawer-open .drawer-toggle {
+                right: var(--drawer-width); /* Use the variable instead of hardcoded 80vw */
+        }
+
+        body.drawer-open .drawer-toggle-arrow {
+            transform: rotate(180deg);
+            }
+            
+            /* Ensure the drawer takes full width on small screens too */
+            .drawer {
+                /* Let the variable handle this */
+            }
+            
+            body.drawer-open .drawer {
+                right: 0;
+            }
+        }
+
         /* Only apply margin shift on large screens */
         @media (min-width: 769px) {
+            body.drawer-open .drawer-toggle {
+                right: var(--drawer-width); /* Use the desktop width variable */
+            }
+            
             body.drawer-open .container {
                 margin-right: calc(var(--drawer-width) + 2rem);
                 margin-left: 2rem;
@@ -1157,12 +1403,12 @@
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 1 rem;
         }
 
         .share-button i {
             margin-right: 8px;
-            font-size: 14px;
+            font-size: 1 rem;
         }
 
         .twitter-share {
@@ -1201,11 +1447,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 998; /* Just below drawer but above content */
+            background-color: rgba(0, 0, 0, 0.2);
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease;
+            transition: all 0.3s ease;
+            z-index: 998; /* Just below drawer but above content */
+            pointer-events: none; /* Allow clicking through the overlay */
         }
         
         /* Show overlay when drawer is open on mobile */
@@ -1213,6 +1460,7 @@
             body.drawer-open .drawer-overlay {
                 opacity: 1;
                 visibility: visible;
+                pointer-events: none; /* Keep allowing clicks through the overlay */
             }
         }
 
@@ -1240,7 +1488,7 @@
             right: 0;
             width: 100%;
             height: 100%;
-            background: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 0h2v20H9V0zm25.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm-20 20l1.732 1-10 17.32-1.732-1 10-17.32zM58.16 4.134l1 1.732-17.32 10-1-1.732 17.32-10zm-40 40l1 1.732-17.32 10-1-1.732 17.32-10zM80 9v2H60V9h20zM20 69v2H0v-2h20zm79.32-55l-1 1.732-17.32-10L82 4l17.32 10zm-80 80l-1 1.732-17.32-10L2 84l17.32 10zm96.546-75.84l-1.732 1-10-17.32 1.732-1 10 17.32zm-100 100l-1.732 1-10-17.32 1.732-1 10 17.32zM38.16 24.134l1 1.732-17.32 10-1-1.732 17.32-10zM60 29v2H40v-2h20zm19.32 5l-1 1.732-17.32-10L62 24l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM111 40h-2V20h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zM40 49v2H20v-2h20zm19.32 5l-1 1.732-17.32-10L42 44l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM91 60h-2V40h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM39.32 74l-1 1.732-17.32-10L22 64l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM71 80h-2V60h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM120 89v2h-20v-2h20zm-84.134 9.16l-1.732 1-10-17.32 1.732-1 10 17.32zM51 100h-2V80h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM100 109v2H80v-2h20zm19.32 5l-1 1.732-17.32-10 1-1.732 17.32 10zM31 120h-2v-20h2v20z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background: url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 0h2v20H9V0zm25.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm-20 20l1.732 1-10 17.32-1.732-1 10-17.32zM58.16 4.134l1 1.732-17.32 10-1-1.732 17.32-10zm-40 40l1 1.732-17.32 10-1-1.732 17.32-10zM80 9v2H60V9h20zM20 69v2H0v-2h20zm79.32-55l-1 1.732-17.32-10L82 4l17.32 10zm-80 80l-1 1.732-17.32-10L2 84l17.32 10zm96.546-75.84l-1.732 1-10-17.32 1.732-1 10 17.32zm-100 100l-1.732 1-10-17.32 1.732-1 10 17.32zM38.16 24.134l1 1.732-17.32 10-1-1.732 17.32-10zM60 29v2H40v-2h20zm19.32 5l-1 1.732-17.32-10L62 24l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM111 40h-2V20h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zM40 49v2H20v-2h20zm19.32 5l-1 1.732-17.32-10L42 44l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM91 60h-2V40h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM39.32 74l-1 1.732-17.32-10L22 64l17.32 10zm16.546 4.16l-1.732 1-10-17.32 1.732-1 10 17.32zM71 80h-2V60h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM120 89v2h-20v-2h20zm-84.134 9.16l-1.732 1-10-17.32 1.732-1 10 17.32zM51 100h-2V80h2v20zm3.134.84l1.732 1-10 17.32-1.732-1 10-17.32zm24.026 3.294l1 1.732-17.32 10-1-1.732 17.32-10zM100 109v2H80v-2h20zm19.32 5l-1 1.732-17.32-10 1-1.732 17.32 10zm31 120h-2v-20h2v20z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
             opacity: 0.2;
         }
         
@@ -1390,15 +1638,14 @@
         .share-toggle {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px; /* Reduced gap */
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 5px 10px; /* Reduced padding */
             border-radius: 20px;
             background: linear-gradient(135deg, rgba(110, 142, 251, 0.15), rgba(167, 119, 227, 0.15));
             transition: all 0.3s ease;
             font-weight: 500;
-            font-size: 0.95rem;
-            margin-left: 10px;
+            font-size: 1rem; /* Reduced font size */
             box-shadow: 0 2px 5px rgba(110, 142, 251, 0.1);
             border: 1px solid rgba(110, 142, 251, 0.2);
         }
@@ -1416,7 +1663,12 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px; /* Reduced gap between header action buttons */
+        }
+
+        /* Add margin to the share toggle */
+        .share-toggle {
+            margin-left: 0; /* Reset any margin */
         }
 
         /* Drawer share section styles */
@@ -1466,12 +1718,16 @@
         @media (max-width: 768px) {
             .header-actions {
                 flex-direction: row;
-                gap: 8px;
+                gap: 6px;
             }
             
             .rating-toggle, .share-toggle {
                 padding: 6px 10px;
                 font-size: 0.9rem;
+                /* Ensure both toggles have identical styling */
+                min-width: 40px;
+                justify-content: center;
+                text-align: center;
             }
             
             .share-toggle span:not(.share-toggle-icon) {
@@ -1484,6 +1740,31 @@
         }
 
         @media (max-width: 500px) {
+            .rating-toggle, .share-toggle {
+                padding: 5px;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                font-size: 1rem;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            
+            /* Ensure both icons are centered and same size */
+            .rating-toggle-icon, 
+            .share-toggle i {
+                font-size: 1rem;
+                margin: 0;
+            }
+            
+            /* Hide text spans on both toggles */
+            .rating-toggle span:not(.rating-toggle-icon),
+            .share-toggle span {
+                display: none;
+            }
+            
+            /* Service connection styling below... */
             .service-connection {
                 flex-direction: column;
                 align-items: flex-start;
@@ -1495,10 +1776,484 @@
                 margin-left: 36px; /* Aligns with the service info text */
             }
         }
+
+        /* Chat sidebar styles */
+        .chat-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            background: #f8f9fa;
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-sidebar.hidden {
+            transform: translateX(-280px);
+        }
+
+        .sidebar-header {
+            padding: 1.2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .new-chat-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .new-chat-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .chats-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.8rem;
+        }
+
+        .chat-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .chat-group-heading {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #666;
+            margin: 0.5rem 0;
+            padding: 0 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+        }
+
+        .chat-item {
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-item.active {
+            background-color: rgba(77, 104, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .chat-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .chat-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+        .chat-timestamp {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.3rem;
+            text-align: left;
+        }
+
+        .chat-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: flex;
+            gap: 5px;
+        }
+
+        .chat-item:hover .chat-actions {
+            opacity: 1;
+        }
+
+        .chat-action-btn {
+            background: none;
+            border: none;
+            color: #777;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 2px;
+            border-radius: 4px;
+        }
+
+        .chat-action-btn:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .empty-chats-message {
+            color: #888;
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+
+        /* Adjust container for sidebar */
+        .container {
+            margin-left: 300px; /* Increased from 280px to add more margin */
+            max-width: calc(90% - 300px); /* Adjusted to match the new margin */
+            width: auto;
+            min-height: calc(100vh - 4rem);
+            display: flex;
+            flex-direction: column;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            transition: margin-left 0.3s ease, max-width 0.3s ease, margin-right 0.3s ease, width 0.3s ease;
+        }
+
+        .container.full-width {
+            margin-left: auto;
+            margin-right: auto;
+            max-width: 1000px; /* Fixed width for better centering */
+            width: 90%; /* More responsive */
+        }
+        
+        /* Improved responsive adjustments */
+        @media (max-width: 768px) {
+            .chat-sidebar {
+                width: 240px;
+            }
+            
+            .chat-sidebar.hidden {
+                transform: translateX(-240px);
+            }
+            
+            .toggle-sidebar {
+                left: 240px;
+            }
+            
+            .container {
+                margin-left: 0;
+                max-width: 100%;
+                width: 100%;
+                height: 100vh;
+                padding: 0;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+            
+            .container.full-width {
+                margin-left: 0;
+                margin-right: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .header-container {
+                padding: 1rem;
+            }
+            
+            .chat-box {
+                padding: 1rem;
+            }
+            
+            .input-box {
+                padding: 0.8rem 1rem;
+            }
+        }
+        
+        /* Additional adjustments for very small screens */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+                margin-top: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .chat-box {
+                padding: 1rem;
+            }
+        }
+
+        .toggle-sidebar.hidden {
+            left: 20px;
+        }
+        
+        /* Add extra room when chat sidebar is visible */
+        .chat-sidebar:not(.hidden) + .toggle-sidebar + .container {
+            padding-left: 30px;
+        }
+        
+        /* Improved responsive adjustments */
+        @media (min-width: 769px) {
+            .input-box {
+                padding-bottom: 2rem; /* More padding at bottom for desktop */
+                margin-bottom: 1rem; /* Add margin at the bottom */
+            }
+            
+            .container {
+                margin-bottom: 1rem; /* Add some space below the container */
+            }
+        }
+
+        /* Landscape mode adjustments for small devices */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .header-container {
+                padding: 0.75rem 1.5rem 0.75rem 1.5rem;
+            }
+            
+            .drawer-toggle {
+                top: 20px;
+                width: 38px;
+                height: 38px;
+            }
+            
+            .toggle-sidebar {
+                top: 10px;
+                left: 10px;
+                width: 38px;
+                height: 38px;
+            }
+            
+            .chat-container {
+                max-height: calc(100vh - 110px);
+                margin-bottom: 55px;
+            }
+            
+            .chat-input-container {
+                padding: 8px;
+                max-height: 55px;
+            }
+            
+            .rating-container.visible {
+                padding: 0.75rem;
+                margin-top: 0.25rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .star {
+                font-size: 1.2rem;
+            }
+            
+            .rating-content {
+                min-height: 40px;
+                gap: 0.5rem;
+            }
+            
+            .drawer {
+                padding-top: 1rem;
+            }
+            
+            .drawer-header {
+                margin-bottom: 1rem;
+                padding-bottom: 0.75rem;
+            }
+            
+            .drawer-section {
+                margin-bottom: 1rem;
+                padding-bottom: 1rem;
+            }
+            
+            /* Additional landscape adjustments */
+            .chat-message {
+                padding: 8px 12px;
+                margin-bottom: 8px;
+                max-width: 90%;
+            }
+            
+            .query-input {
+                padding: 8px 12px;
+                min-height: 38px;
+            }
+            
+            .button-container button {
+                width: 38px;
+                height: 38px;
+            }
+            
+            .examples-container {
+                padding: 8px;
+            }
+            
+            .example-prompt {
+                padding: 6px 10px;
+                margin-bottom: 6px;
+            }
+            
+            .mobile-header-actions {
+                gap: 10px;
+            }
+            
+            .chat-sidebar {
+                top: 70px;
+                height: calc(100vh - 70px);
+            }
+        }
+
+        /* Compact media query for h1 at all sizes */
+        @media (max-width: 768px) {
+            .container h1 {
+                font-size: 1.5rem;
+                padding: 0 0.5rem;
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+                line-height: 1.2;
+            }
+            
+            .header-container {
+                padding: 0.5rem 1rem 0.5rem 1.5rem;
+            }
+            
+            .back-to-main button {
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .header-actions {
+                gap: 6px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --drawer-width: 80vw; /* Override drawer width for mobile */
+            }
+            
+            .drawer {
+                width: var(--drawer-width);
+                right: calc(-1 * var(--drawer-width));
+            }
+            
+            body.drawer-open .drawer {
+                right: 0;
+            }
+            
+            body.drawer-open .drawer-toggle {
+                right: var(--drawer-width);
+            }
+        }
+
+        /* Only apply margin shift on large screens */
+        @media (min-width: 769px) {
+            body.drawer-open .drawer-toggle {
+                right: var(--drawer-width); /* Use the desktop width variable */
+            }
+            
+            body.drawer-open .container {
+                margin-right: calc(var(--drawer-width) + 2rem);
+                margin-left: 2rem;
+                max-width: calc(100% - var(--drawer-width) - 4rem);
+                width: calc(100% - var(--drawer-width) - 4rem);
+            }
+        }
+
+        /* Add a new class for desktop drawer that doesn't affect the rest of the UI */
+        @media (min-width: 769px) {
+            body.drawer-open-desktop .drawer {
+                right: 0;
+            }
+            
+            body.drawer-open-desktop .drawer-toggle {
+                right: var(--drawer-width);
+            }
+
+            /* Adjust container margins without any visual effects */
+            body.drawer-open-desktop .container {
+                margin-right: calc(var(--drawer-width) + 2rem);
+                margin-left: 2rem;
+                max-width: calc(100% - var(--drawer-width) - 4rem);
+                width: calc(100% - var(--drawer-width) - 4rem);
+            }
+            
+            /* Hide overlay completely for desktop */
+            body.drawer-open-desktop .drawer-overlay {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* Drawer overlay background - completely transparent on desktop */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0); /* Completely transparent by default */
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 998;
+            pointer-events: none; /* Allow clicking through the overlay by default */
+        }
+
+        /* Only apply overlay background on mobile */
+        @media (max-width: 768px) {
+            body.drawer-open .drawer-overlay {
+                background-color: rgba(0, 0, 0, 0.2);
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto; /* Block interaction on mobile only */
+            }
+        }
+
+        /* Maintain transparency even when drawer is open on desktop */
+        @media (min-width: 769px) {
+            body.drawer-open .drawer-overlay {
+                background-color: rgba(0, 0, 0, 0);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
 <body>
+    <!-- Chat sidebar for history -->
+    <div id="chatSidebar" class="chat-sidebar">
+        <div class="sidebar-header">
+            <h3>Your Chats</h3>
+            <button id="newChatButton" class="new-chat-button">
+                <i class="fas fa-plus"></i> New Chat
+            </button>
+        </div>
+        <div id="chatsList" class="chats-list">
+            <!-- Chat history items will be added here dynamically -->
+            <div class="empty-chats-message">No saved chats yet</div>
+        </div>
+    </div>
+
+    <!-- Sidebar toggle button -->
+    <div id="toggleSidebar" class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+    </div>
+
     <div class="container">
         <div class="header-container">
             <div class="back-to-main">
@@ -1667,14 +2422,64 @@
             const drawerOverlay = document.getElementById('drawerOverlay');
             const shareToggle = document.getElementById('shareToggle');
             
+            // Initialize drawer overlay behavior for desktop
+            if (window.innerWidth >= 768) {
+                drawerOverlay.style.pointerEvents = 'none';
+            }
+            
+            // Handle resize events to adjust drawer overlay behavior
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 768) {
+                    drawerOverlay.style.pointerEvents = 'none';
+                } else {
+                    drawerOverlay.style.pointerEvents = 'auto';
+                }
+            });
+            
             // Simple drawer toggle functionality
             function toggleDrawer() {
+                // Close the chat sidebar if it's open
+                const chatSidebar = document.getElementById('chatSidebar');
+                if (chatSidebar && !chatSidebar.classList.contains('hidden')) {
+                    chatSidebar.classList.add('hidden');
+                    document.getElementById('toggleSidebar').classList.add('hidden');
+                    document.querySelector('.container').classList.add('full-width');
+                    document.getElementById('toggleSidebar').innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+                
+                // Use different classes for desktop and mobile
+                if (window.innerWidth >= 768) {
+                    // On desktop, use a special class that doesn't darken the UI
+                    document.body.classList.toggle('drawer-open-desktop');
+                    
+                    // Make sure the regular class isn't also applied
+                    document.body.classList.remove('drawer-open');
+                } else {
+                    // On mobile, use the normal class
                 document.body.classList.toggle('drawer-open');
+                }
             }
             
             // Function to open drawer and show share section
             function openDrawerToShare() {
+                // Use different classes for desktop and mobile
+                if (window.innerWidth >= 768) {
+                    // On desktop, use the special class that doesn't darken the UI
+                    document.body.classList.add('drawer-open-desktop');
+                    
+                    // Make sure the regular class isn't also applied
+                    document.body.classList.remove('drawer-open');
+                } else {
+                    // On mobile, use the normal class
                 document.body.classList.add('drawer-open');
+                }
+                
+                // Handle visibility of drawer sections based on whether it's user's own AI
+                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+                if (servicesSection) {
+                    servicesSection.style.display = isOwnAI ? 'block' : 'none';
+                }
+                
                 // Scroll to share section if needed
                 const shareSection = document.querySelector('.drawer-share-section');
                 if (shareSection) {
@@ -1683,7 +2488,16 @@
             }
             
             // Add click event listeners
-            drawerToggle.addEventListener('click', toggleDrawer);
+            drawerToggle.addEventListener('click', function() {
+                toggleDrawer();
+                
+                // Handle visibility of drawer sections based on whether it's user's own AI
+                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+                if (servicesSection) {
+                    servicesSection.style.display = isOwnAI ? 'block' : 'none';
+                }
+            });
+            
             drawerClose.addEventListener('click', toggleDrawer);
             drawerOverlay.addEventListener('click', toggleDrawer);
             
@@ -1703,14 +2517,21 @@
             const currentUserToken = localStorage.getItem("token");
             let isOwnAI = false;
             
-            // Default to hiding drawer for all users initially
-            drawerToggle.style.display = 'none';
-            drawer.style.display = 'none';
+            // Default to hiding left sidebar for all users initially
+            // But always show the right drawer toggle
+            drawerToggle.style.display = 'flex';
+            drawer.style.display = 'block';
             
-            // Also hide share toggle by default
+            // Also show share toggle by default
             if (shareToggle) {
-                shareToggle.style.display = 'none';
+                shareToggle.style.display = 'flex';
             }
+            
+            // Hide chat sidebar by default
+            const sidebarElement = document.getElementById('chatSidebar');
+            const sidebarToggleBtn = document.getElementById('toggleSidebar');
+            if (sidebarElement) sidebarElement.classList.add('hidden');
+            if (sidebarToggleBtn) sidebarToggleBtn.style.display = 'none';
 
             // Initialize example prompts and UI based on user state
             if (currentUserToken) {
@@ -1723,15 +2544,11 @@
                         document.querySelector('h1').innerHTML = "Chat with Your AI";
                         isOwnAI = true;
                         
-                        // Show drawer components for the AI owner
-                        drawerToggle.style.display = 'flex';
-                        drawer.style.display = 'block';
-                        
-                        // Show share toggle button
-                        if (shareToggle) {
-                            shareToggle.style.display = 'flex';
+                        // Show left sidebar toggle for the AI owner
+                        if (sidebarToggleBtn) {
+                            sidebarToggleBtn.style.display = 'flex';
                         }
-
+                        
                         const prompts = [
                             "Create a roadmap for me to study [Topic name]",
                             "Write a tweet about my latest project",
@@ -1785,7 +2602,7 @@
                         // Not the user's own AI
                         document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                         
-                        // Show share toggle for visitors too if appropriate
+                        // Show only share toggle for visitors
                         if (shareToggle) {
                             shareToggle.style.display = 'flex';
                         }
@@ -1808,7 +2625,7 @@
                 // No user logged in
                 document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
                 
-                // Show share toggle for visitors too
+                // Show only share toggle for visitors
                 if (shareToggle) {
                     shareToggle.style.display = 'flex';
                 }
@@ -2331,7 +3148,8 @@
                         },
                         body: JSON.stringify({
                             query: queryText,
-                            chatHistory: chatHistory
+                            chatHistory: chatHistory,
+                            chatId: currentChatId
                         })
                     });
                     
@@ -2457,6 +3275,7 @@
             const averageNumber = document.getElementById("averageNumber");
             const ratingCount = document.getElementById("ratingCount");
             const username = window.location.pathname.split('/').pop();
+            console.log("Current profile username:", username);
 
             const feedbackTexts = [
                 "",
@@ -2496,6 +3315,7 @@
             ratingStars.addEventListener("click", async (event) => {
                 if (event.target.classList.contains("star")) {
                     const rating = parseInt(event.target.dataset.rating);
+                    const targetUsername = window.location.pathname.split('/').pop();
 
                     try {
                         const token = localStorage.getItem("token");
@@ -2505,13 +3325,15 @@
                             return;
                         }
 
-                        const response = await fetch(`/api/rate/${username}`, {
+                        console.log(`Submitting rating ${rating} for user ${targetUsername}`);
+                        
+                        const response = await fetch(`/api/rate-model`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
                                 Authorization: `Bearer ${token}`,
                             },
-                            body: JSON.stringify({ rating }),
+                            body: JSON.stringify({ username: targetUsername, rating }),
                         });
 
                         const data = await response.json();
@@ -2524,7 +3346,8 @@
 
                             await fetchAverageRating(); // Refresh average rating
                         } else {
-                            alert(data.message);
+                            console.error("Rating submission error:", data.error || data.message);
+                            alert(data.error || data.message || "An error occurred while rating.");
                         }
                     } catch (error) {
                         console.error("Error rating:", error);
@@ -2604,11 +3427,16 @@
                             ratingCount.textContent = "";
                         }
                     } else {
-                        console.log("Error fetching profile");
+                        console.error("Error fetching profile:", response.status);
+                        averageStars.innerHTML = "";
+                        averageNumber.textContent = "No ratings";
+                        ratingCount.textContent = "";
                     }
                 } catch (error) {
                     console.error("Error fetching average rating:", error);
-                    averageNumber.textContent = "Error";
+                    averageStars.innerHTML = "";
+                    averageNumber.textContent = "No ratings";
+                    ratingCount.textContent = "";
                 }
             }
 
@@ -2659,7 +3487,27 @@
             // Call this function after example prompts are populated
             setupExamplePrompts();
 
-            // Start loading the configuration
+            // Handle initial setup based on if this is user's own AI
+            const setupInitialState = () => {
+                // Hide the Google Calendar section for non-owner users
+                if (!isOwnAI) {
+                    const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+                    if (servicesSection) {
+                        servicesSection.style.display = 'none';
+                    }
+                    
+                    // Also ensure chat sidebar is hidden
+                    const sidebarEl = document.getElementById('chatSidebar');
+                    const toggleBtn = document.getElementById('toggleSidebar');
+                    if (sidebarEl) sidebarEl.classList.add('hidden');
+                    if (toggleBtn) toggleBtn.style.display = 'none';
+                }
+            };
+            
+            // Call this function when the page loads
+            setupInitialState();
+            
+            // Rest of initialization code
             loadGoogleCalendarConfig();
 
             // Add click event listener for connect button
@@ -2671,8 +3519,525 @@
                 }
             });
 
-        });
+            // Chat storage management
+            let currentChatId = null;
+            const chatSidebar = document.getElementById('chatSidebar');
+            const container = document.querySelector('.container');
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            const newChatButton = document.getElementById('newChatButton');
+            const chatsList = document.getElementById('chatsList');
+            
+            // Toggle sidebar visibility
+            toggleSidebar.addEventListener('click', () => {
+                // Close the right drawer if it's open
+                if (document.body.classList.contains('drawer-open')) {
+                    document.body.classList.remove('drawer-open');
+                }
+                
+                const isHidden = chatSidebar.classList.toggle('hidden');
+                toggleSidebar.classList.toggle('hidden', isHidden);
+                container.classList.toggle('full-width', isHidden);
+                
+                // Change icon based on state
+                toggleSidebar.innerHTML = isHidden 
+                    ? '<i class="fas fa-chevron-right"></i>' 
+                    : '<i class="fas fa-chevron-left"></i>';
+                
+                // Save preference
+                localStorage.setItem('sidebarHidden', isHidden);
+            });
+            
+            // Load chats from the server
+            const loadChats = async () => {
+                const token = localStorage.getItem('token');
+                const urlUsername = window.location.pathname.split('/').pop();
+                console.log("loadChats called, token exists:", !!token);
+                
+                if (!token || !isOwnAI) {
+                    console.log("No token or not user's own AI, hiding sidebar");
+                    chatSidebar.classList.add('hidden');
+                    toggleSidebar.classList.add('hidden');
+                    container.classList.add('full-width');
+                    return;
+                }
+                
+                // Function to categorize chats by date
+                const categorizeChatsByDate = (chats) => {
+                    const now = new Date();
+                    const today = now.toDateString();
+                    
+                    const yesterday = new Date(now);
+                    yesterday.setDate(now.getDate() - 1);
+                    const yesterdayString = yesterday.toDateString();
+                    
+                    const lastWeek = new Date(now);
+                    lastWeek.setDate(now.getDate() - 7);
+                    
+                    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                    
+                    // Create categories
+                    const categories = {
+                        'Today': [],
+                        'Yesterday': [],
+                        'Last 7 days': [],
+                        'This month': []
+                    };
+                    
+                    // Custom months categories will be added dynamically
+                    const monthsCategories = {};
+                    
+                    // Group chats by date category
+                    chats.forEach(chat => {
+                        const chatDate = new Date(chat.updatedAt);
+                        const chatDateString = chatDate.toDateString();
+                        
+                        if (chatDateString === today) {
+                            categories['Today'].push(chat);
+                        } else if (chatDateString === yesterdayString) {
+                            categories['Yesterday'].push(chat);
+                        } else if (chat > lastWeek) {
+                            categories['Last 7 days'].push(chat);
+                        } else if (chat >= thisMonth) {
+                            categories['This month'].push(chat);
+                        } else {
+                            // Group by month and year
+                            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                           'July', 'August', 'September', 'October', 'November', 'December'];
+                            const monthYear = `${months[chatDate.getMonth()]} ${chatDate.getFullYear()}`;
+                            
+                            if (!monthsCategories[monthYear]) {
+                                monthsCategories[monthYear] = [];
+                            }
+                            monthsCategories[monthYear].push(chat);
+                        }
+                    });
+                    
+                    // Add month categories to main categories object
+                    Object.keys(monthsCategories).forEach(monthYear => {
+                        categories[monthYear] = monthsCategories[monthYear];
+                    });
+                    
+                    return categories;
+                };
+                
+                // Check if user is viewing their own AI
+                try {
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    const currentUsername = tokenData.username;
+                    
+                    if (urlUsername !== currentUsername) {
+                        console.log("User is not viewing their own AI, not loading chats");
+                        // IMPORTANT: Always hide sidebar when not viewing your own AI
+                        chatSidebar.classList.add('hidden');
+                        toggleSidebar.classList.add('hidden');
+                        container.classList.add('full-width');
+                        return;
+                    }
+                    
+                    console.log("Fetching chats from server...");
+                    const response = await fetch('/api/chats', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    console.log("Server response status:", response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Error response from server:", errorText);
+                        throw new Error(`Failed to load chats: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log("Chats loaded:", data);
+                    
+                    // Render chats in sidebar
+                    if (data.success && data.chats && data.chats.length > 0) {
+                        console.log(`Found ${data.chats.length} chats to display`);
+                        chatsList.innerHTML = '';
+                        
+                        // Categorize chats by date
+                        const categorizedChats = categorizeChatsByDate(data.chats);
+                        
+                        // Render each category
+                        Object.keys(categorizedChats).forEach(category => {
+                            const chatsInCategory = categorizedChats[category];
+                            
+                            // Only render categories with chats
+                            if (chatsInCategory.length > 0) {
+                                // Create category group
+                                const groupDiv = document.createElement('div');
+                                groupDiv.className = 'chat-group';
+                                
+                                // Add heading
+                                const headingDiv = document.createElement('div');
+                                headingDiv.className = 'chat-group-heading';
+                                headingDiv.textContent = category;
+                                groupDiv.appendChild(headingDiv);
+                                
+                                // Add chats in this category
+                                chatsInCategory.forEach(chat => {
+                                    console.log(`Adding chat to ${category}:`, chat._id, chat.title);
+                                    const chatItem = document.createElement('div');
+                                    chatItem.className = 'chat-item';
+                                    chatItem.dataset.id = chat._id;
+                                    
+                                    if (currentChatId === chat._id) {
+                                        chatItem.classList.add('active');
+                                    }
+                                    
+                                    chatItem.innerHTML = `
+                                        <div class="chat-title">${chat.title}</div>
+                                        <div class="chat-actions">
+                                            <button class="chat-action-btn rename-btn" title="Rename">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="chat-action-btn delete-btn" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    `;
+                                    
+                                    // Add click handler to load chat
+                                    chatItem.addEventListener('click', (e) => {
+                                        if (!e.target.closest('.chat-actions')) {
+                                            console.log("Chat item clicked:", chat._id);
+                                            loadChat(chat._id);
+                                        }
+                                    });
+                                    
+                                    // Add rename handler
+                                    chatItem.querySelector('.rename-btn').addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        console.log("Rename button clicked for chat:", chat._id);
+                                        renameChat(chat._id, chat.title);
+                                    });
+                                    
+                                    // Add delete handler
+                                    chatItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        console.log("Delete button clicked for chat:", chat._id);
+                                        deleteChat(chat._id);
+                                    });
+                                    
+                                    groupDiv.appendChild(chatItem);
+                                });
+                                
+                                chatsList.appendChild(groupDiv);
+                            }
+                        });
+                    } else {
+                        console.log("No chats found or empty chat list");
+                        chatsList.innerHTML = '<div class="empty-chats-message">No saved chats yet</div>';
+                    }
+                } catch (error) {
+                    console.error('Error loading chats:', error);
+                    chatsList.innerHTML = `<div class="empty-chats-message">Failed to load chats: ${error.message}</div>`;
+                }
+            };
+            
+            // Create a new chat
+            const createNewChat = async () => {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                try {
+                    const response = await fetch('/api/chats', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title: 'New Chat' })
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to create chat');
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.chat) {
+                        // Refresh chat list
+                        loadChats();
+                        
+                        // Set as current chat
+                        currentChatId = data.chat._id;
+                        
+                        // Clear chat box
+                        const chatBox = document.getElementById('chatBox');
+                        chatBox.innerHTML = '';
+                        
+                        // Reset chat history
+                        chatHistory = [];
+                    }
+                } catch (error) {
+                    console.error('Error creating chat:', error);
+                }
+            };
+            
+            // Rename a chat
+            const renameChat = async (chatId, currentTitle) => {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                const newTitle = prompt('Enter new title for this chat:', currentTitle);
+                if (!newTitle || newTitle === currentTitle) return;
+                
+                try {
+                    const response = await fetch(`/api/chats/${chatId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ title: newTitle })
+                    });
+                    
+                    if (response.ok) {
+                        loadChats();
+                    }
+                } catch (error) {
+                    console.error('Error renaming chat:', error);
+                }
+            };
+            
+            // Delete a chat
+            const deleteChat = async (chatId) => {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                if (!confirm('Are you sure you want to delete this chat?')) return;
+                
+                try {
+                    const response = await fetch(`/api/chats/${chatId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        if (currentChatId === chatId) {
+                            // Clear current chat if it was deleted
+                            currentChatId = null;
+                            document.getElementById('chatBox').innerHTML = '';
+                            chatHistory = [];
+                        }
+                        
+                        loadChats();
+                    }
+                } catch (error) {
+                    console.error('Error deleting chat:', error);
+                }
+            };
+            
+            // Initialize chat system
+            const initChatSystem = () => {
+                const token = localStorage.getItem('token');
+                const urlUsername = window.location.pathname.split('/').pop();
+                console.log("Initializing chat system, token exists:", !!token);
+                
+                // Default to hiding the chat sidebar
+                chatSidebar.classList.add('hidden');
+                toggleSidebar.classList.add('hidden');
+                container.classList.add('full-width');
+                
+                if (!token) {
+                    console.log("No token, hiding sidebar for unauthenticated users");
+                    return;
+                }
+                
+                // Check if user is viewing their own AI
+                try {
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    const currentUsername = tokenData.username;
+                    const isOwnAI = urlUsername === currentUsername;
+                    
+                    console.log("Current user:", currentUsername, "URL username:", urlUsername, "Is own AI:", isOwnAI);
+                    
+                    if (!isOwnAI) {
+                        console.log("User is not viewing their own AI, hiding chat sidebar");
+                        return;
+                    }
+                    
+                    console.log("User is viewing their own AI, showing chat sidebar");
+                    
+                    // Check saved sidebar preference
+                    const isHidden = localStorage.getItem('sidebarHidden') === 'true';
+                    console.log("Saved sidebar preference, isHidden:", isHidden);
+                    
+                    if (isHidden) {
+                        console.log("Applying saved preference: hide sidebar");
+                        chatSidebar.classList.add('hidden');
+                        toggleSidebar.classList.add('hidden');
+                        container.classList.add('full-width');
+                        toggleSidebar.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    } else {
+                        console.log("Applying saved preference or default: show sidebar");
+                        chatSidebar.classList.remove('hidden');
+                        toggleSidebar.classList.remove('hidden');
+                        container.classList.remove('full-width');
+                        toggleSidebar.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                    }
+                    
+                    // Add event listeners
+                    if (newChatButton) {
+                        newChatButton.addEventListener('click', createNewChat);
+                    }
+                    
+                    // Load chats
+                    loadChats();
+                } catch (error) {
+                    console.error("Error checking if user is viewing their own AI:", error);
+                }
+            };
+            
+            // Run initialization
+            initChatSystem();
 
+            // Add debugging logs
+            console.log("Script initialized, checking for token:", localStorage.getItem('token') ? "Token found" : "No token");
+            
+            // Also initialize when DOM is fully loaded to ensure all elements exist
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log("DOM fully loaded, initializing chat system");
+                initChatSystem();
+                
+                // Add event listener to new chat button
+                const newChatButton = document.getElementById('newChatButton');
+                if (newChatButton) {
+                    console.log("New chat button found, adding event listener");
+                    newChatButton.addEventListener('click', createNewChat);
+                } else {
+                    console.error("New chat button not found in DOM");
+                }
+                
+                // Add event listener to toggle sidebar button
+                const toggleSidebar = document.getElementById('toggleSidebar');
+                if (toggleSidebar) {
+                    console.log("Toggle sidebar button found, adding event listener");
+                    toggleSidebar.addEventListener('click', () => {
+                        const chatSidebar = document.getElementById('chatSidebar');
+                        const container = document.querySelector('.container');
+                        
+                        // Close the right drawer if it's open
+                        if (document.body.classList.contains('drawer-open')) {
+                            document.body.classList.remove('drawer-open');
+                        }
+                        
+                        const isHidden = chatSidebar.classList.toggle('hidden');
+                        toggleSidebar.classList.toggle('hidden', isHidden);
+                        container.classList.toggle('full-width', isHidden);
+                        
+                        // Change icon based on state
+                        toggleSidebar.innerHTML = isHidden 
+                            ? '<i class="fas fa-chevron-right"></i>' 
+                            : '<i class="fas fa-chevron-left"></i>';
+                        
+                        // Save preference
+                        localStorage.setItem('sidebarHidden', isHidden);
+                    });
+                } else {
+                    console.error("Toggle sidebar button not found in DOM");
+                }
+            });
+
+            // Load a specific chat
+            const loadChat = async (chatId) => {
+                const token = localStorage.getItem('token');
+                console.log("loadChat called for chat ID:", chatId);
+                
+                if (!token) {
+                    console.log("No token found, cannot load chat");
+                    return;
+                }
+                
+                try {
+                    console.log("Fetching chat details from server...");
+                    const response = await fetch(`/api/chats/${chatId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    console.log("Server response status:", response.status);
+                    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Error response from server:", errorText);
+                        throw new Error(`Failed to load chat: ${response.status} ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log("Chat loaded:", data);
+                    
+                    if (data.success && data.chat) {
+                        // Set current chat ID
+                        currentChatId = chatId;
+                        
+                        // Update UI to show active chat
+                        document.querySelectorAll('.chat-item').forEach(item => {
+                            item.classList.remove('active');
+                            if (item.dataset.id === chatId) {
+                                item.classList.add('active');
+                            }
+                        });
+                        
+                        // Clear existing chat
+                        const chatBox = document.getElementById('chatBox');
+                        chatBox.innerHTML = '';
+                        
+                        // Reset chat history
+                        chatHistory = [];
+                        
+                        // Add messages to chat box
+                        if (data.chat.messages && data.chat.messages.length > 0) {
+                            console.log(`Found ${data.chat.messages.length} messages to display`);
+                            
+                            data.chat.messages.forEach(msg => {
+                                if (msg.role === 'user' || msg.role === 'assistant') {
+                                    console.log("Processing message:", msg.role);
+                                    const messageDiv = document.createElement('div');
+                                    messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`;
+                                    
+                                    if (msg.role === 'user') {
+                                        messageDiv.textContent = msg.content;
+                                    } else {
+                                        // Parse markdown for assistant messages
+                                        let cleanedResponse = msg.content.replace(/\n{3,}/g, '\n\n');
+                                        const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
+                                        cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
+                                        messageDiv.innerHTML = marked.parse(cleanedResponse);
+                                    }
+                                    
+                                    chatBox.appendChild(messageDiv);
+                                    animateMessage(messageDiv);
+                                    
+                                    // Add to chat history
+                                    chatHistory.push({
+                                        role: msg.role,
+                                        content: msg.content
+                                    });
+                                }
+                            });
+                            
+                            // Scroll to bottom
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        } else {
+                            console.log("No messages found in this chat");
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading chat:', error);
+                    const chatBox = document.getElementById('chatBox');
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'message bot-message';
+                    errorMessage.textContent = `Error loading chat: ${error.message}`;
+                    chatBox.appendChild(errorMessage);
+                    animateMessage(errorMessage);
+                }
+            };
+        });
     </script>
 </body>
 

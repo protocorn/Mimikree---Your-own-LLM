@@ -281,7 +281,10 @@ This image shows a portrait of a person'''
         return jsonify({
             "success": True,
             "query": query_text,
-            "response": response.text
+            "response": response.text,
+            "expandedQuery": expanded_query,
+            "queryComplexity": optimal_doc_count,
+            "documentsRetrieved": len(final_docs)
         })
 
     except Exception as e:

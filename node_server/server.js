@@ -123,6 +123,32 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+// Chat Schema
+const chatSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    title: { type: String, default: function() {
+        // Default title is the creation date
+        return new Date().toLocaleDateString();
+    }},
+    messages: [{
+        role: { type: String, enum: ['user', 'assistant', 'system'], required: true },
+        content: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now }
+    }],
+    metadata: {
+        expandedQueries: [String],
+        queryComplexity: [Number],
+        documentsRetrieved: [Number]
+    },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+// Add index for faster retrieval of chats by userId
+chatSchema.index({ userId: 1, createdAt: -1 });
+
+const Chat = mongoose.model('Chat', chatSchema);
+
 // JWT Secret Key from environment variables
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
@@ -765,9 +791,9 @@ app.post('/api/query/:username', async (req, res) => {
         let myusername;
         let is_own_model = false;
         const token = req.headers.authorization?.split(" ")[1];
+        let decoded = null;
         
         if (token) {
-            let decoded;
             try {
                 decoded = jwt.verify(token, JWT_SECRET_KEY);
                 myusername = decoded.username;
@@ -818,7 +844,99 @@ app.post('/api/query/:username', async (req, res) => {
             }
 
             console.log("LLM Response:", response.data.response); // Log the LLM's response
-            res.json({ success: true, response: response.data.response });
+            
+            // Save chat message if user is authenticated AND is chatting with their own AI
+            if (token && decoded?.username && is_own_model) {
+                try {
+                    const user = await User.findOne({ username: decoded.username });
+                    
+                    if (user) {
+                        // Check if chatId is provided (existing chat)
+                        let chat;
+                        const chatId = req.body.chatId;
+                        
+                        if (chatId) {
+                            // Update existing chat
+                            chat = await Chat.findOne({ _id: chatId, userId: user._id });
+                            
+                            if (!chat) {
+                                // Create new chat if chatId is invalid
+                                chat = new Chat({ userId: user._id });
+                            }
+                        } else {
+                            // Check for an existing chat with no messages yet
+                            chat = await Chat.findOne({ 
+                                userId: user._id,
+                                'messages.0': { $exists: false }
+                            });
+                            
+                            if (!chat) {
+                                // Create a new chat
+                                chat = new Chat({ userId: user._id });
+                            }
+                        }
+                        
+                        // Add user message
+                        chat.messages.push({
+                            role: 'user',
+                            content: query,
+                            timestamp: new Date()
+                        });
+                        
+                        // Add assistant response
+                        chat.messages.push({
+                            role: 'assistant',
+                            content: response.data.response,
+                            timestamp: new Date()
+                        });
+                        
+                        // Update metadata (if available in response)
+                        if (response.data.expandedQuery) {
+                            if (!chat.metadata.expandedQueries) chat.metadata.expandedQueries = [];
+                            chat.metadata.expandedQueries.push(response.data.expandedQuery);
+                        }
+                        
+                        if (response.data.queryComplexity) {
+                            if (!chat.metadata.queryComplexity) chat.metadata.queryComplexity = [];
+                            chat.metadata.queryComplexity.push(response.data.queryComplexity);
+                        }
+                        
+                        if (response.data.documentsRetrieved) {
+                            if (!chat.metadata.documentsRetrieved) chat.metadata.documentsRetrieved = [];
+                            chat.metadata.documentsRetrieved.push(response.data.documentsRetrieved);
+                        }
+                        
+                        // Update title if this is the first message
+                        if (chat.messages.length <= 2 && query.length < 50) {
+                            chat.title = query;
+                        } else if (chat.messages.length <= 2) {
+                            chat.title = query.substring(0, 50) + "...";
+                        }
+                        
+                        chat.updatedAt = new Date();
+                        await chat.save();
+                        
+                        // Return chatId with the response
+                        res.json({ 
+                            success: true, 
+                            response: response.data.response,
+                            chatId: chat._id,
+                            expanded_query: response.data.expandedQuery,
+                            query_complexity: response.data.queryComplexity,
+                            documents_retrieved: response.data.documentsRetrieved
+                        });
+                    } else {
+                        // Just return the response without saving chat
+                        res.json({ success: true, response: response.data.response });
+                    }
+                } catch (chatError) {
+                    console.error("Error saving chat:", chatError);
+                    res.json({ success: true, response: response.data.response });
+                }
+            } else {
+                // User is not authenticated, just return the response
+                res.json({ success: true, response: response.data.response });
+            }
 
         } catch (dbError) {
             console.error("Database error fetching user:", dbError);
@@ -888,15 +1006,161 @@ app.post("/api/login", async (req, res) => {
 
         // Create and sign JWT token
         try {
-            const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET_KEY, { expiresIn: "30d" });
+            const token = jwt.sign(
+                { userId: user._id, username: user.username }, 
+                JWT_SECRET_KEY, 
+                { expiresIn: "30d" }
+            );
             console.log("JWT Token:", token); //DEBUG LOGGING
-            res.json({ message: "Login successful", token });
+            res.json({ 
+                message: "Login successful", 
+                token,
+                userId: user._id,
+                username: user.username,
+                name: user.name
+            });
         } catch (jwtError) {
             console.error("JWT Error:", jwtError); // IMPORTANT: Log JWT signing errors
             return res.status(500).json({ message: "Internal server error" });
         }
     } catch (error) {
         console.error("Login error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Middleware to verify JWT token
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET_KEY);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: "Invalid or expired token" });
+    }
+};
+
+// Get all chats for the authenticated user
+app.get('/api/chats', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const chats = await Chat.find({ userId: user._id })
+            .select('_id title createdAt updatedAt')
+            .sort({ updatedAt: -1 });
+        
+        res.json({ success: true, chats });
+    } catch (error) {
+        console.error("Error fetching chats:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Get a specific chat by ID
+app.get('/api/chats/:chatId', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const chat = await Chat.findOne({ _id: req.params.chatId, userId: user._id });
+        
+        if (!chat) {
+            return res.status(404).json({ message: "Chat not found" });
+        }
+        
+        res.json({ success: true, chat });
+    } catch (error) {
+        console.error("Error fetching chat:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Create a new empty chat
+app.post('/api/chats', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const title = req.body.title || 'New Chat';
+        
+        const chat = new Chat({
+            userId: user._id,
+            title: title
+        });
+        
+        await chat.save();
+        
+        res.status(201).json({ success: true, chat });
+    } catch (error) {
+        console.error("Error creating chat:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Update a chat's title
+app.put('/api/chats/:chatId', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const chat = await Chat.findOne({ _id: req.params.chatId, userId: user._id });
+        
+        if (!chat) {
+            return res.status(404).json({ message: "Chat not found" });
+        }
+        
+        if (req.body.title) {
+            chat.title = req.body.title;
+        }
+        
+        chat.updatedAt = new Date();
+        await chat.save();
+        
+        res.json({ success: true, chat });
+    } catch (error) {
+        console.error("Error updating chat:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+
+// Delete a chat
+app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.user.username });
+        
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        
+        const result = await Chat.deleteOne({ _id: req.params.chatId, userId: user._id });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: "Chat not found" });
+        }
+        
+        res.json({ success: true, message: "Chat deleted" });
+    } catch (error) {
+        console.error("Error deleting chat:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
