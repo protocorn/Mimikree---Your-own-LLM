@@ -1384,6 +1384,36 @@
                 padding: 15px 12px 12px;
             }
         }
+
+        /* Add feedback button style */
+        .feedback-btn {
+            background: linear-gradient(135deg, #ff8a00, #ff5c7d);
+            color: white !important;
+            position: relative;
+            overflow: hidden;
+            font-weight: 600;
+            animation: pulse-feedback 2s infinite;
+            box-shadow: 0 4px 15px rgba(255, 92, 125, 0.3);
+        }
+
+        .feedback-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 92, 125, 0.4);
+            animation: none;
+            background: linear-gradient(135deg, #ff5c7d, #ff8a00);
+        }
+
+        @keyframes pulse-feedback {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 92, 125, 0.6);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 92, 125, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 92, 125, 0);
+            }
+        }
     </style>
 </head>
 
@@ -1410,6 +1440,7 @@
             <span id="username-display"></span>
             <a href="/" class="nav-btn active">Home</a>
             <a href="/leaderboard" class="nav-btn">Leaderboard</a>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSf5mAJDd-1BjWd6lO7xC_Tbl41kmU2-_i_e08HcyjP6KtjH5w/viewform?usp=dialog" target="_blank" class="nav-btn feedback-btn"><i class="fas fa-comment-alt"></i> Feedback</a>
             <button id="login-btn" class="nav-btn" onclick="location.href='/login'">Login</button>
             <button id="signup-btn" class="nav-btn primary" onclick="location.href='/signup'">Sign Up</button>
             <button id="logout-btn" class="nav-btn" onclick="logout()" style="display:none;">Logout</button>
