@@ -943,6 +943,101 @@
                 width: 85%;
                 justify-content: center;
             }
+
+            .slideshow-dots {
+                bottom: 15px;
+                right: 50%;
+                transform: translateX(50%);
+            }
+
+            .slideshow-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            .slide-caption {
+                padding: 15px 15px 12px;
+                max-height: 90px;
+                overflow: hidden;
+                transition: max-height 0.3s ease;
+                background: rgba(0, 0, 0, 0.7);
+            }
+            
+            /* Add caption toggle button */
+            .caption-toggle {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 32px;
+                height: 32px;
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 3;
+                font-size: 14px;
+                border: none;
+                outline: none;
+            }
+            
+            /* Caption collapsed state */
+            .slide-caption.collapsed {
+                max-height: 40px;
+                background: rgba(0, 0, 0, 0.5);
+            }
+            
+            .slide-caption.collapsed p {
+                opacity: 0;
+                visibility: hidden;
+            }
+
+            .slide-caption h3 {
+                font-size: 16px;
+                margin-bottom: 5px;
+            }
+            
+            .slide-caption p {
+                font-size: 14px;
+                line-height: 1.3;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+                margin-bottom: 0;
+            }
+            
+            /* Improved mobile navigation */
+            .slideshow-prev, .slideshow-next {
+                width: 36px;
+                height: 36px;
+                background-color: rgba(0, 0, 0, 0.5);
+                font-size: 16px;
+            }
+            
+            .slideshow-prev {
+                left: 5px;
+            }
+            
+            .slideshow-next {
+                right: 5px;
+            }
+            
+            /* Better spacing for small screens */
+            .screenshots-section {
+                padding: 60px 0;
+            }
+            
+            /* Ensure caption text is readable on small screens */
+            .slide-caption {
+                background: rgba(0, 0, 0, 0.7);
+            }
+            
+            /* Stack navigation dots better on small screens */
+            .slideshow-dots {
+                bottom: 15px;
+                right: 50%;
+                transform: translateX(50%);
+            }
         }
         
         @media (min-width: 769px) {
@@ -1058,6 +1153,237 @@
             color: white;
             text-decoration: none;
         }
+
+        /* Screenshots Slideshow Section */
+        .screenshots-section {
+            background-color: white;
+            padding: 100px 0;
+            position: relative;
+        }
+
+        .slideshow-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        .slideshow-slide {
+            display: none;
+            position: relative;
+            transition: 0.6s ease;
+            width: 100%;
+        }
+
+        .slideshow-slide.active {
+            display: block;
+            animation: fadeSlide 0.8s ease-in-out;
+        }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0.4;
+                transform: scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .slideshow-slide img {
+            width: 100%;
+            display: block;
+            height: auto;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide-caption {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+            width: 100%;
+            padding: 25px 20px 20px;
+            color: white;
+            text-align: left;
+            border-bottom-left-radius: var(--border-radius);
+            border-bottom-right-radius: var(--border-radius);
+        }
+
+        .slide-caption h3 {
+            margin: 0 0 5px;
+            font-size: 24px;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .slide-caption p {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .slideshow-prev, .slideshow-next {
+            position: absolute;
+            top: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -25px;
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.3);
+            transition: 0.3s ease;
+            cursor: pointer;
+            z-index: 2;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            user-select: none;
+        }
+
+        .slideshow-prev {
+            left: 15px;
+        }
+
+        .slideshow-next {
+            right: 15px;
+        }
+
+        .slideshow-prev:hover, .slideshow-next:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .slideshow-dots {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .slideshow-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .slideshow-dot.active {
+            background-color: white;
+            transform: scale(1.2);
+        }
+
+        .slideshow-dot:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .slideshow-prev, .slideshow-next {
+                width: 40px;
+                height: 40px;
+                margin-top: -20px;
+                font-size: 18px;
+            }
+
+            .slide-caption h3 {
+                font-size: 20px;
+            }
+
+            .slide-caption p {
+                font-size: 14px;
+            }
+            
+            .slideshow-container {
+                max-width: 95%;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .slideshow-dots {
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .slideshow-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            .slide-caption {
+                padding: 20px 15px 15px;
+            }
+
+            .slide-caption h3 {
+                font-size: 18px;
+            }
+            
+            /* Improved mobile navigation */
+            .slideshow-prev, .slideshow-next {
+                width: 36px;
+                height: 36px;
+                background-color: rgba(0, 0, 0, 0.5);
+                font-size: 16px;
+            }
+            
+            .slideshow-prev {
+                left: 5px;
+            }
+            
+            .slideshow-next {
+                right: 5px;
+            }
+            
+            /* Better spacing for small screens */
+            .screenshots-section {
+                padding: 60px 0;
+            }
+            
+            /* Ensure caption text is readable on small screens */
+            .slide-caption {
+                background: rgba(0, 0, 0, 0.7);
+            }
+            
+            /* Stack navigation dots better on small screens */
+            .slideshow-dots {
+                bottom: 15px;
+                right: 50%;
+                transform: translateX(50%);
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 360px) {
+            .slideshow-prev, .slideshow-next {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            
+            .slide-caption h3 {
+                font-size: 16px;
+                margin-bottom: 2px;
+            }
+            
+            .slide-caption p {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            .slide-caption {
+                padding: 15px 12px 12px;
+            }
+        }
     </style>
 </head>
 
@@ -1135,9 +1461,49 @@
         </div>
     </header>
 
+    <section class="section screenshots-section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">See Mimikree In Action</h2>
+            <div class="slideshow-container" data-aos="fade-up" data-aos-delay="300">
+                <div class="slideshow-slide fade">
+                    <img src="/add_data.png" alt="Mimikree Dashboard">
+                    <div class="slide-caption">
+                        <h3>Intelligent Data Integration</h3>
+                        <p>Transform your documents, social profiles, and knowledge into a powerful AI companion</p>
+                    </div>
+                </div>
+                <div class="slideshow-slide fade">
+                    <img src="/chat_and_share.png" alt="AI Chat Interface">
+                    <div class="slide-caption">
+                        <h3>Your Personal AI Assistant</h3>
+                        <p>Experience natural conversations with an AI that truly understands your unique perspective</p>
+                    </div>
+                </div>
+                <div class="slideshow-slide fade">
+                    <img src="/leaderboard.png" alt="Data Upload">
+                    <div class="slide-caption">
+                        <h3>Engage & Excel</h3>
+                        <p>Climb the ranks and showcase your AI's capabilities in our vibrant community</p>
+                    </div>
+                </div>
+                
+                <!-- Navigation dots -->
+                <div class="slideshow-dots">
+                    <span class="slideshow-dot" onclick="currentSlide(1)"></span>
+                    <span class="slideshow-dot" onclick="currentSlide(2)"></span>
+                    <span class="slideshow-dot" onclick="currentSlide(3)"></span>
+                </div>
+                
+                <!-- Navigation arrows -->
+                <a class="slideshow-prev" onclick="plusSlides(-1)">&#10094;</a>
+                <a class="slideshow-next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+        </div>
+    </section>
+
     <section id="how-it-works" class="video-section">
         <div class="container">
-            <h2 class="section-title" data-aos="fade-up">See Mimikree in Action</h2>
+            <h2 class="section-title" data-aos="fade-up">How It Works</h2>
             <div class="video-container" data-aos="zoom-in" data-aos-delay="300">
                 <iframe src="https://www.youtube.com/embed/NORujHdIocM?si=3ss534jZKdf28RBP" title="Discover Mimikree"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -1265,6 +1631,82 @@
                 duration: 800,
                 easing: 'ease-out',
                 once: true
+            });
+
+            // Initialize slideshow
+            showSlides(1);
+        });
+        
+        // Slideshow functionality
+        let slideIndex = 1;
+        
+        function showSlides(n) {
+            const slides = document.getElementsByClassName("slideshow-slide");
+            const dots = document.getElementsByClassName("slideshow-dot");
+            
+            if (n > slides.length) {
+                slideIndex = 1;
+            }
+            if (n < 1) {
+                slideIndex = slides.length;
+            }
+            
+            // Hide all slides
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].classList.remove("active");
+            }
+            
+            // Remove active state from all dots
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].classList.remove("active");
+            }
+            
+            // Show current slide and activate dot
+            slides[slideIndex - 1].classList.add("active");
+            dots[slideIndex - 1].classList.add("active");
+        }
+        
+        function plusSlides(n) {
+            showSlides(slideIndex += n);
+        }
+        
+        function currentSlide(n) {
+            showSlides(slideIndex = n);
+        }
+        
+        // Auto-advance slides
+        setInterval(() => {
+            plusSlides(1);
+        }, 5000);
+        
+        // Caption toggle functionality for mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create toggle buttons for each slide
+            const slides = document.querySelectorAll('.slideshow-slide');
+            
+            slides.forEach(slide => {
+                const caption = slide.querySelector('.slide-caption');
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'caption-toggle';
+                toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                toggleBtn.setAttribute('aria-label', 'Toggle caption');
+                
+                // Default to collapsed on mobile
+                if (window.innerWidth <= 480) {
+                    caption.classList.add('collapsed');
+                    toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                }
+                
+                toggleBtn.addEventListener('click', function() {
+                    caption.classList.toggle('collapsed');
+                    if (caption.classList.contains('collapsed')) {
+                        toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                    } else {
+                        toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                    }
+                });
+                
+                slide.appendChild(toggleBtn);
             });
         });
         

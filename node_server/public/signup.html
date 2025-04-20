@@ -384,6 +384,19 @@
             color: var(--primary-color);
         }
 
+        /* Validation message styling */
+        .validation-message {
+            font-size: 13px;
+            margin-top: 5px;
+            min-height: 20px;
+            color: #e74c3c;
+            transition: var(--transition);
+        }
+
+        .validation-message.valid {
+            color: #2ecc71;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -441,9 +454,10 @@
                 <header>Create Your Account</header>
                 <form id="signup-form">
                     <div class="field">
-                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="text" name="username" id="username-input" placeholder="Username" required>
                         <i class="fas fa-user input-icon"></i>
                     </div>
+                    <div id="username-validation-message" class="validation-message"></div>
                     <div class="field">
                         <input type="text" name="name" placeholder="Full Name" required>
                         <i class="fas fa-id-card input-icon"></i>
@@ -533,36 +547,79 @@
             stagger: 5
         });
         
+        // Real-time username validation
+        const usernameInput = document.getElementById('username-input');
+        const validationMessage = document.getElementById('username-validation-message');
+        
+        usernameInput.addEventListener('input', function() {
+            const username = this.value.trim();
+            const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+            
+            if (username === '') {
+                validationMessage.textContent = '';
+                validationMessage.className = 'validation-message';
+            } else if (!usernameRegex.test(username)) {
+                validationMessage.textContent = 'Username can only contain letters, numbers, underscores (_) and hyphens (-)';
+                validationMessage.className = 'validation-message';
+            } else {
+                validationMessage.textContent = 'Username format is valid';
+                validationMessage.className = 'validation-message valid';
+            }
+        });
+        
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const formData = new FormData(e.target);
-            const password = formData.get('password');
-            const confirmPassword = formData.get('confirm_password');
-
-            if (password !== confirmPassword) {
-                alert("Passwords do not match!");
-                return; // Stop form submission
+            
+            const username = document.getElementById('username-input').value.trim();
+            const password = document.querySelector('input[name="password"]').value;
+            const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+            
+            // Validate username
+            const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+            if (!usernameRegex.test(username)) {
+                validationMessage.textContent = 'Username can only contain letters, numbers, underscores (_) and hyphens (-)';
+                validationMessage.className = 'validation-message';
+                return;
             }
-            const data = {
-                username: formData.get('username'),
-                name: formData.get('name'),
-                email: formData.get('email'),
-                password: password,
-            };
+            
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            try {
+                const data = {
+                    username: username,
+                    name: document.querySelector('input[name="name"]').value,
+                    email: document.querySelector('input[name="email"]').value,
+                    password: password,
+                };
 
-            const response = await fetch('/api/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
 
-            const result = await response.json();
-            if (response.ok) {
-                alert(result.message);
-                window.location.href = '/login'; // Redirect to login page
-            } else {
-                alert(result.message);
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.href = '/login'; // Redirect to login page
+                } else {
+                    // Check if error is related to username
+                    if (result.message.toLowerCase().includes('username') || result.message.toLowerCase().includes('taken')) {
+                        validationMessage.textContent = result.message;
+                        validationMessage.className = 'validation-message';
+                        // Scroll to and focus on the username field
+                        usernameInput.focus();
+                    } else {
+                        alert(result.message);
+                    }
+                }
+            } catch (error) {
+                alert("An error occurred. Please try again later.");
+                console.error(error);
             }
         });
     </script>
