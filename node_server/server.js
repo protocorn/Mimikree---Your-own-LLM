@@ -145,6 +145,179 @@ app.get('/privacy-policy', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "privacy.html"));
 });
 
+// New route to serve the leaderboard page
+app.get('/leaderboard', async (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "leaderboard.html"));
+});
+
+// API endpoint to fetch leaderboard data
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        // Fetch all users with their ratings and other relevant data
+        const users = await User.find({}, {
+            name: 1,
+            username: 1,
+            ratings: 1,
+            socialProfiles: 1,
+            pdfs: 1,
+            images: 1,
+            selfAssessment: 1
+        });
+
+        // Process users to calculate enhanced credibility scores
+        const models = users.map(user => {
+            let averageRating = 0;
+            const ratingCount = user.ratings ? user.ratings.length : 0;
+            
+            if (ratingCount > 0) {
+                const totalRating = user.ratings.reduce((sum, rating) => sum + rating.rating, 0);
+                averageRating = totalRating / ratingCount;
+            }
+            
+            // Calculate base credibility score: average rating × number of ratings
+            let credibilityScore = averageRating * ratingCount;
+            
+            // Calculate data completeness score
+            const dataCompletenessScore = calculateDataCompletenessScore(user);
+            
+            // Final credibility score combines rating-based score and data completeness
+            const finalCredibilityScore = credibilityScore + dataCompletenessScore;
+            
+            return {
+                name: user.name,
+                username: user.username,
+                averageRating: averageRating,
+                ratingCount: ratingCount,
+                dataCompletenessScore: dataCompletenessScore,
+                credibilityScore: finalCredibilityScore
+            };
+        });
+        
+        // Sort models by enhanced credibility score (highest first)
+        models.sort((a, b) => b.credibilityScore - a.credibilityScore);
+        
+        res.json({ 
+            success: true,
+            models: models
+        });
+    } catch (error) {
+        console.error('Error fetching leaderboard data:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to fetch leaderboard data'
+        });
+    }
+});
+
+// Helper function to calculate data completeness score
+function calculateDataCompletenessScore(user) {
+    let score = 0;
+    
+    // Social profiles: up to 10 points (2 points per connected profile)
+    if (user.socialProfiles) {
+        if (user.socialProfiles.github) score += 2;
+        if (user.socialProfiles.linkedin) score += 2;
+        if (user.socialProfiles.twitter) score += 2;
+        if (user.socialProfiles.medium) score += 2;
+        if (user.socialProfiles.reddit) score += 2;
+    }
+    
+    // PDFs: up to 5 points (1 point per PDF, max 5)
+    if (user.pdfs && user.pdfs.length) {
+        score += Math.min(user.pdfs.length, 5);
+    }
+    
+    // Images: up to 5 points (0.5 points per image, max 5)
+    if (user.images && user.images.length) {
+        score += Math.min(user.images.length * 0.5, 5);
+    }
+    
+    // Self Assessment: up to 5 points
+    if (user.selfAssessment) {
+        if (user.selfAssessment.communicationStyle) score += 1;
+        if (user.selfAssessment.personalityTraits && user.selfAssessment.personalityTraits.length > 0) score += 1;
+        if (user.selfAssessment.writingSample) score += 2;
+        if (user.selfAssessment.interests && user.selfAssessment.interests.length > 0) score += 1;
+    }
+    
+    return score;
+}
+
+// API endpoint to rate a user's model
+app.post('/api/rate-model', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(401).json({ success: false, error: 'Authentication required' });
+        }
+
+        // Verify token to get the rater's information
+        const decoded = jwt.verify(token, JWT_SECRET_KEY);
+        const raterId = decoded.userId;
+
+        const { username, rating } = req.body;
+        
+        if (!username || !rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Invalid rating data. Rating must be between 1-5.'
+            });
+        }
+
+        // Find the user to be rated
+        const userToRate = await User.findOne({ username: username });
+        if (!userToRate) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+
+        // Prevent users from rating themselves
+        if (userToRate._id.toString() === raterId) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'You cannot rate your own model'
+            });
+        }
+
+        // Check if user has already rated this model
+        const existingRatingIndex = userToRate.ratings.findIndex(
+            r => r.rater.toString() === raterId
+        );
+
+        if (existingRatingIndex >= 0) {
+            // Update existing rating
+            userToRate.ratings[existingRatingIndex].rating = rating;
+        } else {
+            // Add new rating
+            userToRate.ratings.push({
+                rater: raterId,
+                rating: rating
+            });
+        }
+
+        await userToRate.save();
+
+        // Calculate new average rating
+        const totalRating = userToRate.ratings.reduce((sum, r) => sum + r.rating, 0);
+        const averageRating = userToRate.ratings.length > 0 ? 
+            totalRating / userToRate.ratings.length : 0;
+
+        res.json({ 
+            success: true, 
+            message: 'Rating submitted successfully',
+            newRating: {
+                average: averageRating,
+                count: userToRate.ratings.length
+            }
+        });
+    } catch (error) {
+        console.error('Error rating model:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to submit rating'
+        });
+    }
+});
+
 // Route to handle form submission
 app.post("/api/submit", async (req, res) => {
     try {
@@ -752,58 +925,6 @@ app.get("/api/user/profile", async (req, res) => {
     } catch (error) {
         console.error("Error fetching user profile:", error);
         res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-app.post("/api/rate/:username", async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ message: "No token provided" });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET_KEY);
-        const raterUser = await User.findOne({ username: decoded.username });
-
-        if (!raterUser) {
-            return res.status(404).json({ message: "Rater user not found" });
-        }
-
-        const { username } = req.params;
-        const { rating } = req.body;
-
-        if (!rating || rating < 1 || rating > 5) {
-            return res.status(400).json({ message: "Invalid rating" });
-        }
-
-        const ratedUser = await User.findOne({ username: username });
-
-        if (!ratedUser) {
-            return res.status(404).json({ message: "Rated user not found" });
-        }
-
-        // Corrected duplicate rating check:
-        const existingRating = ratedUser.ratings.find(r => r.rater.toString() === raterUser._id.toString());
-        if (existingRating) {
-            return res.status(400).json({ message: "You have already rated this model." });
-        }
-
-        ratedUser.ratings.push({
-            rater: raterUser._id,
-            rating: rating,
-        });
-
-        await ratedUser.save();
-
-        res.json({ message: "Rating submitted successfully" });
-    } catch (error) {
-        console.error("Error rating user:", error);
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: "Invalid token" });
-        }
-        else{
-            res.status(500).json({ message: "Try Logging in again" });
-        }
     }
 });
 

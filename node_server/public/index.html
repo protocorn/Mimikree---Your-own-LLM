@@ -196,6 +196,7 @@
             align-items: center;
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             will-change: transform;
+            text-decoration: none;
         }
         
         .logo-container:hover {
@@ -857,6 +858,13 @@
                 width: 100%;
             }
             
+            /* Make anchor links have full width in mobile view */
+            .nav-links a {
+                width: 100%;
+                display: block;
+                text-align: center;
+            }
+            
             #username-display {
                 margin-right: 0;
                 align-self: flex-start;
@@ -993,6 +1001,63 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Add nav-btn styles for consistent navbar buttons */
+        .nav-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            background-color: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .nav-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-btn.active {
+            background-color: rgba(77, 104, 255, 0.15);
+            color: var(--primary-dark);
+            border-bottom: 3px solid var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .nav-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .nav-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        /* Remove underlines from all navigation links */
+        .nav-links a {
+            text-decoration: none;
+        }
+        
+        /* Ensure no underlines on any buttons */
+        button {
+            text-decoration: none;
+        }
+        
+        /* Remove underlines from footer links */
+        .footer-links a {
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            color: white;
+            text-decoration: none;
+        }
     </style>
 </head>
 
@@ -1006,10 +1071,10 @@
     </div>
     
     <nav class="navbar">
-        <div class="logo-container">
+        <a href="/" class="logo-container">
             <img src="Mimikree_logo.png" width="60px" height="60px" alt="Mimikree Logo"/>
             <h1 class="logo">Mimikree</h1>
-        </div>
+        </a>
         
         <button class="mobile-menu-btn" id="mobile-menu-toggle">
             <i class="fas fa-bars"></i>
@@ -1017,9 +1082,11 @@
         
         <div class="nav-links">
             <span id="username-display"></span>
-            <button id="login-btn" class="btn btn-secondary" onclick="location.href='/login'">Login</button>
-            <button id="signup-btn" class="btn btn-primary" onclick="location.href='/signup'">Sign Up</button>
-            <button id="logout-btn" class="btn btn-secondary" onclick="logout()" style="display:none;">Logout</button>
+            <a href="/" class="nav-btn active">Home</a>
+            <a href="/leaderboard" class="nav-btn">Leaderboard</a>
+            <button id="login-btn" class="nav-btn" onclick="location.href='/login'">Login</button>
+            <button id="signup-btn" class="nav-btn primary" onclick="location.href='/signup'">Sign Up</button>
+            <button id="logout-btn" class="nav-btn" onclick="logout()" style="display:none;">Logout</button>
         </div>
     </nav>
     

@@ -83,102 +83,60 @@ prompt_template = ChatPromptTemplate.from_template(
     "### Your Response ###"
 )
 
-# Query complexity assessment prompt
-query_complexity_prompt = PromptTemplate.from_template(
-"""Analyze the following query and determine how many relevant documents would be needed to provide a comprehensive answer.
-Consider these factors:
-1. Query complexity (simple factual queries need fewer documents, complex analytical questions need more)
-2. Breadth of topics (narrow topics need fewer documents, broad topics need more)
-3. Need for diverse perspectives (single-perspective queries need fewer documents)
-4. Temporal aspects (recent events may need fewer but more recent documents)
+# Combined query analysis prompt (expansion + complexity assessment)
+query_analysis_prompt = PromptTemplate.from_template(
+"""Based on the current query and conversation history, perform two tasks:
 
-Query: {query}
-
-Based on this analysis, provide a number between 1 and 15 representing the optimal number of documents to retrieve.
-Return ONLY a number without any explanation."""
-)
-
-# Document relevance assessment prompt
-document_relevance_prompt = PromptTemplate.from_template(
-"""You are a document relevance evaluator. Given the query, conversation history, and retrieved document, determine if the document is relevant to answering the query.
-Score from 0-10, where:
-- 0-3: Not relevant
-- 4-6: Somewhat relevant
-- 7-10: Highly relevant
-
-Query: {query}
-Conversation History: {history}
-Document: {document}
-
-Return ONLY a number between 0 and 10 representing the relevance score without any explanation."""
-)
-
-# Conversation-aware query expansion prompt
-conversation_query_expansion_prompt = PromptTemplate.from_template(
-"""Based on the current query and conversation history, generate an expanded query that captures the full context 
-of what the user is seeking. The expanded query should incorporate relevant context from the conversation history.
+1. Generate an expanded query that captures the full context of what the user is seeking.
+2. Determine how many relevant documents would be needed to provide a comprehensive answer (between 1-15).
 
 Current Query: {query}
 Conversation History:
 {history}
 
-Return ONLY the expanded query that best represents what information is needed based on both the current query and 
-conversation history. Do not include any explanations or additional text."""
+Return your response in this exact format:
+EXPANDED_QUERY: [your expanded query]
+DOCUMENT_COUNT: [number between 1-15]"""
 )
 
-# Initialize LLM for complexity and relevance assessment
-# Using Gemini for assessments
-def get_complexity_assessment(query_text):
-    """Assess query complexity and determine optimal number of documents"""
+# Perform combined query analysis: expansion and complexity assessment
+def analyze_query(query_text, conversation_history=""):
+    """Expand query using conversation history and assess optimal document count in a single call"""
     try:
-        prompt = query_complexity_prompt.format(query=query_text)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content([prompt])
-        # Extract just the number from response
-        number_match = re.search(r'\b(\d+)\b', response.text)
-        if number_match:
-            return min(max(int(number_match.group(1)), 1), 15)  # Ensure between 1-15
-        return 3  # Default to 3 if no number found
-    except Exception as e:
-        print(f"Error in complexity assessment: {e}")
-        return 3  # Default to 3 on error
-
-def get_document_relevance(query_text, document_text, conversation_history=""):
-    """Assess document relevance to the query and conversation history"""
-    try:
-        prompt = document_relevance_prompt.format(
-            query=query_text, 
-            document=document_text,
-            history=conversation_history
-        )
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content([prompt])
-        # Extract just the number from response
-        number_match = re.search(r'\b(\d+)\b', response.text)
-        if number_match:
-            return min(max(int(number_match.group(1)), 0), 10)  # Ensure between 0-10
-        return 5  # Default to middle relevance if no number found
-    except Exception as e:
-        print(f"Error in relevance assessment: {e}")
-        return 5  # Default to middle relevance on error
-
-def expand_query_with_conversation(query_text, conversation_history=""):
-    """Expand the query using conversation history for better context retrieval"""
-    if not conversation_history.strip():
-        return query_text  # If no conversation history, return original query
-    
-    try:
-        prompt = conversation_query_expansion_prompt.format(
+        prompt = query_analysis_prompt.format(
             query=query_text,
             history=conversation_history
         )
         model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content([prompt])
-        expanded_query = response.text.strip()
-        return expanded_query if expanded_query else query_text
+        
+        response_text = response.text.strip()
+        
+        # Extract expanded query
+        expanded_query_match = re.search(r'EXPANDED_QUERY:\s*(.*?)(?:\n|$)', response_text)
+        expanded_query = expanded_query_match.group(1).strip() if expanded_query_match else query_text
+        
+        # Extract document count
+        doc_count_match = re.search(r'DOCUMENT_COUNT:\s*(\d+)', response_text)
+        doc_count = int(doc_count_match.group(1)) if doc_count_match else 3
+        doc_count = min(max(doc_count, 1), 15)  # Ensure between 1-15
+        
+        return expanded_query, doc_count
     except Exception as e:
-        print(f"Error in query expansion: {e}")
-        return query_text  # Return original query on error
+        print(f"Error in query analysis: {e}")
+        return query_text, 3  # Default values on error
+
+# Function to calculate cosine similarity between two vectors
+def cosine_similarity(vec1, vec2):
+    """Calculate cosine similarity between two vectors"""
+    dot_product = sum(a * b for a, b in zip(vec1, vec2))
+    norm1 = sum(a * a for a in vec1) ** 0.5
+    norm2 = sum(b * b for b in vec2) ** 0.5
+    
+    if norm1 == 0 or norm2 == 0:
+        return 0
+    
+    return dot_product / (norm1 * norm2)
 
 @app.route('/process', methods=['POST'])
 def process_document():
@@ -230,20 +188,15 @@ def ask():
                 role = "User" if msg["role"] == "user" else "Assistant"
                 conversation_history += f"{role}: {msg['content']}\n"
         
-        # PHASE 0: Expand query with conversation context
-        expanded_query = expand_query_with_conversation(query_text, conversation_history)
+        # PHASE 1: Combined query expansion and complexity assessment
+        expanded_query, optimal_doc_count = analyze_query(query_text, conversation_history)
         print(f"Original query: {query_text}")
         print(f"Expanded query: {expanded_query}")
+        print(f"Determined optimal document count: {optimal_doc_count}")
         
-        # PHASE 1: Assess query complexity and determine optimal document count
-        optimal_doc_count = get_complexity_assessment(expanded_query)
-        print(f"Determined optimal document count: {optimal_doc_count} for expanded query")
-        
-        # PHASE 2: Initial retrieval with higher k than needed
-        # Generate query embedding using expanded query for better context
+        # PHASE 2: Initial retrieval
+        # Generate query embedding
         query_vector = embedding_model.encode(expanded_query).tolist()
-        
-        # Create a hybrid query: combine original query with expanded one
         original_query_vector = embedding_model.encode(query_text).tolist()
         
         # Create a weighted average of the two vectors (70% expanded, 30% original)
@@ -256,25 +209,28 @@ def ask():
         else:
             normalized_hybrid_vector = hybrid_vector
         
-        # Retrieve more documents than we need for filtering
-        initial_k = min(optimal_doc_count * 2, 25)  # Get 2x optimal count, maximum 25
+        # Retrieve documents
         pinecone_results = index.query(
             vector=normalized_hybrid_vector, 
-            top_k=initial_k, 
+            top_k=optimal_doc_count * 2,  # Get 2x optimal count for filtering
             include_metadata=True, 
             filter={"user_id": username}
         )
         
-        # PHASE 3: Re-rank documents based on relevance with conversation history
+        # PHASE 3: Re-rank documents based on vector similarity to user query
         retrieved_docs = []
-        relevance_scores = []
         
         for match in pinecone_results["matches"]:
             doc_text = match["metadata"]["text"]
-            # Pass conversation history to relevance assessment
-            relevance = get_document_relevance(query_text, doc_text, conversation_history)
-            retrieved_docs.append((doc_text, relevance))
-            relevance_scores.append(relevance)
+            doc_vector = match["values"]
+            
+            # Calculate similarity to original query (gives more weight to exact matches)
+            similarity = cosine_similarity(original_query_vector, doc_vector)
+            
+            # Scale similarity to 0-10 range
+            relevance_score = similarity * 10
+            
+            retrieved_docs.append((doc_text, relevance_score))
         
         # Sort by relevance score (descending)
         retrieved_docs.sort(key=lambda x: x[1], reverse=True)

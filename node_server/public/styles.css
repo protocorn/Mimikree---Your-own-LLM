@@ -24,7 +24,7 @@
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .btn {
@@ -51,6 +51,20 @@
 
 .btn-secondary:hover {
     background: #C0392B;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-link:hover {
+    background-color: rgba(77, 104, 255, 0.1);
+    color: var(--primary-dark);
 }
 
 /* Hero Section */
