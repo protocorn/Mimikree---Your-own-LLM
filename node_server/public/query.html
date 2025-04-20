@@ -212,6 +212,15 @@
             margin: 0.5rem 0;
         }
 
+        /* Add responsive image size limits */
+        @media (min-width: 769px) {
+            .message img {
+                max-width: 500px;
+                max-height: 400px;
+                object-fit: contain;
+            }
+        }
+
         .user-message {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
@@ -2351,7 +2360,13 @@
                         
                         // Process markdown and add to HTML
                         // Clean up excessive newlines before parsing markdown
-                        const cleanedResponse = data.response.replace(/\n{3,}/g, '\n\n');
+                        let cleanedResponse = data.response.replace(/\n{3,}/g, '\n\n');
+                        
+                        // Convert Cloudinary links to image tags
+                        // Match common Cloudinary URL patterns
+                        const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
+                        cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
+                        
                         botMessage.innerHTML = marked.parse(cleanedResponse);
                         
                         // Hide typing indicator
