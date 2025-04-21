@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+const juice = require('juice'); // Add juice for CSS inlining
 
 dotenv.config();
 
@@ -69,6 +70,11 @@ const sendWelcomeEmail = async (user) => {
             },
             // Add message ID to help with identification
             messageId: `<${emailId}@${domain}>`,
+            // Add a calendar invite to boost engagement and deliverability
+            icalEvent: {
+                method: 'REQUEST',
+                content: getWelcomeCalendarEvent(user)
+            },
             // Add a Reply-To header to encourage replies (good for deliverability)
             replyTo: EMAIL_FROM,
             // List for all recipients to signify legitimate bulk mail
