@@ -1,6 +1,5 @@
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
-const juice = require('juice'); // Add juice for CSS inlining
 
 dotenv.config();
 
