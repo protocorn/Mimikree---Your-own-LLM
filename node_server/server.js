@@ -17,7 +17,7 @@ const dotenv = require('dotenv');
 const cloudinary = require('cloudinary').v2;
 // Import email service
 const { sendWelcomeEmail, getWelcomeEmailTemplate, testEmailDelivery } = require('./utils/emailService');
-const juice = require('juice');
+
 
 dotenv.config();
 
