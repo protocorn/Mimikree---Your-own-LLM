@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Email Preview Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4d68ff;
+            --primary-light: #7a8eff;
+            --primary-dark: #3a4fcc;
+            --secondary-color: #ff5c7d;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7ff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: flex;
+            gap: 30px;
+        }
+        
+        .config-panel {
+            width: 300px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(77, 104, 255, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(77, 104, 255, 0.3);
+        }
+        
+        .preview-container {
+            flex: 1;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            position: relative;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .preview-iframe {
+            width: 100%;
+            height: calc(100vh - 160px);
+            border: 1px solid #eee;
+            border-radius: var(--border-radius);
+        }
+        
+        .reload-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .reload-btn:hover {
+            background-color: rgba(77, 104, 255, 0.1);
+        }
+        
+        .device-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .device-btn {
+            background-color: transparent;
+            color: #555;
+            border: 1px solid #ddd;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0;
+        }
+        
+        .device-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .open-new-tab {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        
+        .open-new-tab:hover {
+            background-color: rgba(255, 92, 125, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="config-panel">
+            <h1>Email Preview Tool</h1>
+            <form id="preview-form">
+                <div>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" value="Test User" placeholder="Enter name">
+                </div>
+                
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="test@example.com" placeholder="Enter email">
+                </div>
+                
+                <div>
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="testuser" placeholder="Enter username">
+                </div>
+                
+                <button type="submit">Update Preview</button>
+            </form>
+        </div>
+        
+        <div class="preview-container">
+            <div class="preview-header">
+                <h1>Email Preview</h1>
+                <div class="actions">
+                    <button class="reload-btn" id="reload-preview">Reload</button>
+                    <button class="open-new-tab" id="open-new-tab">Open in New Tab</button>
+                </div>
+            </div>
+            
+            <div class="device-selector">
+                <button class="device-btn active" data-width="100%">Desktop</button>
+                <button class="device-btn" data-width="768px">Tablet</button>
+                <button class="device-btn" data-width="375px">Mobile</button>
+            </div>
+            
+            <iframe id="preview-frame" class="preview-iframe" src="/preview-welcome-email"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('preview-form');
+            const previewFrame = document.getElementById('preview-frame');
+            const reloadBtn = document.getElementById('reload-preview');
+            const openNewTabBtn = document.getElementById('open-new-tab');
+            const deviceBtns = document.querySelectorAll('.device-btn');
+            
+            // Update preview when form is submitted
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                updatePreview();
+            });
+            
+            // Reload preview
+            reloadBtn.addEventListener('click', function() {
+                updatePreview();
+            });
+            
+            // Open in new tab
+            openNewTabBtn.addEventListener('click', function() {
+                const url = generatePreviewUrl();
+                window.open(url, '_blank');
+            });
+            
+            // Device selector
+            deviceBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deviceBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    previewFrame.style.width = this.dataset.width;
+                });
+            });
+            
+            function updatePreview() {
+                previewFrame.src = generatePreviewUrl();
+            }
+            
+            function generatePreviewUrl() {
+                const name = encodeURIComponent(document.getElementById('name').value || 'Test User');
+                const email = encodeURIComponent(document.getElementById('email').value || 'test@example.com');
+                const username = encodeURIComponent(document.getElementById('username').value || 'testuser');
+                
+                return `/preview-welcome-email?name=${name}&email=${email}&username=${username}`;
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -458,6 +458,7 @@
                         <i class="fas fa-user input-icon"></i>
                     </div>
                     <div id="username-validation-message" class="validation-message"></div>
+                    <div class="help-text" style="font-size: 12px; margin-top: 5px; color: #666;">Usernames will be automatically converted to lowercase.</div>
                     <div class="field">
                         <input type="text" name="name" placeholder="Full Name" required>
                         <i class="fas fa-id-card input-icon"></i>
@@ -552,7 +553,10 @@
         const validationMessage = document.getElementById('username-validation-message');
         
         usernameInput.addEventListener('input', function() {
-            const username = this.value.trim();
+            const username = this.value.trim().toLowerCase();
+            // Update the input field with lowercase value
+            this.value = username;
+            
             const usernameRegex = /^[a-zA-Z0-9_-]+$/;
             
             if (username === '') {
@@ -570,7 +574,7 @@
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('username-input').value.trim();
+            const username = document.getElementById('username-input').value.trim().toLowerCase();
             const password = document.querySelector('input[name="password"]').value;
             const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
             

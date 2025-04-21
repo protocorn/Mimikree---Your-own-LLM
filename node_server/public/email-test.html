@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Delivery Test Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4d68ff;
+            --primary-light: #7a8eff;
+            --primary-dark: #3a4fcc;
+            --secondary-color: #ff5c7d;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7ff;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        
+        h1 {
+            font-size: 26px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+            text-align: center;
+        }
+        
+        .description {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(77, 104, 255, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(77, 104, 255, 0.3);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #e7f7ee;
+            border: 1px solid #6fcf97;
+            color: #27ae60;
+        }
+        
+        .error {
+            background-color: #fdeded;
+            border: 1px solid #eb5757;
+            color: #eb5757;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .result-details {
+            margin-bottom: 0;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Email Delivery Test Tool</h1>
+        <p class="description">Use this tool to test if emails are being delivered correctly and not going to spam.</p>
+        
+        <form id="test-form">
+            <div>
+                <label for="email">Test Email Address:</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+            </div>
+            
+            <button type="submit">Send Test Email</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="loader"></div>
+            <p>Sending test email...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <h3 class="result-title" id="result-title"></h3>
+            <p class="result-details" id="result-details"></p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('test-form');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const resultTitle = document.getElementById('result-title');
+            const resultDetails = document.getElementById('result-details');
+            
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                
+                // Show loading
+                loading.style.display = 'block';
+                result.style.display = 'none';
+                
+                try {
+                    // Get the JWT token from localStorage
+                    const token = localStorage.getItem('token');
+                    
+                    if (!token) {
+                        throw new Error('You must be logged in to use this tool. Please log in first.');
+                    }
+                    
+                    const response = await fetch('/api/test-email', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Hide loading
+                    loading.style.display = 'none';
+                    
+                    // Show result
+                    result.style.display = 'block';
+                    
+                    if (data.success) {
+                        result.className = 'result success';
+                        resultTitle.textContent = 'Test Email Sent Successfully!';
+                        resultDetails.textContent = `A test email has been sent to ${email}. Please check your inbox (and spam folder) to verify delivery. Message ID: ${data.messageId}`;
+                    } else {
+                        result.className = 'result error';
+                        resultTitle.textContent = 'Error Sending Test Email';
+                        resultDetails.textContent = data.error || data.message || 'An unknown error occurred';
+                    }
+                } catch (error) {
+                    // Hide loading
+                    loading.style.display = 'none';
+                    
+                    // Show error
+                    result.style.display = 'block';
+                    result.className = 'result error';
+                    resultTitle.textContent = 'Error';
+                    resultDetails.textContent = error.message || 'An unknown error occurred';
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

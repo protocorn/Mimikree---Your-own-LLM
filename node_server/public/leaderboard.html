@@ -158,6 +158,19 @@
         .mobile-menu-btn.active i {
             transform: rotate(90deg);
         }
+        
+        /* Make sure the X icon is visible with proper z-index */
+        .mobile-menu-btn.active {
+            position: fixed;
+            right: 15px;
+            top: 15px;
+            z-index: 1002;
+        }
+        
+        /* Ensure the fa-times class is visible and properly styled */
+        .mobile-menu-btn i.fa-times {
+            color: var(--primary-dark);
+        }
 
         /* Footer styles from index.html */
         .footer {
@@ -945,6 +958,7 @@
             background: linear-gradient(135deg, rgba(77, 104, 255, 0.08), rgba(77, 104, 255, 0.15));
             padding: 0;
             border-radius: var(--border-radius);
+            margin-top: 30px; /* Added top margin */
             margin-bottom: 40px;
             color: var(--dark-color);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -1824,30 +1838,6 @@
     <!-- Leaderboard Section -->
     <div class="leaderboard-container container">
         <h1 class="leaderboard-title section-title">Leaderboard</h1>
-        <div class="score-explanation">
-            <div class="explanation-inner">
-                <h3>Credibility Score System</h3>
-                <p>Models are ranked based on our comprehensive credibility system that rewards both community ratings and profile completeness.</p>
-                
-                <div class="score-formula">
-                    <div class="formula-item">Credibility Score</div>
-                    <div class="formula-equals">=</div>
-                    <div class="formula-item">Rating Score</div>
-                    <div class="formula-plus">x</div>
-                    <div class="formula-item">Rating Count</div>
-                    <div class="formula-plus">+</div>
-                    <div class="formula-item">Data Completeness</div>
-                </div>
-                
-                <p>Profile completeness awards additional points for providing helpful information:</p>
-                <div class="score-details">
-                    <div class="detail-item"><i class="fas fa-link"></i> Social profiles</div>
-                    <div class="detail-item"><i class="fas fa-file-pdf"></i> PDF uploads</div>
-                    <div class="detail-item"><i class="fas fa-image"></i> Image uploads</div>
-                    <div class="detail-item"><i class="fas fa-clipboard-list"></i> Self-assessment</div>
-                </div>
-            </div>
-        </div>
         
         <!-- Add search bar -->
         <div class="search-container">
@@ -1874,6 +1864,32 @@
             <div id="user-rank-section" style="display: none;">
                 <h3 class="user-rank-title">Your Position</h3>
                 <div id="user-rank-card"></div>
+            </div>
+        </div>
+
+        <!-- Moved Credibility Score Section Inside Container -->
+        <div class="score-explanation">
+            <div class="explanation-inner">
+                <h3>Credibility Score System</h3>
+                <p>Models are ranked based on our comprehensive credibility system that rewards both community ratings and profile completeness.</p>
+                
+                <div class="score-formula">
+                    <div class="formula-item">Credibility Score</div>
+                    <div class="formula-equals">=</div>
+                    <div class="formula-item">Rating Score</div>
+                    <div class="formula-plus">x</div>
+                    <div class="formula-item">Rating Count</div>
+                    <div class="formula-plus">+</div>
+                    <div class="formula-item">Data Completeness</div>
+                </div>
+                
+                <p>Profile completeness awards additional points for providing helpful information:</p>
+                <div class="score-details">
+                    <div class="detail-item"><i class="fas fa-link"></i> Social profiles</div>
+                    <div class="detail-item"><i class="fas fa-file-pdf"></i> PDF uploads</div>
+                    <div class="detail-item"><i class="fas fa-image"></i> Image uploads</div>
+                    <div class="detail-item"><i class="fas fa-clipboard-list"></i> Self-assessment</div>
+                </div>
             </div>
         </div>
     </div>
@@ -1913,7 +1929,7 @@
                     this.classList.toggle('active');
                     navLinks.classList.toggle('active');
                     
-                    // Toggle icon
+                    // Toggle icon - ensure icon is changed properly
                     const icon = this.querySelector('i');
                     if (icon.classList.contains('fa-bars')) {
                         icon.classList.remove('fa-bars');
@@ -1922,6 +1938,30 @@
                         icon.classList.remove('fa-times');
                         icon.classList.add('fa-bars');
                     }
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!mobileMenuBtn.contains(event.target) && 
+                        !navLinks.contains(event.target) && 
+                        navLinks.classList.contains('active')) {
+                        mobileMenuBtn.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        const icon = mobileMenuBtn.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Close menu when clicking nav links
+                navLinks.querySelectorAll('a, button').forEach(item => {
+                    item.addEventListener('click', function() {
+                        mobileMenuBtn.classList.remove('active');
+                        navLinks.classList.remove('active');
+                        const icon = mobileMenuBtn.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    });
                 });
             }
 

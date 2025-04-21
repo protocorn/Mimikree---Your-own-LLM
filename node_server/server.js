@@ -15,6 +15,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const cloudinary = require('cloudinary').v2;
+// Import email service
+const { sendWelcomeEmail, getWelcomeEmailTemplate, testEmailDelivery } = require('./utils/emailService');
+const juice = require('juice');
 
 dotenv.config();
 
@@ -174,6 +177,23 @@ app.get('/privacy-policy', async (req, res) => {
 // New route to serve the leaderboard page
 app.get('/leaderboard', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "leaderboard.html"));
+});
+
+// Preview welcome email route
+app.get('/preview-welcome-email', async (req, res) => {
+    const user = {
+        name: req.query.name || 'Test User',
+        email: req.query.email || 'test@example.com',
+        username: req.query.username || 'testuser'
+    };
+
+    const html = getWelcomeEmailTemplate(user);
+    // No need to use juice since we've manually inlined all styles
+    res.send(html);
+});
+
+app.get('/email-preview', (req, res) => {
+    res.sendFile(path.join(__dirname, '/public/email-preview.html'));
 });
 
 // API endpoint to fetch leaderboard data
@@ -971,6 +991,16 @@ app.post("/api/signup", async (req, res) => {
         const newUser = new User({ username, name, email, password: hashedPassword });
         await newUser.save();
 
+        // Send welcome email
+        try {
+            console.log("Attempting to send welcome email to:", email);
+            const emailResult = await sendWelcomeEmail(newUser);
+            console.log("Welcome email sending result:", emailResult);
+        } catch (emailError) {
+            console.error("Failed to send welcome email:", emailError);
+            // Continue with registration even if email fails
+        }
+
         res.status(201).json({ message: "User created successfully" });
     } catch (error) {
         console.error(error);
@@ -1301,4 +1331,30 @@ app.get("/api/config/google-calendar", (req, res) => {
         discoveryDoc: process.env.GOOGLE_CALENDAR_DISCOVERY_DOC || 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
         scopes: process.env.GOOGLE_CALENDAR_SCOPES || 'https://www.googleapis.com/auth/calendar.readonly'
     });
+});
+
+// Add a route to test email delivery
+app.post('/api/test-email', authenticateToken, async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email address is required" });
+        }
+        
+        const result = await testEmailDelivery(email);
+        res.json(result);
+    } catch (error) {
+        console.error("Error testing email delivery:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to test email delivery",
+            error: error.message
+        });
+    }
+});
+
+// Serve the email test page
+app.get('/email-test', async (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "email-test.html"));
 });
