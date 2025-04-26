@@ -2235,6 +2235,142 @@
                 opacity: 0;
             }
         }
+
+        /* New feature announcement in chat box */
+        .feature-announcement {
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            color: white;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px auto;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(110, 142, 251, 0.3);
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+            animation: pulse-bg 2s infinite alternate;
+        }
+        
+        .feature-announcement:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(50%, -50%);
+        }
+        
+        .feature-announcement-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-announcement-badge {
+            background-color: white;
+            color: #6e8efb;
+            font-weight: bold;
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+        
+        .feature-announcement-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        .feature-announcement-body {
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .feature-announcement-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .feature-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .feature-btn-primary {
+            background-color: white;
+            color: #6e8efb;
+        }
+        
+        .feature-btn-primary:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+        
+        .feature-btn-secondary {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .feature-btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .feature-announcement-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 2;
+        }
+        
+        .feature-announcement-close:hover {
+            color: white;
+        }
+        
+        @keyframes pulse-bg {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Remove feature highlight tooltip CSS */
+        .feature-highlight {
+            display: none !important; /* Hide completely */
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(110, 142, 251, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(110, 142, 251, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(110, 142, 251, 0);
+            }
+        }
     </style>
 </head>
 
@@ -2385,7 +2521,7 @@
                 
                 <!-- Additional sharing options -->
                 <div id="sharing-box" style="margin-top: 20px;">
-                    <h3>Share On Social Media</h3>
+                    <div class="drawer-section-title">Share On Social Media</div>
                     <div class="social-share">
                         <a href="#" class="share-button twitter-share" id="twitter-share"><i class="fab fa-twitter"></i> Twitter</a>
                         <a href="#" class="share-button facebook-share" id="facebook-share"><i class="fab fa-facebook-f"></i> Facebook</a>
@@ -2395,7 +2531,7 @@
                 
                 <!-- Embed option - only visible for own AI -->
                 <div id="embed-box" style="margin-top: 20px; display: none;">
-                    <h3>Embed Your AI Chat</h3>
+                    <div class="drawer-section-title">Embed Your AI Chat</div>
                     <p style="margin-bottom: 15px; font-size: 0.9rem;">Add your AI chat widget to your website or blog with this code:</p>
                     <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 10px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; display: none;" id="embedCodeContainer">
                         <!-- Embed code will be inserted here by script -->
@@ -2467,6 +2603,16 @@
         </div>
     </div>
 
+    <!-- Feature highlight tooltip for embed feature -->
+    <!-- <div id="embedFeatureHighlight" class="feature-highlight">
+        <div class="feature-highlight-arrow"></div>
+        <button class="feature-highlight-dismiss" id="dismissFeatureHighlight">×</button>
+        <div class="feature-highlight-title">NEW! Embed Your AI</div>
+        <div class="feature-highlight-content">You can now embed your AI assistant on your website or blog! Click Share to check it out.</div>
+        <button class="feature-highlight-button" id="showEmbedFeature">Show Me How</button>
+        <button class="feature-highlight-button" id="remindMeLater">Remind Later</button>
+    </div> -->
+
     <script>
     // Preloader
     window.addEventListener('load', function() {
@@ -2500,1646 +2646,1766 @@
         console.error("Error extracting username from token:", error);
     }
     
-        document.addEventListener('DOMContentLoaded', function () {
-            const connectButton = document.getElementById('calendarConnectButton');
-            const statusDisplay = document.getElementById('calendarConnectionStatus');
-            const urlUsername = window.location.pathname.split('/').pop();
-            const examplePromptsContainer = document.querySelector('.example-prompts');
-            const drawerToggle = document.getElementById('drawerToggle');
-            const drawer = document.getElementById('drawer');
-            const drawerClose = document.getElementById('drawerClose');
-            const drawerOverlay = document.getElementById('drawerOverlay');
-            const shareToggle = document.getElementById('shareToggle');
-            
-            // Initialize drawer overlay behavior for desktop
+    // Feature highlight for embed functionality
+    // function showEmbedFeatureHighlight() {
+    //     // Only show if user hasn't dismissed it before
+    //     console.log("Show embed feature highlight called. isOwnAI:", isOwnAI);
+    //     if (!localStorage.getItem('embedFeatureDismissed') && isOwnAI) {
+    //         setTimeout(() => {
+    //             const highlight = document.getElementById('embedFeatureHighlight');
+    //             if (highlight) {
+    //                 console.log("Showing embed feature highlight");
+    //                 highlight.classList.add('visible');
+    //             } else {
+    //                 console.log("Feature highlight element not found");
+    //             }
+    //         }, 3000); // Show after 3 seconds
+    //     } else {
+    //         console.log("Not showing feature highlight. Dismissed:", localStorage.getItem('embedFeatureDismissed'));
+    //     }
+    // }
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize feature highlight buttons - remove this section
+        // const dismissBtn = document.getElementById('dismissFeatureHighlight');
+        // const showEmbedBtn = document.getElementById('showEmbedFeature');
+        // const remindLaterBtn = document.getElementById('remindMeLater');
+        // 
+        // if (dismissBtn) {
+        //     dismissBtn.addEventListener('click', function() {
+        //         document.getElementById('embedFeatureHighlight').classList.remove('visible');
+        //         localStorage.setItem('embedFeatureDismissed', 'true');
+        //     });
+        // }
+        // 
+        // if (showEmbedBtn) {
+        //     showEmbedBtn.addEventListener('click', function() {
+        //         document.getElementById('embedFeatureHighlight').classList.remove('visible');
+        //         openDrawerToShare();
+        //         // Highlight the embed section
+        //         const embedBox = document.getElementById('embed-box');
+        //         if (embedBox) {
+    //             embedBox.scrollIntoView({ behavior: 'smooth' });
+    //             embedBox.style.animation = 'pulse 2s';
+    //         }
+    //         localStorage.setItem('embedFeatureDismissed', 'true');
+    //     });
+    // }
+    // 
+    // if (remindLaterBtn) {
+    //     remindLaterBtn.addEventListener('click', function() {
+    //         document.getElementById('embedFeatureHighlight').classList.remove('visible');
+    //         // Will show again next session since we're not setting local storage
+    //     });
+    // }
+        
+        const connectButton = document.getElementById('calendarConnectButton');
+        const statusDisplay = document.getElementById('calendarConnectionStatus');
+        const urlUsername = window.location.pathname.split('/').pop();
+        const examplePromptsContainer = document.querySelector('.example-prompts');
+        const drawerToggle = document.getElementById('drawerToggle');
+        const drawer = document.getElementById('drawer');
+        const drawerClose = document.getElementById('drawerClose');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const shareToggle = document.getElementById('shareToggle');
+        
+        // Initialize drawer overlay behavior for desktop
+        if (window.innerWidth >= 768) {
+            drawerOverlay.style.pointerEvents = 'none';
+        }
+        
+        // Handle resize events to adjust drawer overlay behavior
+        window.addEventListener('resize', function() {
             if (window.innerWidth >= 768) {
                 drawerOverlay.style.pointerEvents = 'none';
+            } else {
+                drawerOverlay.style.pointerEvents = 'auto';
+            }
+        });
+        
+        // Simple drawer toggle functionality
+        function toggleDrawer() {
+            // Close the chat sidebar if it's open
+            const chatSidebar = document.getElementById('chatSidebar');
+            if (chatSidebar && !chatSidebar.classList.contains('hidden')) {
+                chatSidebar.classList.add('hidden');
+                document.getElementById('toggleSidebar').classList.add('hidden');
+                document.querySelector('.container').classList.add('full-width');
+                document.getElementById('toggleSidebar').innerHTML = '<i class="fas fa-chevron-right"></i>';
             }
             
-            // Handle resize events to adjust drawer overlay behavior
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 768) {
-                    drawerOverlay.style.pointerEvents = 'none';
-                } else {
-                    drawerOverlay.style.pointerEvents = 'auto';
-                }
-            });
-            
-            // Simple drawer toggle functionality
-            function toggleDrawer() {
-                // Close the chat sidebar if it's open
-                const chatSidebar = document.getElementById('chatSidebar');
-                if (chatSidebar && !chatSidebar.classList.contains('hidden')) {
-                    chatSidebar.classList.add('hidden');
-                    document.getElementById('toggleSidebar').classList.add('hidden');
-                    document.querySelector('.container').classList.add('full-width');
-                    document.getElementById('toggleSidebar').innerHTML = '<i class="fas fa-chevron-right"></i>';
-                }
+            // Use different classes for desktop and mobile
+            if (window.innerWidth >= 768) {
+                // On desktop, use a special class that doesn't darken the UI
+                document.body.classList.toggle('drawer-open-desktop');
                 
-                // Use different classes for desktop and mobile
-                if (window.innerWidth >= 768) {
-                    // On desktop, use a special class that doesn't darken the UI
-                    document.body.classList.toggle('drawer-open-desktop');
-                    
-                    // Make sure the regular class isn't also applied
-                    document.body.classList.remove('drawer-open');
-                } else {
-                    // On mobile, use the normal class
-                document.body.classList.toggle('drawer-open');
-                }
+                // Make sure the regular class isn't also applied
+                document.body.classList.remove('drawer-open');
+            } else {
+                // On mobile, use the normal class
+            document.body.classList.toggle('drawer-open');
             }
-            
-            // Function to open drawer and show share section
-            function openDrawerToShare() {
-                // Use different classes for desktop and mobile
-                if (window.innerWidth >= 768) {
-                    // On desktop, use the special class that doesn't darken the UI
-                    document.body.classList.add('drawer-open-desktop');
-                    
-                    // Make sure the regular class isn't also applied
-                    document.body.classList.remove('drawer-open');
-                } else {
-                    // On mobile, use the normal class
-                document.body.classList.add('drawer-open');
-                }
+        }
+        
+        // Function to open drawer and show share section
+        function openDrawerToShare() {
+            // Use different classes for desktop and mobile
+            if (window.innerWidth >= 768) {
+                // On desktop, use the special class that doesn't darken the UI
+                document.body.classList.add('drawer-open-desktop');
                 
-                // Handle visibility of drawer sections based on whether it's user's own AI
-                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
-                if (servicesSection) {
-                    servicesSection.style.display = isOwnAI ? 'block' : 'none';
-                }
-                
-                // Scroll to share section if needed
-                const shareSection = document.querySelector('.drawer-share-section');
-                if (shareSection) {
-                    shareSection.scrollIntoView({ behavior: 'smooth' });
-                }
+                // Make sure the regular class isn't also applied
+                document.body.classList.remove('drawer-open');
+            } else {
+                // On mobile, use the normal class
+            document.body.classList.add('drawer-open');
             }
             
-            // Add click event listeners
-            drawerToggle.addEventListener('click', function() {
-                toggleDrawer();
-                
-                // Handle visibility of drawer sections based on whether it's user's own AI
-                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
-                if (servicesSection) {
-                    servicesSection.style.display = isOwnAI ? 'block' : 'none';
-                }
-            });
-            
-            drawerClose.addEventListener('click', toggleDrawer);
-            drawerOverlay.addEventListener('click', toggleDrawer);
-            
-            // Share button click handler
-            if (shareToggle) {
-                shareToggle.addEventListener('click', openDrawerToShare);
+            // Handle visibility of drawer sections based on whether it's user's own AI
+            const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+            if (servicesSection) {
+                servicesSection.style.display = isOwnAI ? 'block' : 'none';
             }
             
-            // Check if previously connected
-            const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
-            updateConnectionUI(isConnected);
-            if (!isConnected) {
-                connectButton.classList.add('connect');
+            // Scroll to share section if needed
+            const shareSection = document.querySelector('.drawer-share-section');
+            if (shareSection) {
+                shareSection.scrollIntoView({ behavior: 'smooth' });
             }
+        }
+        
+        // Add click event listeners
+        drawerToggle.addEventListener('click', function() {
+            toggleDrawer();
+            
+            // Handle visibility of drawer sections based on whether it's user's own AI
+            const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+            if (servicesSection) {
+                servicesSection.style.display = isOwnAI ? 'block' : 'none';
+            }
+        });
+        
+        drawerClose.addEventListener('click', toggleDrawer);
+        drawerOverlay.addEventListener('click', toggleDrawer);
+        
+        // Share button click handler
+        if (shareToggle) {
+            shareToggle.addEventListener('click', openDrawerToShare);
+        }
+        
+        // Check if previously connected
+        const isConnected = localStorage.getItem('googleCalendarConnected') === 'true';
+        updateConnectionUI(isConnected);
+        if (!isConnected) {
+            connectButton.classList.add('connect');
+        }
 
-            // Hide sharing elements on mobile if not the user's own AI
-            const currentUserToken = localStorage.getItem("token");
-            let isOwnAI = false;
+        // Hide sharing elements on mobile if not the user's own AI
+        const currentUserToken = localStorage.getItem("token");
+        let isOwnAI = false;
+        
+        // Default to hiding left sidebar for all users initially
+        // But always show the right drawer toggle
+        drawerToggle.style.display = 'flex';
+        drawer.style.display = 'block';
+        
+        // Also show share toggle by default
+        if (shareToggle) {
+            shareToggle.style.display = 'flex';
+        }
+        
+        // Hide chat sidebar by default
+        const sidebarElement = document.getElementById('chatSidebar');
+        const sidebarToggleBtn = document.getElementById('toggleSidebar');
+        if (sidebarElement) sidebarElement.classList.add('hidden');
+        if (sidebarToggleBtn) sidebarToggleBtn.style.display = 'none';
+
+        // Initialize example prompts and UI based on user state
+        if (currentUserToken) {
+            try {
+                const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
+                const currentUsername = tokenData.username;
+
+                if (urlUsername && currentUsername && urlUsername === currentUsername) {
+                    // This is the user's own AI
+                    document.querySelector('h1').innerHTML = "Chat with Your AI";
+                    isOwnAI = true;
+                    
+                    // Show left sidebar toggle for the AI owner
+                    if (sidebarToggleBtn) {
+                        sidebarToggleBtn.style.display = 'flex';
+                    }
+                    
+                    // Show embed option for own AI
+                    const embedBox = document.getElementById('embed-box');
+                    if (embedBox) {
+                        embedBox.style.display = 'block';
+                    }
+                    
+                    // Initialize copy embed code button
+                    const copyEmbedButton = document.getElementById('copyEmbedButton');
+                    if (copyEmbedButton) {
+                        // This code is now handled in the script tag above
+                        // No need to add listener here
+                    }
+                    
+                    const prompts = [
+                        "Create a roadmap for me to study [Topic name]",
+                        "Write a tweet about my latest project",
+                        "What are the top projects/skills I should showcase?",
+                        "Help me write a bio for my profile"
+                    ];
+
+                    examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                        `<div class="example-prompt">${prompt}</div>`
+                    ).join('');
+                    
+                    // Update share link display with current URL
+                    const currentLink = window.location.href;
+                    const linkDisplay = document.getElementById('currentLinkDisplay');
+                    if (linkDisplay) {
+                        linkDisplay.value = currentLink;
+                    }
+                    
+                    // Set up the social share links
+                    const twitterShare = document.getElementById('twitter-share');
+                    const facebookShare = document.getElementById('facebook-share');
+                    const emailShare = document.getElementById('email-share');
+                    
+                    if (twitterShare) {
+                        twitterShare.href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentLink)}&text=${encodeURIComponent('Check out my personalized AI assistant!')}`;
+                    }
+                    
+                    if (facebookShare) {
+                        facebookShare.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentLink)}`;
+                    }
+                    
+                    if (emailShare) {
+                        emailShare.href = `mailto:?subject=${encodeURIComponent('Check out my personalized AI assistant')}&body=${encodeURIComponent('I wanted to share my personalized AI assistant with you: ' + currentLink)}`;
+                    }
+                    
+                    // Handle copy button click
+                    const copyLinkButton = document.getElementById('copyLinkButton');
+                    if (copyLinkButton) {
+                        copyLinkButton.addEventListener('click', function() {
+                            const linkInput = document.getElementById('currentLinkDisplay');
+                            if (linkInput) {
+                                linkInput.select();
+                                document.execCommand('copy');
+                                
+                                // Show copy tooltip
+                                showCopyTooltip(this, 'Link copied!');
+                            }
+                        });
+                    }
+
+                    // Show feature announcement in chat
+                    setTimeout(showEmbedFeatureAnnouncement, 1000);
+                } else {
+                    // Not the user's own AI
+                    document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
+                    
+                    // Show only share toggle for visitors
+                    if (shareToggle) {
+                        shareToggle.style.display = 'flex';
+                    }
+                    
+                    const prompts = [
+                        `What are ${urlUsername}'s skills?`,
+                        `Tell me about ${urlUsername}'s background`,
+                        `What projects has ${urlUsername} worked on?`,
+                        `What is ${urlUsername}'s experience in [field]?`
+                    ];
+
+                    examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                        `<div class="example-prompt">${prompt}</div>`
+                    ).join('');
+                }
+            } catch (error) {
+                console.error("Error parsing token:", error);
+            }
+        } else {
+            // No user logged in
+            document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
             
-            // Default to hiding left sidebar for all users initially
-            // But always show the right drawer toggle
-            drawerToggle.style.display = 'flex';
-            drawer.style.display = 'block';
-            
-            // Also show share toggle by default
+            // Show only share toggle for visitors
             if (shareToggle) {
                 shareToggle.style.display = 'flex';
             }
             
-            // Hide chat sidebar by default
-            const sidebarElement = document.getElementById('chatSidebar');
-            const sidebarToggleBtn = document.getElementById('toggleSidebar');
-            if (sidebarElement) sidebarElement.classList.add('hidden');
-            if (sidebarToggleBtn) sidebarToggleBtn.style.display = 'none';
+            const prompts = [
+                `What are ${urlUsername}'s skills?`,
+                `Tell me about ${urlUsername}'s background`,
+                `What projects has ${urlUsername} worked on?`,
+                `What is ${urlUsername}'s experience in [field]?`
+            ];
 
-            // Initialize example prompts and UI based on user state
-            if (currentUserToken) {
-                try {
-                    const tokenData = JSON.parse(atob(currentUserToken.split('.')[1]));
-                    const currentUsername = tokenData.username;
-
-                    if (urlUsername && currentUsername && urlUsername === currentUsername) {
-                        // This is the user's own AI
-                        document.querySelector('h1').innerHTML = "Chat with Your AI";
-                        isOwnAI = true;
-                        
-                        // Show left sidebar toggle for the AI owner
-                        if (sidebarToggleBtn) {
-                            sidebarToggleBtn.style.display = 'flex';
-                        }
-                        
-                        // Show embed option for own AI
-                        const embedBox = document.getElementById('embed-box');
-                        if (embedBox) {
-                            embedBox.style.display = 'block';
-                        }
-                        
-                        // Initialize copy embed code button
-                        const copyEmbedButton = document.getElementById('copyEmbedButton');
-                        if (copyEmbedButton) {
-                            // This code is now handled in the script tag above
-                            // No need to add listener here
-                        }
-                        
-                        const prompts = [
-                            "Create a roadmap for me to study [Topic name]",
-                            "Write a tweet about my latest project",
-                            "What are the top projects/skills I should showcase?",
-                            "Help me write a bio for my profile"
-                        ];
-
-                        examplePromptsContainer.innerHTML = prompts.map(prompt => 
-                            `<div class="example-prompt">${prompt}</div>`
-                        ).join('');
-                        
-                        // Update share link display with current URL
-                        const currentLink = window.location.href;
-                        const linkDisplay = document.getElementById('currentLinkDisplay');
-                        if (linkDisplay) {
-                            linkDisplay.value = currentLink;
-                        }
-                        
-                        // Set up the social share links
-                        const twitterShare = document.getElementById('twitter-share');
-                        const facebookShare = document.getElementById('facebook-share');
-                        const emailShare = document.getElementById('email-share');
-                        
-                        if (twitterShare) {
-                            twitterShare.href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(currentLink)}&text=${encodeURIComponent('Check out my personalized AI assistant!')}`;
-                        }
-                        
-                        if (facebookShare) {
-                            facebookShare.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentLink)}`;
-                        }
-                        
-                        if (emailShare) {
-                            emailShare.href = `mailto:?subject=${encodeURIComponent('Check out my personalized AI assistant')}&body=${encodeURIComponent('I wanted to share my personalized AI assistant with you: ' + currentLink)}`;
-                        }
-                        
-                        // Handle copy button click
-                        const copyLinkButton = document.getElementById('copyLinkButton');
-                        if (copyLinkButton) {
-                            copyLinkButton.addEventListener('click', function() {
-                                const linkInput = document.getElementById('currentLinkDisplay');
-                                if (linkInput) {
-                                    linkInput.select();
-                                    document.execCommand('copy');
-                                    
-                                    // Show copy tooltip
-                                    showCopyTooltip(this, 'Link copied!');
-                                }
-                            });
-                        }
-                    } else {
-                        // Not the user's own AI
-                        document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                        
-                        // Show only share toggle for visitors
-                        if (shareToggle) {
-                            shareToggle.style.display = 'flex';
-                        }
-                        
-                        const prompts = [
-                            `What are ${urlUsername}'s skills?`,
-                            `Tell me about ${urlUsername}'s background`,
-                            `What projects has ${urlUsername} worked on?`,
-                            `What is ${urlUsername}'s experience in [field]?`
-                        ];
-
-                        examplePromptsContainer.innerHTML = prompts.map(prompt => 
-                            `<div class="example-prompt">${prompt}</div>`
-                        ).join('');
-                    }
-                } catch (error) {
-                    console.error("Error parsing token:", error);
-                }
-            } else {
-                // No user logged in
-                document.querySelector('h1').innerHTML = `Chat with ${urlUsername}'s AI`;
-                
-                // Show only share toggle for visitors
-                if (shareToggle) {
-                    shareToggle.style.display = 'flex';
-                }
-                
-                const prompts = [
-                    `What are ${urlUsername}'s skills?`,
-                    `Tell me about ${urlUsername}'s background`,
-                    `What projects has ${urlUsername} worked on?`,
-                    `What is ${urlUsername}'s experience in [field]?`
-                ];
-
-                examplePromptsContainer.innerHTML = prompts.map(prompt => 
-                    `<div class="example-prompt">${prompt}</div>`
-                ).join('');
+            examplePromptsContainer.innerHTML = prompts.map(prompt => 
+                `<div class="example-prompt">${prompt}</div>`
+            ).join('');
+        }
+        
+        // Function to show a copy tooltip
+        function showCopyTooltip(element, text) {
+            // Create tooltip element if it doesn't exist
+            let tooltip = document.querySelector('.copy-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.className = 'copy-tooltip';
+                document.body.appendChild(tooltip);
             }
             
-            // Function to show a copy tooltip
-            function showCopyTooltip(element, text) {
-                // Create tooltip element if it doesn't exist
-                let tooltip = document.querySelector('.copy-tooltip');
-                if (!tooltip) {
-                    tooltip = document.createElement('div');
-                    tooltip.className = 'copy-tooltip';
-                    document.body.appendChild(tooltip);
-                }
-                
-                // Position tooltip near the element
-                const rect = element.getBoundingClientRect();
-                tooltip.textContent = text;
-                tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-                tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
-                
-                // Show tooltip
-                tooltip.classList.add('show');
-                
-                // Hide tooltip after 2 seconds
-                setTimeout(() => {
-                    tooltip.classList.remove('show');
-                }, 2000);
+            // Position tooltip near the element
+            const rect = element.getBoundingClientRect();
+            tooltip.textContent = text;
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.top - tooltip.offsetHeight - 10 + 'px';
+            
+            // Show tooltip
+            tooltip.classList.add('show');
+            
+            // Hide tooltip after 2 seconds
+            setTimeout(() => {
+                tooltip.classList.remove('show');
+            }, 2000);
+        }
+
+        // Function to handle default UI state
+        function handleDefaultUI(username, container) {
+            if (username) {
+                document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
+                container.innerHTML = `
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        What topics are you specialized in?
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        Can you tell me about you?
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        What makes your responses unique?
+                    </div>
+                    <div class="example-prompt" onclick="useExamplePrompt(this)">
+                        Show me an example of what you do best
+                    </div>
+                `;
+            } else {
+                document.querySelector('h1').innerHTML = "Chat with AI";
             }
+        }
 
-            // Function to handle default UI state
-            function handleDefaultUI(username, container) {
-                if (username) {
-                    document.querySelector('h1').innerHTML = `Chat with ${username}'s AI`;
-                    container.innerHTML = `
-                        <div class="example-prompt" onclick="useExamplePrompt(this)">
-                            What topics are you specialized in?
-                        </div>
-                        <div class="example-prompt" onclick="useExamplePrompt(this)">
-                            Can you tell me about you?
-                        </div>
-                        <div class="example-prompt" onclick="useExamplePrompt(this)">
-                            What makes your responses unique?
-                        </div>
-                        <div class="example-prompt" onclick="useExamplePrompt(this)">
-                            Show me an example of what you do best
-                        </div>
-                    `;
-                } else {
-                    document.querySelector('h1').innerHTML = "Chat with AI";
-                }
-            }
+        // Replace the hardcoded configuration with dynamic loading
+        let CLIENT_ID;
+        let API_KEY;
+        let DISCOVERY_DOC;
+        let SCOPES;
+        let tokenClient = null;
+        let gapiInited = false;
+        let gisInited = false;
 
-            // Replace the hardcoded configuration with dynamic loading
-            let CLIENT_ID;
-            let API_KEY;
-            let DISCOVERY_DOC;
-            let SCOPES;
-            let tokenClient = null;
-            let gapiInited = false;
-            let gisInited = false;
-
-            // Initialize Google Identity Services SDK
-            function initializeGisClient() {
-                try {
-                    if (!CLIENT_ID || !SCOPES) {
-                        console.error('Client ID or Scopes not loaded yet');
-                        return;
-                    }
-                    
-                    tokenClient = google.accounts.oauth2.initTokenClient({
-                        client_id: CLIENT_ID,
-                        scope: SCOPES,
-                        callback: '', // defined later
-                    });
-                    gisInited = true;
-                    maybeEnableButtons();
-                } catch (error) {
-                    console.error('Error initializing GIS client:', error);
-                    showNotification('Error initializing Google Calendar', true);
-                }
-            }
-
-            // Load the API client and auth2 library
-            async function loadGapiClient() {
-                return new Promise((resolve, reject) => {
-                    gapi.load('client', async () => {
-                        try {
-                            await gapi.client.init({
-                                apiKey: API_KEY,
-                                discoveryDocs: [DISCOVERY_DOC],
-                            });
-                            gapiInited = true;
-                            maybeEnableButtons();
-                            resolve();
-                        } catch (error) {
-                            console.error('Error initializing GAPI client:', error);
-                            reject(error);
-                        }
-                    });
-                });
-            }
-
-            // Enable the button if libraries are loaded
-            function maybeEnableButtons() {
-                if (gapiInited && gisInited) {
-                    connectButton.disabled = false;
-                }
-            }
-
-            // Fetch Google Calendar configuration
-            async function loadGoogleCalendarConfig() {
-                try {
-                    const response = await fetch('/api/config/google-calendar');
-                    const config = await response.json();
-                    CLIENT_ID = config.clientId;
-                    API_KEY = config.apiKey;
-                    DISCOVERY_DOC = config.discoveryDoc;
-                    SCOPES = config.scopes;
-                    
-                    // Initialize Google APIs only after config is loaded
-                    await loadGapiClient();
-                    
-                    google.accounts.id.initialize({
-                        client_id: CLIENT_ID,
-                        auto_select: false,
-                        callback: (response) => { }
-                    });
-                    
-                    initializeGisClient();
-                } catch (error) {
-                    console.error('Error loading Google Calendar configuration:', error);
-                    showNotification('Error loading calendar configuration', true);
-                }
-            }
-
-            function updateConnectionUI(isConnected) {
-                connectButton.classList.remove('connecting');
-                
-                if (isConnected) {
-                    connectButton.textContent = 'Disconnect';
-                    connectButton.classList.add('disconnect');
-                    connectButton.classList.remove('connect');
-                    statusDisplay.textContent = 'Connected';
-                    statusDisplay.classList.add('connected');
-
-                    // If connection time exists, show it
-                    const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
-                    if (connectedAt) {
-                        const connectedDate = new Date(connectedAt);
-                        const formattedDate = connectedDate.toLocaleString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        statusDisplay.textContent = `Connected since ${formattedDate}`;
-                    }
-                } else {
-                    connectButton.textContent = 'Connect';
-                    connectButton.classList.remove('disconnect');
-                    connectButton.classList.add('connect');
-                    statusDisplay.textContent = 'Not connected';
-                    statusDisplay.classList.remove('connected');
-                }
-            }
-
-            function connectToGoogleCalendar() {
-                if (!tokenClient) {
-                    console.error('Token client not initialized');
-                    showNotification('Google Calendar not initialized yet. Please try again.', true);
+        // Initialize Google Identity Services SDK
+        function initializeGisClient() {
+            try {
+                if (!CLIENT_ID || !SCOPES) {
+                    console.error('Client ID or Scopes not loaded yet');
                     return;
                 }
+                
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: '', // defined later
+                });
+                gisInited = true;
+                maybeEnableButtons();
+            } catch (error) {
+                console.error('Error initializing GIS client:', error);
+                showNotification('Error initializing Google Calendar', true);
+            }
+        }
 
-                try {
-                    // Show connecting state
-                    connectButton.textContent = 'Connecting...';
-                    connectButton.classList.remove('disconnect');
-                    connectButton.classList.remove('connect');
-                    connectButton.classList.add('connecting');
-                    connectButton.disabled = true;
+        // Load the API client and auth2 library
+        async function loadGapiClient() {
+            return new Promise((resolve, reject) => {
+                gapi.load('client', async () => {
+                    try {
+                        await gapi.client.init({
+                            apiKey: API_KEY,
+                            discoveryDocs: [DISCOVERY_DOC],
+                        });
+                        gapiInited = true;
+                        maybeEnableButtons();
+                        resolve();
+                    } catch (error) {
+                        console.error('Error initializing GAPI client:', error);
+                        reject(error);
+                    }
+                });
+            });
+        }
 
-                    // Request an access token
-                    tokenClient.callback = async (resp) => {
-                        if (resp.error !== undefined) {
-                            // Reset button on error
-                            connectButton.textContent = 'Connect';
-                            connectButton.classList.remove('connecting');
-                            connectButton.classList.remove('disconnect');
-                            connectButton.classList.add('connect');
-                            connectButton.disabled = false;
-                            showNotification('Error connecting to Google Calendar', true);
-                            return;
-                        }
+        // Enable the button if libraries are loaded
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                connectButton.disabled = false;
+            }
+        }
 
-                        try {
-                            // Analyze calendar patterns immediately after getting token
-                            await analyzeCalendarPatterns();
-                            
-                            // Store connection state
-                            localStorage.setItem('googleCalendarConnected', 'true');
-                            localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
-                            
-                            // Update UI
-                            updateConnectionUI(true);
-                            connectButton.disabled = false;
-                            showNotification('Connected to Google Calendar successfully!');
-                        } catch (error) {
-                            console.error('Error during calendar connection:', error);
-                            showNotification('Error connecting to calendar', true);
-                            // Reset connection state on error
-                            localStorage.removeItem('googleCalendarConnected');
-                            localStorage.removeItem('googleCalendarConnectedAt');
-                            updateConnectionUI(false);
-                            connectButton.disabled = false;
-                        }
-                    };
+        // Fetch Google Calendar configuration
+        async function loadGoogleCalendarConfig() {
+            try {
+                const response = await fetch('/api/config/google-calendar');
+                const config = await response.json();
+                CLIENT_ID = config.clientId;
+                API_KEY = config.apiKey;
+                DISCOVERY_DOC = config.discoveryDoc;
+                SCOPES = config.scopes;
+                
+                // Initialize Google APIs only after config is loaded
+                await loadGapiClient();
+                
+                google.accounts.id.initialize({
+                    client_id: CLIENT_ID,
+                    auto_select: false,
+                    callback: (response) => { }
+                });
+                
+                initializeGisClient();
+            } catch (error) {
+                console.error('Error loading Google Calendar configuration:', error);
+                showNotification('Error loading calendar configuration', true);
+            }
+        }
 
-                    if (!gapi.client || typeof gapi.client.getToken !== 'function') {
-                        showNotification('Google Calendar API not initialized yet. Please try again.', true);
+        function updateConnectionUI(isConnected) {
+            connectButton.classList.remove('connecting');
+            
+            if (isConnected) {
+                connectButton.textContent = 'Disconnect';
+                connectButton.classList.add('disconnect');
+                connectButton.classList.remove('connect');
+                statusDisplay.textContent = 'Connected';
+                statusDisplay.classList.add('connected');
+
+                // If connection time exists, show it
+                const connectedAt = localStorage.getItem('googleCalendarConnectedAt');
+                if (connectedAt) {
+                    const connectedDate = new Date(connectedAt);
+                    const formattedDate = connectedDate.toLocaleString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                    statusDisplay.textContent = `Connected since ${formattedDate}`;
+                }
+            } else {
+                connectButton.textContent = 'Connect';
+                connectButton.classList.remove('disconnect');
+                connectButton.classList.add('connect');
+                statusDisplay.textContent = 'Not connected';
+                statusDisplay.classList.remove('connected');
+            }
+        }
+
+        function connectToGoogleCalendar() {
+            if (!tokenClient) {
+                console.error('Token client not initialized');
+                showNotification('Google Calendar not initialized yet. Please try again.', true);
+                return;
+            }
+
+            try {
+                // Show connecting state
+                connectButton.textContent = 'Connecting...';
+                connectButton.classList.remove('disconnect');
+                connectButton.classList.remove('connect');
+                connectButton.classList.add('connecting');
+                connectButton.disabled = true;
+
+                // Request an access token
+                tokenClient.callback = async (resp) => {
+                    if (resp.error !== undefined) {
+                        // Reset button on error
                         connectButton.textContent = 'Connect';
                         connectButton.classList.remove('connecting');
                         connectButton.classList.remove('disconnect');
                         connectButton.classList.add('connect');
                         connectButton.disabled = false;
+                        showNotification('Error connecting to Google Calendar', true);
                         return;
                     }
 
-                    if (gapi.client.getToken() === null) {
-                        // Prompt the user to select a Google Account and ask for consent
-                        tokenClient.requestAccessToken({ prompt: 'consent' });
-                    } else {
-                        // Skip display of account chooser and consent dialog
-                        tokenClient.requestAccessToken({ prompt: '' });
+                    try {
+                        // Analyze calendar patterns immediately after getting token
+                        await analyzeCalendarPatterns();
+                        
+                        // Store connection state
+                        localStorage.setItem('googleCalendarConnected', 'true');
+                        localStorage.setItem('googleCalendarConnectedAt', new Date().toISOString());
+                        
+                        // Update UI
+                        updateConnectionUI(true);
+                        connectButton.disabled = false;
+                        showNotification('Connected to Google Calendar successfully!');
+                    } catch (error) {
+                        console.error('Error during calendar connection:', error);
+                        showNotification('Error connecting to calendar', true);
+                        // Reset connection state on error
+                        localStorage.removeItem('googleCalendarConnected');
+                        localStorage.removeItem('googleCalendarConnectedAt');
+                        updateConnectionUI(false);
+                        connectButton.disabled = false;
                     }
-                } catch (error) {
-                    console.error('Error in connectToGoogleCalendar:', error);
-                    showNotification('Error connecting to Google Calendar', true);
+                };
+
+                if (!gapi.client || typeof gapi.client.getToken !== 'function') {
+                    showNotification('Google Calendar API not initialized yet. Please try again.', true);
                     connectButton.textContent = 'Connect';
                     connectButton.classList.remove('connecting');
                     connectButton.classList.remove('disconnect');
                     connectButton.classList.add('connect');
                     connectButton.disabled = false;
+                    return;
                 }
-            }
 
-            function disconnectFromGoogleCalendar() {
-                try {
-                    // Disable button during disconnection
-                    connectButton.textContent = 'Disconnecting...';
-                    connectButton.classList.remove('disconnect');
-                    connectButton.classList.remove('connect');
-                    connectButton.classList.add('connecting');
-                    connectButton.disabled = true;
-                    
-                    // Check if gapi.client exists and has a token
-                    if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
-                        const token = gapi.client.getToken();
-                        if (token !== null) {
-                            google.accounts.oauth2.revoke(token.access_token);
-                            gapi.client.setToken('');
-                        }
-                    }
-
-                    // Update local storage and UI regardless of token revocation
-                    localStorage.removeItem('googleCalendarConnected');
-                    localStorage.removeItem('googleCalendarConnectedAt');
-                    localStorage.removeItem('calendarBusyBlocks');
-                    updateConnectionUI(false);
-                    connectButton.disabled = false;
-
-                    // Notify server about disconnection
-                    const authToken = localStorage.getItem('token');
-                    if (authToken) {
-                        fetch('/api/calendar/disconnect', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${authToken}`
-                            }
-                        });
-                    }
-
-                    showNotification('Disconnected from Google Calendar');
-                } catch (error) {
-                    console.error('Error during disconnection:', error);
-                    showNotification('Error during disconnection', true);
-                    
-                    // Still update UI to show disconnected state
-                    localStorage.removeItem('googleCalendarConnected');
-                    localStorage.removeItem('googleCalendarConnectedAt');
-                    localStorage.removeItem('calendarBusyBlocks');
-                    updateConnectionUI(false);
-                    connectButton.disabled = false;
+                if (gapi.client.getToken() === null) {
+                    // Prompt the user to select a Google Account and ask for consent
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                } else {
+                    // Skip display of account chooser and consent dialog
+                    tokenClient.requestAccessToken({ prompt: '' });
                 }
+            } catch (error) {
+                console.error('Error in connectToGoogleCalendar:', error);
+                showNotification('Error connecting to Google Calendar', true);
+                connectButton.textContent = 'Connect';
+                connectButton.classList.remove('connecting');
+                connectButton.classList.remove('disconnect');
+                connectButton.classList.add('connect');
+                connectButton.disabled = false;
             }
+        }
 
-            function showNotification(message, isError = false) {
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.className = isError ? 'notification error' : 'notification';
-                notification.textContent = message;
-
-                // Add to body
-                document.body.appendChild(notification);
-
-                // Remove after delay
-                setTimeout(() => {
-                    notification.style.opacity = '0';
-                    setTimeout(() => {
-                        document.body.removeChild(notification);
-                    }, 300);
-                }, 3000);
-            }
-
-            async function analyzeCalendarPatterns() {
-                try {
-                    // Get events for the next 30 days
-                    const now = new Date();
-                    const thirtyDaysFromNow = new Date();
-                    thirtyDaysFromNow.setDate(now.getDate() + 30);
-
-                    const response = await gapi.client.calendar.events.list({
-                        'calendarId': 'primary',
-                        'timeMin': now.toISOString(),
-                        'timeMax': thirtyDaysFromNow.toISOString(),
-                        'showDeleted': false,
-                        'singleEvents': true,
-                        'orderBy': 'startTime'
-                    });
-
-                    const events = response.result.items;
-                    
-                    // Group events by date
-                    const busyBlocksByDate = new Map();
-                    
-                    events.forEach(event => {
-                        if (!event.start || !event.end) return;
-                        
-                        const startDateTime = new Date(event.start.dateTime || event.start.date);
-                        const endDateTime = new Date(event.end.dateTime || event.end.date);
-                        const dateKey = startDateTime.toISOString().split('T')[0];
-                        
-                        if (!busyBlocksByDate.has(dateKey)) {
-                            busyBlocksByDate.set(dateKey, []);
-                        }
-                        
-                        busyBlocksByDate.get(dateKey).push({
-                            startTime: startDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                            endTime: endDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
-                            summary: event.summary || 'Busy'
-                        });
-                    });
-
-                    // Convert to array format for storage
-                    const busyBlocks = Array.from(busyBlocksByDate.entries()).map(([date, blocks]) => ({
-                        date: new Date(date),
-                        blocks: blocks.sort((a, b) => a.startTime.localeCompare(b.startTime))
-                    }));
-
-                    // Store in localStorage for client-side use
-                    localStorage.setItem('calendarBusyBlocks', JSON.stringify(busyBlocks));
-
-                    // Send to server
-                    const authToken = localStorage.getItem('token');
-                    if (!authToken) {
-                        throw new Error('Authentication token not found');
+        function disconnectFromGoogleCalendar() {
+            try {
+                // Disable button during disconnection
+                connectButton.textContent = 'Disconnecting...';
+                connectButton.classList.remove('disconnect');
+                connectButton.classList.remove('connect');
+                connectButton.classList.add('connecting');
+                connectButton.disabled = true;
+                
+                // Check if gapi.client exists and has a token
+                if (gapi && gapi.client && typeof gapi.client.getToken === 'function') {
+                    const token = gapi.client.getToken();
+                    if (token !== null) {
+                        google.accounts.oauth2.revoke(token.access_token);
+                        gapi.client.setToken('');
                     }
+                }
 
-                    const serverResponse = await fetch('/api/calendar/patterns', {
+                // Update local storage and UI regardless of token revocation
+                localStorage.removeItem('googleCalendarConnected');
+                localStorage.removeItem('googleCalendarConnectedAt');
+                localStorage.removeItem('calendarBusyBlocks');
+                updateConnectionUI(false);
+                connectButton.disabled = false;
+
+                // Notify server about disconnection
+                const authToken = localStorage.getItem('token');
+                if (authToken) {
+                    fetch('/api/calendar/disconnect', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'Authorization': `Bearer ${authToken}`
-                        },
-                        body: JSON.stringify({ busyBlocks })
+                        }
                     });
-
-                    if (!serverResponse.ok) {
-                        throw new Error('Failed to store calendar patterns');
-                    }
-
-                    const responseData = await serverResponse.json();
-                    console.log('Calendar patterns stored successfully:', responseData);
-                    showNotification('Calendar patterns updated successfully');
-
-                } catch (error) {
-                    console.error('Error analyzing calendar patterns:', error);
-                    showNotification('Error updating calendar patterns', true);
-                    throw error;
                 }
+
+                showNotification('Disconnected from Google Calendar');
+            } catch (error) {
+                console.error('Error during disconnection:', error);
+                showNotification('Error during disconnection', true);
+                
+                // Still update UI to show disconnected state
+                localStorage.removeItem('googleCalendarConnected');
+                localStorage.removeItem('googleCalendarConnectedAt');
+                localStorage.removeItem('calendarBusyBlocks');
+                updateConnectionUI(false);
+                connectButton.disabled = false;
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.textContent = message;
+
+            // Add to body
+            document.body.appendChild(notification);
+
+            // Remove after delay
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        async function analyzeCalendarPatterns() {
+            try {
+                // Get events for the next 30 days
+                const now = new Date();
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(now.getDate() + 30);
+
+                const response = await gapi.client.calendar.events.list({
+                    'calendarId': 'primary',
+                    'timeMin': now.toISOString(),
+                    'timeMax': thirtyDaysFromNow.toISOString(),
+                    'showDeleted': false,
+                    'singleEvents': true,
+                    'orderBy': 'startTime'
+                });
+
+                const events = response.result.items;
+                
+                // Group events by date
+                const busyBlocksByDate = new Map();
+                
+                events.forEach(event => {
+                    if (!event.start || !event.end) return;
+                    
+                    const startDateTime = new Date(event.start.dateTime || event.start.date);
+                    const endDateTime = new Date(event.end.dateTime || event.end.date);
+                    const dateKey = startDateTime.toISOString().split('T')[0];
+                    
+                    if (!busyBlocksByDate.has(dateKey)) {
+                        busyBlocksByDate.set(dateKey, []);
+                    }
+                    
+                    busyBlocksByDate.get(dateKey).push({
+                        startTime: startDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                        endTime: endDateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                        summary: event.summary || 'Busy'
+                    });
+                });
+
+                // Convert to array format for storage
+                const busyBlocks = Array.from(busyBlocksByDate.entries()).map(([date, blocks]) => ({
+                    date: new Date(date),
+                    blocks: blocks.sort((a, b) => a.startTime.localeCompare(b.startTime))
+                }));
+
+                // Store in localStorage for client-side use
+                localStorage.setItem('calendarBusyBlocks', JSON.stringify(busyBlocks));
+
+                // Send to server
+                const authToken = localStorage.getItem('token');
+                if (!authToken) {
+                    throw new Error('Authentication token not found');
+                }
+
+                const serverResponse = await fetch('/api/calendar/patterns', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ busyBlocks })
+                });
+
+                if (!serverResponse.ok) {
+                    throw new Error('Failed to store calendar patterns');
+                }
+
+                const responseData = await serverResponse.json();
+                console.log('Calendar patterns stored successfully:', responseData);
+                showNotification('Calendar patterns updated successfully');
+
+            } catch (error) {
+                console.error('Error analyzing calendar patterns:', error);
+                showNotification('Error updating calendar patterns', true);
+                throw error;
+            }
+        }
+
+        // Copy link functionality
+        const currentLinkDisplay = document.getElementById('currentLinkDisplay');
+        currentLinkDisplay.value = window.location.href;
+
+        const copyLinkButton = document.getElementById('copyLinkButton');
+        copyLinkButton.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href)
+                .then(() => {
+                    // Give visual feedback
+                    copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    copyLinkButton.style.background = '#4CAF50';
+                    copyLinkButton.style.color = 'white';
+                    
+                    // Show a tooltip
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'copy-tooltip';
+                    tooltip.textContent = 'Link copied! Share it with friends';
+                    document.body.appendChild(tooltip);
+                    
+                    // Position tooltip
+                    const buttonRect = copyLinkButton.getBoundingClientRect();
+                    tooltip.style.top = (buttonRect.top - 40) + 'px';
+                    tooltip.style.left = (buttonRect.left + buttonRect.width/2 - tooltip.offsetWidth/2) + 'px';
+                    
+                    // Animate in
+                    setTimeout(() => tooltip.classList.add('show'), 10);
+                    
+                    // Remove tooltip after delay
+                    setTimeout(() => {
+                        tooltip.classList.remove('show');
+                        setTimeout(() => document.body.removeChild(tooltip), 300);
+                    }, 2000);
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                        copyLinkButton.style.background = '';
+                        copyLinkButton.style.color = '';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    copyLinkButton.innerHTML = '<i class="fas fa-times"></i> Error';
+                    setTimeout(() => {
+                        copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                    }, 2000);
+                });
+        });
+
+        function useExamplePrompt(element) {
+            const promptText = element.textContent.trim();
+            const queryInput = document.getElementById("queryInput");
+            queryInput.value = promptText;
+            queryInput.focus();
+        }
+
+        // Function to hide examples when conversation starts
+        function hideExamples() {
+            const examplesContainer = document.getElementById("examplesContainer");
+            if (examplesContainer) {
+                examplesContainer.style.display = "none";
+            }
+        }
+        
+        // Add this function to clear chat history when the page is about to unload
+        window.addEventListener('beforeunload', function() {
+            chatHistory = [];
+        });
+        
+        // Initialize chat history
+        let chatHistory = [];
+
+        document.getElementById("submitButton").addEventListener("click", async function () {
+            const queryInput = document.getElementById("queryInput");
+            const submitButton = document.getElementById("submitButton");
+            const queryText = queryInput.value.trim();
+
+            if (!queryText) return;
+
+            // Disable input and button during processing
+            queryInput.disabled = true;
+            submitButton.disabled = true;
+            
+            // Clear the input right away
+            queryInput.value = "";
+
+            // Create and add user message to chat
+            const chatBox = document.getElementById("chatBox");
+            
+            // Remove examples container if it exists
+            const examplesContainer = document.getElementById("examplesContainer");
+            if (examplesContainer) {
+                examplesContainer.remove();
             }
 
-            // Copy link functionality
-            const currentLinkDisplay = document.getElementById('currentLinkDisplay');
-            currentLinkDisplay.value = window.location.href;
+            const userMessage = document.createElement("div");
+            userMessage.className = "message user-message";
+            userMessage.textContent = queryText;
+            chatBox.appendChild(userMessage);
 
-            const copyLinkButton = document.getElementById('copyLinkButton');
-            copyLinkButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(window.location.href)
-                    .then(() => {
-                        // Give visual feedback
-                        copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                        copyLinkButton.style.background = '#4CAF50';
-                        copyLinkButton.style.color = 'white';
-                        
-                        // Show a tooltip
-                        const tooltip = document.createElement('div');
-                        tooltip.className = 'copy-tooltip';
-                        tooltip.textContent = 'Link copied! Share it with friends';
-                        document.body.appendChild(tooltip);
-                        
-                        // Position tooltip
-                        const buttonRect = copyLinkButton.getBoundingClientRect();
-                        tooltip.style.top = (buttonRect.top - 40) + 'px';
-                        tooltip.style.left = (buttonRect.left + buttonRect.width/2 - tooltip.offsetWidth/2) + 'px';
-                        
-                        // Animate in
-                        setTimeout(() => tooltip.classList.add('show'), 10);
-                        
-                        // Remove tooltip after delay
-                        setTimeout(() => {
-                            tooltip.classList.remove('show');
-                            setTimeout(() => document.body.removeChild(tooltip), 300);
-                        }, 2000);
-                        
-                        // Reset button after delay
-                        setTimeout(() => {
-                            copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
-                            copyLinkButton.style.background = '';
-                            copyLinkButton.style.color = '';
-                        }, 2000);
+            // Apply animation to user message
+            animateMessage(userMessage);
+            
+            // Scroll to the bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                // Perform fetch request to get response
+                const response = await fetch(`/api/query/${username}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : ''
+                    },
+                    body: JSON.stringify({
+                        query: queryText,
+                        chatHistory: chatHistory,
+                        chatId: currentChatId
                     })
-                    .catch(err => {
-                        console.error('Failed to copy: ', err);
-                        copyLinkButton.innerHTML = '<i class="fas fa-times"></i> Error';
-                        setTimeout(() => {
-                            copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
-                        }, 2000);
-                    });
-            });
-
-            function useExamplePrompt(element) {
-                const promptText = element.textContent.trim();
-                const queryInput = document.getElementById("queryInput");
-                queryInput.value = promptText;
-                queryInput.focus();
-            }
-
-            // Function to hide examples when conversation starts
-            function hideExamples() {
-                const examplesContainer = document.getElementById("examplesContainer");
-                if (examplesContainer) {
-                    examplesContainer.style.display = "none";
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to get response from server');
                 }
-            }
-            
-            // Add this function to clear chat history when the page is about to unload
-            window.addEventListener('beforeunload', function() {
-                chatHistory = [];
-            });
-            
-            // Initialize chat history
-            let chatHistory = [];
-
-            document.getElementById("submitButton").addEventListener("click", async function () {
-                const queryInput = document.getElementById("queryInput");
-                const submitButton = document.getElementById("submitButton");
-                const queryText = queryInput.value.trim();
-
-                if (!queryText) return;
-
-                // Disable input and button during processing
-                queryInput.disabled = true;
-                submitButton.disabled = true;
                 
-                // Clear the input right away
-                queryInput.value = "";
-
-                // Create and add user message to chat
-                const chatBox = document.getElementById("chatBox");
+                const data = await response.json();
                 
-                // Remove examples container if it exists
-                const examplesContainer = document.getElementById("examplesContainer");
-                if (examplesContainer) {
-                    examplesContainer.remove();
-                }
-
-                const userMessage = document.createElement("div");
-                userMessage.className = "message user-message";
-                userMessage.textContent = queryText;
-                chatBox.appendChild(userMessage);
-
-                // Apply animation to user message
-                animateMessage(userMessage);
+                // Add user message to chat history
+                chatHistory.push({
+                    role: "user",
+                    content: queryText
+                });
                 
-                // Scroll to the bottom
-                chatBox.scrollTop = chatBox.scrollHeight;
-
-                // Show typing indicator
-                showTypingIndicator();
-
-                try {
-                    // Perform fetch request to get response
-                    const response = await fetch(`/api/query/${username}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : ''
-                        },
-                        body: JSON.stringify({
-                            query: queryText,
-                            chatHistory: chatHistory,
-                            chatId: currentChatId
-                        })
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('Failed to get response from server');
-                    }
-                    
-                    const data = await response.json();
-                    
-                    // Add user message to chat history
+                // Add bot response to chat history
+                if (data.success && data.response) {
                     chatHistory.push({
-                        role: "user",
-                        content: queryText
+                        role: "assistant",
+                        content: data.response
                     });
+                
+                    // Display bot response
+                    const botMessage = document.createElement("div");
+                    botMessage.className = "message bot-message";
                     
-                    // Add bot response to chat history
-                    if (data.success && data.response) {
-                        chatHistory.push({
-                            role: "assistant",
-                            content: data.response
-                        });
+                    // Process markdown and add to HTML
+                    // Clean up excessive newlines before parsing markdown
+                    let cleanedResponse = data.response.replace(/\n{3,}/g, '\n\n');
                     
-                        // Display bot response
-                        const botMessage = document.createElement("div");
-                        botMessage.className = "message bot-message";
-                        
-                        // Process markdown and add to HTML
-                        // Clean up excessive newlines before parsing markdown
-                        let cleanedResponse = data.response.replace(/\n{3,}/g, '\n\n');
-                        
-                        // Convert Cloudinary links to image tags
-                        // Match common Cloudinary URL patterns
-                        const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
-                        cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
-                        
-                        botMessage.innerHTML = marked.parse(cleanedResponse);
-                        
-                        // Hide typing indicator
-                        hideTypingIndicator();
-                        
-                        // Append message and apply animation
-                        chatBox.appendChild(botMessage);
-                        animateMessage(botMessage);
-                        
-                        // Scroll to the bottom
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                    } else {
-                        throw new Error(data.message || 'Unknown error');
-                    }
+                    // Convert Cloudinary links to image tags
+                    // Match common Cloudinary URL patterns
+                    const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
+                    cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
                     
-                    // Re-enable input
-                    queryInput.disabled = false;
-                    submitButton.disabled = false;
-                    queryInput.focus();
-                    
-                } catch (error) {
-                    console.error('Error sending message:', error);
+                    botMessage.innerHTML = marked.parse(cleanedResponse);
                     
                     // Hide typing indicator
                     hideTypingIndicator();
                     
-                    // Show error message
-                    const errorMessage = document.createElement("div");
-                    errorMessage.className = "message bot-message";
-                    errorMessage.innerHTML = error.message && error.message !== 'Failed to get response from server' ? 
-                        `Error: ${error.message}` : 
-                        "Sorry, there was an error processing your request. Please try again.";
-                    chatBox.appendChild(errorMessage);
-                    animateMessage(errorMessage);
+                    // Append message and apply animation
+                    chatBox.appendChild(botMessage);
+                    animateMessage(botMessage);
                     
-                    // Re-enable input
-                    queryInput.disabled = false;
-                    submitButton.disabled = false;
-                    queryInput.focus();
-                }
-            });
-
-            // Allow Enter key to send messages
-            document.getElementById("queryInput").addEventListener("keydown", function (event) {
-                if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
-                    event.preventDefault(); // Prevent new line in textarea
-                    document.getElementById("submitButton").click();
-                }
-            });
-
-            document.getElementById("queryInput").addEventListener("input", function () {
-                this.style.height = "auto"; // Reset height to recalculate
-                this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
-            });
-            const ratingToggle = document.getElementById('ratingToggle');
-            const ratingContainer = document.getElementById('ratingContainer');
-
-            // Function to update rating visibility with animation
-            function updateRatingVisibility(show) {
-                if (show) {
-                    ratingContainer.classList.add('visible');
-                    ratingToggle.classList.add('active');
-                    localStorage.setItem("ratingVisible", "true");
-                    ratingContainer.style.pointerEvents = "auto"; // Add this line
+                    // Scroll to the bottom
+                    chatBox.scrollTop = chatBox.scrollHeight;
                 } else {
-                    ratingContainer.classList.remove('visible');
-                    ratingToggle.classList.remove('active');
-                    localStorage.setItem("ratingVisible", "false");
-                    ratingContainer.style.pointerEvents = "none"; // Add this line
+                    throw new Error(data.message || 'Unknown error');
                 }
+                
+                // Re-enable input
+                queryInput.disabled = false;
+                submitButton.disabled = false;
+                queryInput.focus();
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // Show error message
+                const errorMessage = document.createElement("div");
+                errorMessage.className = "message bot-message";
+                errorMessage.innerHTML = error.message && error.message !== 'Failed to get response from server' ? 
+                    `Error: ${error.message}` : 
+                    "Sorry, there was an error processing your request. Please try again.";
+                chatBox.appendChild(errorMessage);
+                animateMessage(errorMessage);
+                
+                // Re-enable input
+                queryInput.disabled = false;
+                submitButton.disabled = false;
+                queryInput.focus();
             }
+        });
 
-            // Load rating visibility state from local storage
-            const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
-            updateRatingVisibility(isRatingVisible);
+        // Allow Enter key to send messages
+        document.getElementById("queryInput").addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) { // Check for Shift+Enter
+                event.preventDefault(); // Prevent new line in textarea
+                document.getElementById("submitButton").click();
+            }
+        });
 
-            // Toggle rating visibility on button click
-            ratingToggle.addEventListener('click', () => {
-                const isCurrentlyVisible = ratingContainer.classList.contains('visible');
-                updateRatingVisibility(!isCurrentlyVisible);
-            });
+        document.getElementById("queryInput").addEventListener("input", function () {
+            this.style.height = "auto"; // Reset height to recalculate
+            this.style.height = Math.min(this.scrollHeight, 100) + "px"; // Set height based on content, up to max
+        });
+        const ratingToggle = document.getElementById('ratingToggle');
+        const ratingContainer = document.getElementById('ratingContainer');
 
-            const ratingStars = document.getElementById("ratingStars");
-            const ratingFeedback = document.getElementById("ratingFeedback");
-            const ratingSuccess = document.getElementById("ratingSuccess");
-            const averageRatingDisplay = document.getElementById("averageRatingDisplay");
-            const averageStars = document.getElementById("averageStars");
-            const averageNumber = document.getElementById("averageNumber");
-            const ratingCount = document.getElementById("ratingCount");
-            const username = window.location.pathname.split('/').pop();
-            console.log("Current profile username:", username);
+        // Function to update rating visibility with animation
+        function updateRatingVisibility(show) {
+            if (show) {
+                ratingContainer.classList.add('visible');
+                ratingToggle.classList.add('active');
+                localStorage.setItem("ratingVisible", "true");
+                ratingContainer.style.pointerEvents = "auto"; // Add this line
+            } else {
+                ratingContainer.classList.remove('visible');
+                ratingToggle.classList.remove('active');
+                localStorage.setItem("ratingVisible", "false");
+                ratingContainer.style.pointerEvents = "none"; // Add this line
+            }
+        }
 
-            const feedbackTexts = [
-                "",
-                "Poor",
-                "Below Average",
-                "Average",
-                "Good",
-                "Excellent"
-            ];
+        // Load rating visibility state from local storage
+        const isRatingVisible = localStorage.getItem("ratingVisible") !== "false";
+        updateRatingVisibility(isRatingVisible);
 
-            ratingStars.addEventListener("mouseover", (event) => {
-                if (event.target.classList.contains("star")) {
-                    const rating = parseInt(event.target.dataset.rating);
-                    const stars = ratingStars.querySelectorAll(".star");
+        // Toggle rating visibility on button click
+        ratingToggle.addEventListener('click', () => {
+            const isCurrentlyVisible = ratingContainer.classList.contains('visible');
+            updateRatingVisibility(!isCurrentlyVisible);
+        });
 
-                    // Reset all stars
-                    stars.forEach(star => star.classList.remove("active"));
+        const ratingStars = document.getElementById("ratingStars");
+        const ratingFeedback = document.getElementById("ratingFeedback");
+        const ratingSuccess = document.getElementById("ratingSuccess");
+        const averageRatingDisplay = document.getElementById("averageRatingDisplay");
+        const averageStars = document.getElementById("averageStars");
+        const averageNumber = document.getElementById("averageNumber");
+        const ratingCount = document.getElementById("ratingCount");
+        const username = window.location.pathname.split('/').pop();
+        console.log("Current profile username:", username);
 
-                    // Highlight stars up to the hovered one
-                    for (let i = 0; i < rating; i++) {
-                        stars[i].classList.add("active");
-                    }
+        const feedbackTexts = [
+            "",
+            "Poor",
+            "Below Average",
+            "Average",
+            "Good",
+            "Excellent"
+        ];
 
-                    // Show feedback text
-                    ratingFeedback.textContent = feedbackTexts[rating];
-                }
-            });
-
-            // Reset stars when not hovering over the rating container
-            ratingStars.addEventListener("mouseleave", () => {
+        ratingStars.addEventListener("mouseover", (event) => {
+            if (event.target.classList.contains("star")) {
+                const rating = parseInt(event.target.dataset.rating);
                 const stars = ratingStars.querySelectorAll(".star");
+
+                // Reset all stars
                 stars.forEach(star => star.classList.remove("active"));
-                ratingFeedback.textContent = "";
-            });
 
-            // Handle rating submission
-            ratingStars.addEventListener("click", async (event) => {
-                if (event.target.classList.contains("star")) {
-                    const rating = parseInt(event.target.dataset.rating);
-                    const targetUsername = window.location.pathname.split('/').pop();
-
-                    try {
-                        const token = localStorage.getItem("token");
-                        if (!token) {
-                            alert("You must be logged in to rate.");
-                            location.href = '/login';
-                            return;
-                        }
-
-                        console.log(`Submitting rating ${rating} for user ${targetUsername}`);
-                        
-                        const response = await fetch(`/api/rate-model`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                            },
-                            body: JSON.stringify({ username: targetUsername, rating }),
-                        });
-
-                        const data = await response.json();
-                        if (response.ok) {
-                            // Show success message
-                            ratingSuccess.classList.add("visible");
-                            setTimeout(() => {
-                                ratingSuccess.classList.remove("visible");
-                            }, 2000);
-
-                            await fetchAverageRating(); // Refresh average rating
-                        } else {
-                            console.error("Rating submission error:", data.error || data.message);
-                            alert(data.error || data.message || "An error occurred while rating.");
-                        }
-                    } catch (error) {
-                        console.error("Error rating:", error);
-                        alert("An error occurred while rating.");
-                    }
-                }
-            });
-
-            // Function to render star rating
-            function renderStarRating(container, rating, size = "1rem") {
-                container.innerHTML = ""; // Clear previous stars
-
-                // Calculate full and partial stars
-                const fullStars = Math.floor(rating);
-                const hasHalfStar = rating % 1 >= 0.5;
-
-                // Add full stars
-                for (let i = 0; i < fullStars; i++) {
-                    const star = document.createElement("span");
-                    star.className = "star star-filled";
-                    star.style.fontSize = size;
-                    star.style.cursor = "default";
-                    star.textContent = "★";
-                    container.appendChild(star);
+                // Highlight stars up to the hovered one
+                for (let i = 0; i < rating; i++) {
+                    stars[i].classList.add("active");
                 }
 
-                // Add half star if needed
-                if (hasHalfStar) {
-                    const halfStar = document.createElement("span");
-                    halfStar.className = "star star-half";
-                    halfStar.style.fontSize = size;
-                    halfStar.style.cursor = "default";
-                    container.appendChild(halfStar);
-                }
-
-                // Add empty stars
-                const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-                for (let i = 0; i < emptyStars; i++) {
-                    const star = document.createElement("span");
-                    star.className = "star";
-                    star.style.fontSize = size;
-                    star.style.cursor = "default";
-                    star.textContent = "★";
-                    container.appendChild(star);
-                }
+                // Show feedback text
+                ratingFeedback.textContent = feedbackTexts[rating];
             }
+        });
 
-            async function fetchAverageRating() {
+        // Reset stars when not hovering over the rating container
+        ratingStars.addEventListener("mouseleave", () => {
+            const stars = ratingStars.querySelectorAll(".star");
+            stars.forEach(star => star.classList.remove("active"));
+            ratingFeedback.textContent = "";
+        });
+
+        // Handle rating submission
+        ratingStars.addEventListener("click", async (event) => {
+            if (event.target.classList.contains("star")) {
+                const rating = parseInt(event.target.dataset.rating);
+                const targetUsername = window.location.pathname.split('/').pop();
+
                 try {
-                    const targetUsername = window.location.pathname.split('/').pop();
-                    const response = await fetch(`/api/user/profile/${targetUsername}`, {
-                        method: "GET",
+                    const token = localStorage.getItem("token");
+                    if (!token) {
+                        alert("You must be logged in to rate.");
+                        location.href = '/login';
+                        return;
+                    }
+
+                    console.log(`Submitting rating ${rating} for user ${targetUsername}`);
+                    
+                    const response = await fetch(`/api/rate-model`, {
+                        method: "POST",
                         headers: {
                             "Content-Type": "application/json",
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
+                            Authorization: `Bearer ${token}`,
                         },
+                        body: JSON.stringify({ username: targetUsername, rating }),
                     });
 
+                    const data = await response.json();
                     if (response.ok) {
-                        const data = await response.json();
-                        let totalRating = 0;
+                        // Show success message
+                        ratingSuccess.classList.add("visible");
+                        setTimeout(() => {
+                            ratingSuccess.classList.remove("visible");
+                        }, 2000);
 
-                        if (data.ratings && data.ratings.length > 0) {
-                            data.ratings.forEach(rating => {
-                                totalRating += rating.rating;
-                            });
-
-                            const averageRating = totalRating / data.ratings.length;
-
-                            // Update the average rating display
-                            renderStarRating(averageStars, averageRating, "0.9rem");
-                            averageNumber.textContent = `${averageRating.toFixed(1)}`;
-                            ratingCount.textContent = `(${data.ratings.length})`;
-                        } else {
-                            averageStars.innerHTML = "";
-                            averageNumber.textContent = "No ratings";
-                            ratingCount.textContent = "";
-                        }
+                        await fetchAverageRating(); // Refresh average rating
                     } else {
-                        console.error("Error fetching profile:", response.status);
+                        console.error("Rating submission error:", data.error || data.message);
+                        alert(data.error || data.message || "An error occurred while rating.");
+                    }
+                } catch (error) {
+                    console.error("Error rating:", error);
+                    alert("An error occurred while rating.");
+                }
+            }
+        });
+
+        // Function to render star rating
+        function renderStarRating(container, rating, size = "1rem") {
+            container.innerHTML = ""; // Clear previous stars
+
+            // Calculate full and partial stars
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+
+            // Add full stars
+            for (let i = 0; i < fullStars; i++) {
+                const star = document.createElement("span");
+                star.className = "star star-filled";
+                star.style.fontSize = size;
+                star.style.cursor = "default";
+                star.textContent = "★";
+                container.appendChild(star);
+            }
+
+            // Add half star if needed
+            if (hasHalfStar) {
+                const halfStar = document.createElement("span");
+                halfStar.className = "star star-half";
+                halfStar.style.fontSize = size;
+                halfStar.style.cursor = "default";
+                container.appendChild(halfStar);
+            }
+
+            // Add empty stars
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                const star = document.createElement("span");
+                star.className = "star";
+                star.style.fontSize = size;
+                star.style.cursor = "default";
+                star.textContent = "★";
+                container.appendChild(star);
+            }
+        }
+
+        async function fetchAverageRating() {
+            try {
+                const targetUsername = window.location.pathname.split('/').pop();
+                const response = await fetch(`/api/user/profile/${targetUsername}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let totalRating = 0;
+
+                    if (data.ratings && data.ratings.length > 0) {
+                        data.ratings.forEach(rating => {
+                            totalRating += rating.rating;
+                        });
+
+                        const averageRating = totalRating / data.ratings.length;
+
+                        // Update the average rating display
+                        renderStarRating(averageStars, averageRating, "0.9rem");
+                        averageNumber.textContent = `${averageRating.toFixed(1)}`;
+                        ratingCount.textContent = `(${data.ratings.length})`;
+                    } else {
                         averageStars.innerHTML = "";
                         averageNumber.textContent = "No ratings";
                         ratingCount.textContent = "";
                     }
-                } catch (error) {
-                    console.error("Error fetching average rating:", error);
+                } else {
+                    console.error("Error fetching profile:", response.status);
                     averageStars.innerHTML = "";
                     averageNumber.textContent = "No ratings";
                     ratingCount.textContent = "";
                 }
+            } catch (error) {
+                console.error("Error fetching average rating:", error);
+                averageStars.innerHTML = "";
+                averageNumber.textContent = "No ratings";
+                ratingCount.textContent = "";
             }
+        }
 
-            fetchAverageRating(); // Fetch rating on page load
+        fetchAverageRating(); // Fetch rating on page load
 
-            
-            // Function to show typing indicator
-            function showTypingIndicator() {
-                const chatBox = document.getElementById("chatBox");
-                const typingIndicator = document.createElement("div");
-                typingIndicator.id = "typingIndicator";
-                typingIndicator.className = "typing-indicator";
-                typingIndicator.innerHTML = `
-                    <span class="typing-indicator-text">AI is thinking</span>
-                    <div class="typing-dots">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar"></div>
-                    </div>
-                `;
-                chatBox.appendChild(typingIndicator);
-                chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // Function to show typing indicator
+        function showTypingIndicator() {
+            const chatBox = document.getElementById("chatBox");
+            const typingIndicator = document.createElement("div");
+            typingIndicator.id = "typingIndicator";
+            typingIndicator.className = "typing-indicator";
+            typingIndicator.innerHTML = `
+                <span class="typing-indicator-text">AI is thinking</span>
+                <div class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
+            `;
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+        
+        // Function to hide typing indicator
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById("typingIndicator");
+            if (typingIndicator) {
+                typingIndicator.remove();
             }
-            
-            // Function to hide typing indicator
-            function hideTypingIndicator() {
-                const typingIndicator = document.getElementById("typingIndicator");
-                if (typingIndicator) {
-                    typingIndicator.remove();
-                }
-            }
+        }
 
-            // Function to add click handlers to example prompts
-            function setupExamplePrompts() {
-                const prompts = document.querySelectorAll('.example-prompt');
-                prompts.forEach(prompt => {
-                    prompt.addEventListener('click', function() {
-                        const queryInput = document.getElementById("queryInput");
-                        queryInput.value = this.textContent.trim();
-                        queryInput.focus();
-                    });
+        // Function to add click handlers to example prompts
+        function setupExamplePrompts() {
+            const prompts = document.querySelectorAll('.example-prompt');
+            prompts.forEach(prompt => {
+                prompt.addEventListener('click', function() {
+                    const queryInput = document.getElementById("queryInput");
+                    queryInput.value = this.textContent.trim();
+                    queryInput.focus();
                 });
+            });
+        }
+        
+        // Call this function after example prompts are populated
+        setupExamplePrompts();
+
+        // Handle initial setup based on if this is user's own AI
+        const setupInitialState = () => {
+            // Hide the Google Calendar section for non-owner users
+            if (!isOwnAI) {
+                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+                if (servicesSection) {
+                    servicesSection.style.display = 'none';
+                }
+                
+                // Also ensure chat sidebar is hidden
+                const sidebarEl = document.getElementById('chatSidebar');
+                const toggleBtn = document.getElementById('toggleSidebar');
+                if (sidebarEl) sidebarEl.classList.add('hidden');
+                if (toggleBtn) toggleBtn.style.display = 'none';
+            }
+        };
+        
+        // Call this function when the page loads
+        setupInitialState();
+        
+        // Rest of initialization code
+        loadGoogleCalendarConfig();
+
+        // Add click event listener for connect button
+        connectButton.addEventListener('click', async () => {
+            if (connectButton.textContent === 'Connect') {
+                connectToGoogleCalendar();
+            } else if (connectButton.textContent === 'Disconnect') {
+                disconnectFromGoogleCalendar();
+            }
+        });
+
+        // Chat storage management
+        let currentChatId = null;
+        const chatSidebar = document.getElementById('chatSidebar');
+        const container = document.querySelector('.container');
+        const toggleSidebar = document.getElementById('toggleSidebar');
+        const newChatButton = document.getElementById('newChatButton');
+        const chatsList = document.getElementById('chatsList');
+        
+        // Toggle sidebar visibility
+        toggleSidebar.addEventListener('click', () => {
+            // Close the right drawer if it's open
+            if (document.body.classList.contains('drawer-open')) {
+                document.body.classList.remove('drawer-open');
             }
             
-            // Call this function after example prompts are populated
-            setupExamplePrompts();
-
-            // Handle initial setup based on if this is user's own AI
-            const setupInitialState = () => {
-                // Hide the Google Calendar section for non-owner users
-                if (!isOwnAI) {
-                    const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
-                    if (servicesSection) {
-                        servicesSection.style.display = 'none';
-                    }
+            const isHidden = chatSidebar.classList.toggle('hidden');
+            toggleSidebar.classList.toggle('hidden', isHidden);
+            container.classList.toggle('full-width', isHidden);
+            
+            // Change icon based on state
+            toggleSidebar.innerHTML = isHidden 
+                ? '<i class="fas fa-chevron-right"></i>' 
+                : '<i class="fas fa-chevron-left"></i>';
+            
+            // Save preference
+            localStorage.setItem('sidebarHidden', isHidden);
+        });
+        
+        // Load chats from the server
+        const loadChats = async () => {
+            const token = localStorage.getItem('token');
+            const urlUsername = window.location.pathname.split('/').pop();
+            console.log("loadChats called, token exists:", !!token);
+            
+            if (!token || !isOwnAI) {
+                console.log("No token or not user's own AI, hiding sidebar");
+                chatSidebar.classList.add('hidden');
+                toggleSidebar.classList.add('hidden');
+                container.classList.add('full-width');
+                return;
+            }
+            
+            // Function to categorize chats by date
+            const categorizeChatsByDate = (chats) => {
+                const now = new Date();
+                const today = now.toDateString();
+                
+                const yesterday = new Date(now);
+                yesterday.setDate(now.getDate() - 1);
+                const yesterdayString = yesterday.toDateString();
+                
+                const lastWeek = new Date(now);
+                lastWeek.setDate(now.getDate() - 7);
+                
+                const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                
+                // Create categories
+                const categories = {
+                    'Today': [],
+                    'Yesterday': [],
+                    'Last 7 days': [],
+                    'This month': []
+                };
+                
+                // Custom months categories will be added dynamically
+                const monthsCategories = {};
+                
+                // Group chats by date category
+                chats.forEach(chat => {
+                    const chatDate = new Date(chat.updatedAt);
+                    const chatDateString = chatDate.toDateString();
                     
-                    // Also ensure chat sidebar is hidden
-                    const sidebarEl = document.getElementById('chatSidebar');
-                    const toggleBtn = document.getElementById('toggleSidebar');
-                    if (sidebarEl) sidebarEl.classList.add('hidden');
-                    if (toggleBtn) toggleBtn.style.display = 'none';
-                }
+                    if (chatDateString === today) {
+                        categories['Today'].push(chat);
+                    } else if (chatDateString === yesterdayString) {
+                        categories['Yesterday'].push(chat);
+                    } else if (chat > lastWeek) {
+                        categories['Last 7 days'].push(chat);
+                    } else if (chat >= thisMonth) {
+                        categories['This month'].push(chat);
+                    } else {
+                        // Group by month and year
+                        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                       'July', 'August', 'September', 'October', 'November', 'December'];
+                        const monthYear = `${months[chatDate.getMonth()]} ${chatDate.getFullYear()}`;
+                        
+                        if (!monthsCategories[monthYear]) {
+                            monthsCategories[monthYear] = [];
+                        }
+                        monthsCategories[monthYear].push(chat);
+                    }
+                });
+                
+                // Add month categories to main categories object
+                Object.keys(monthsCategories).forEach(monthYear => {
+                    categories[monthYear] = monthsCategories[monthYear];
+                });
+                
+                return categories;
             };
             
-            // Call this function when the page loads
-            setupInitialState();
-            
-            // Rest of initialization code
-            loadGoogleCalendarConfig();
-
-            // Add click event listener for connect button
-            connectButton.addEventListener('click', async () => {
-                if (connectButton.textContent === 'Connect') {
-                    connectToGoogleCalendar();
-                } else if (connectButton.textContent === 'Disconnect') {
-                    disconnectFromGoogleCalendar();
-                }
-            });
-
-            // Chat storage management
-            let currentChatId = null;
-            const chatSidebar = document.getElementById('chatSidebar');
-            const container = document.querySelector('.container');
-            const toggleSidebar = document.getElementById('toggleSidebar');
-            const newChatButton = document.getElementById('newChatButton');
-            const chatsList = document.getElementById('chatsList');
-            
-            // Toggle sidebar visibility
-            toggleSidebar.addEventListener('click', () => {
-                // Close the right drawer if it's open
-                if (document.body.classList.contains('drawer-open')) {
-                    document.body.classList.remove('drawer-open');
-                }
+            // Check if user is viewing their own AI
+            try {
+                const tokenData = JSON.parse(atob(token.split('.')[1]));
+                const currentUsername = tokenData.username;
                 
-                const isHidden = chatSidebar.classList.toggle('hidden');
-                toggleSidebar.classList.toggle('hidden', isHidden);
-                container.classList.toggle('full-width', isHidden);
-                
-                // Change icon based on state
-                toggleSidebar.innerHTML = isHidden 
-                    ? '<i class="fas fa-chevron-right"></i>' 
-                    : '<i class="fas fa-chevron-left"></i>';
-                
-                // Save preference
-                localStorage.setItem('sidebarHidden', isHidden);
-            });
-            
-            // Load chats from the server
-            const loadChats = async () => {
-                const token = localStorage.getItem('token');
-                const urlUsername = window.location.pathname.split('/').pop();
-                console.log("loadChats called, token exists:", !!token);
-                
-                if (!token || !isOwnAI) {
-                    console.log("No token or not user's own AI, hiding sidebar");
+                if (urlUsername !== currentUsername) {
+                    console.log("User is not viewing their own AI, not loading chats");
+                    // IMPORTANT: Always hide sidebar when not viewing your own AI
                     chatSidebar.classList.add('hidden');
                     toggleSidebar.classList.add('hidden');
                     container.classList.add('full-width');
                     return;
                 }
                 
-                // Function to categorize chats by date
-                const categorizeChatsByDate = (chats) => {
-                    const now = new Date();
-                    const today = now.toDateString();
-                    
-                    const yesterday = new Date(now);
-                    yesterday.setDate(now.getDate() - 1);
-                    const yesterdayString = yesterday.toDateString();
-                    
-                    const lastWeek = new Date(now);
-                    lastWeek.setDate(now.getDate() - 7);
-                    
-                    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                    
-                    // Create categories
-                    const categories = {
-                        'Today': [],
-                        'Yesterday': [],
-                        'Last 7 days': [],
-                        'This month': []
-                    };
-                    
-                    // Custom months categories will be added dynamically
-                    const monthsCategories = {};
-                    
-                    // Group chats by date category
-                    chats.forEach(chat => {
-                        const chatDate = new Date(chat.updatedAt);
-                        const chatDateString = chatDate.toDateString();
-                        
-                        if (chatDateString === today) {
-                            categories['Today'].push(chat);
-                        } else if (chatDateString === yesterdayString) {
-                            categories['Yesterday'].push(chat);
-                        } else if (chat > lastWeek) {
-                            categories['Last 7 days'].push(chat);
-                        } else if (chat >= thisMonth) {
-                            categories['This month'].push(chat);
-                        } else {
-                            // Group by month and year
-                            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                                           'July', 'August', 'September', 'October', 'November', 'December'];
-                            const monthYear = `${months[chatDate.getMonth()]} ${chatDate.getFullYear()}`;
-                            
-                            if (!monthsCategories[monthYear]) {
-                                monthsCategories[monthYear] = [];
-                            }
-                            monthsCategories[monthYear].push(chat);
-                        }
-                    });
-                    
-                    // Add month categories to main categories object
-                    Object.keys(monthsCategories).forEach(monthYear => {
-                        categories[monthYear] = monthsCategories[monthYear];
-                    });
-                    
-                    return categories;
-                };
+                console.log("Fetching chats from server...");
+                const response = await fetch('/api/chats', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 
-                // Check if user is viewing their own AI
-                try {
-                    const tokenData = JSON.parse(atob(token.split('.')[1]));
-                    const currentUsername = tokenData.username;
+                console.log("Server response status:", response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error response from server:", errorText);
+                    throw new Error(`Failed to load chats: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log("Chats loaded:", data);
+                
+                // Render chats in sidebar
+                if (data.success && data.chats && data.chats.length > 0) {
+                    console.log(`Found ${data.chats.length} chats to display`);
+                    chatsList.innerHTML = '';
                     
-                    if (urlUsername !== currentUsername) {
-                        console.log("User is not viewing their own AI, not loading chats");
-                        // IMPORTANT: Always hide sidebar when not viewing your own AI
-                        chatSidebar.classList.add('hidden');
-                        toggleSidebar.classList.add('hidden');
-                        container.classList.add('full-width');
-                        return;
-                    }
+                    // Categorize chats by date
+                    const categorizedChats = categorizeChatsByDate(data.chats);
                     
-                    console.log("Fetching chats from server...");
-                    const response = await fetch('/api/chats', {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    console.log("Server response status:", response.status);
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error("Error response from server:", errorText);
-                        throw new Error(`Failed to load chats: ${response.status} ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log("Chats loaded:", data);
-                    
-                    // Render chats in sidebar
-                    if (data.success && data.chats && data.chats.length > 0) {
-                        console.log(`Found ${data.chats.length} chats to display`);
-                        chatsList.innerHTML = '';
+                    // Render each category
+                    Object.keys(categorizedChats).forEach(category => {
+                        const chatsInCategory = categorizedChats[category];
                         
-                        // Categorize chats by date
-                        const categorizedChats = categorizeChatsByDate(data.chats);
-                        
-                        // Render each category
-                        Object.keys(categorizedChats).forEach(category => {
-                            const chatsInCategory = categorizedChats[category];
+                        // Only render categories with chats
+                        if (chatsInCategory.length > 0) {
+                            // Create category group
+                            const groupDiv = document.createElement('div');
+                            groupDiv.className = 'chat-group';
                             
-                            // Only render categories with chats
-                            if (chatsInCategory.length > 0) {
-                                // Create category group
-                                const groupDiv = document.createElement('div');
-                                groupDiv.className = 'chat-group';
+                            // Add heading
+                            const headingDiv = document.createElement('div');
+                            headingDiv.className = 'chat-group-heading';
+                            headingDiv.textContent = category;
+                            groupDiv.appendChild(headingDiv);
+                            
+                            // Add chats in this category
+                            chatsInCategory.forEach(chat => {
+                                console.log(`Adding chat to ${category}:`, chat._id, chat.title);
+                                const chatItem = document.createElement('div');
+                                chatItem.className = 'chat-item';
+                                chatItem.dataset.id = chat._id;
                                 
-                                // Add heading
-                                const headingDiv = document.createElement('div');
-                                headingDiv.className = 'chat-group-heading';
-                                headingDiv.textContent = category;
-                                groupDiv.appendChild(headingDiv);
+                                if (currentChatId === chat._id) {
+                                    chatItem.classList.add('active');
+                                }
                                 
-                                // Add chats in this category
-                                chatsInCategory.forEach(chat => {
-                                    console.log(`Adding chat to ${category}:`, chat._id, chat.title);
-                                    const chatItem = document.createElement('div');
-                                    chatItem.className = 'chat-item';
-                                    chatItem.dataset.id = chat._id;
-                                    
-                                    if (currentChatId === chat._id) {
-                                        chatItem.classList.add('active');
+                                chatItem.innerHTML = `
+                                    <div class="chat-title">${chat.title}</div>
+                                    <div class="chat-actions">
+                                        <button class="chat-action-btn rename-btn" title="Rename">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="chat-action-btn delete-btn" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                `;
+                                
+                                // Add click handler to load chat
+                                chatItem.addEventListener('click', (e) => {
+                                    if (!e.target.closest('.chat-actions')) {
+                                        console.log("Chat item clicked:", chat._id);
+                                        loadChat(chat._id);
                                     }
-                                    
-                                    chatItem.innerHTML = `
-                                        <div class="chat-title">${chat.title}</div>
-                                        <div class="chat-actions">
-                                            <button class="chat-action-btn rename-btn" title="Rename">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="chat-action-btn delete-btn" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    `;
-                                    
-                                    // Add click handler to load chat
-                                    chatItem.addEventListener('click', (e) => {
-                                        if (!e.target.closest('.chat-actions')) {
-                                            console.log("Chat item clicked:", chat._id);
-                                            loadChat(chat._id);
-                                        }
-                                    });
-                                    
-                                    // Add rename handler
-                                    chatItem.querySelector('.rename-btn').addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        console.log("Rename button clicked for chat:", chat._id);
-                                        renameChat(chat._id, chat.title);
-                                    });
-                                    
-                                    // Add delete handler
-                                    chatItem.querySelector('.delete-btn').addEventListener('click', (e) => {
-                                        e.stopPropagation();
-                                        console.log("Delete button clicked for chat:", chat._id);
-                                        deleteChat(chat._id);
-                                    });
-                                    
-                                    groupDiv.appendChild(chatItem);
                                 });
                                 
-                                chatsList.appendChild(groupDiv);
-                            }
-                        });
-                    } else {
-                        console.log("No chats found or empty chat list");
-                        chatsList.innerHTML = '<div class="empty-chats-message">No saved chats yet</div>';
-                    }
-                } catch (error) {
-                    console.error('Error loading chats:', error);
-                    chatsList.innerHTML = `<div class="empty-chats-message">Failed to load chats: ${error.message}</div>`;
-                }
-            };
-            
-            // Create a new chat
-            const createNewChat = async () => {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                
-                try {
-                    const response = await fetch('/api/chats', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ title: 'New Chat' })
-                    });
-                    
-                    if (!response.ok) throw new Error('Failed to create chat');
-                    
-                    const data = await response.json();
-                    
-                    if (data.success && data.chat) {
-                        // Refresh chat list
-                        loadChats();
-                        
-                        // Set as current chat
-                        currentChatId = data.chat._id;
-                        
-                        // Clear chat box
-                        const chatBox = document.getElementById('chatBox');
-                        chatBox.innerHTML = '';
-                        
-                        // Reset chat history
-                        chatHistory = [];
-                    }
-                } catch (error) {
-                    console.error('Error creating chat:', error);
-                }
-            };
-            
-            // Rename a chat
-            const renameChat = async (chatId, currentTitle) => {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                
-                const newTitle = prompt('Enter new title for this chat:', currentTitle);
-                if (!newTitle || newTitle === currentTitle) return;
-                
-                try {
-                    const response = await fetch(`/api/chats/${chatId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ title: newTitle })
-                    });
-                    
-                    if (response.ok) {
-                        loadChats();
-                    }
-                } catch (error) {
-                    console.error('Error renaming chat:', error);
-                }
-            };
-            
-            // Delete a chat
-            const deleteChat = async (chatId) => {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-                
-                if (!confirm('Are you sure you want to delete this chat?')) return;
-                
-                try {
-                    const response = await fetch(`/api/chats/${chatId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        if (currentChatId === chatId) {
-                            // Clear current chat if it was deleted
-                            currentChatId = null;
-                            document.getElementById('chatBox').innerHTML = '';
-                            chatHistory = [];
-                        }
-                        
-                        loadChats();
-                    }
-                } catch (error) {
-                    console.error('Error deleting chat:', error);
-                }
-            };
-            
-            // Initialize chat system
-            const initChatSystem = () => {
-                const token = localStorage.getItem('token');
-                const urlUsername = window.location.pathname.split('/').pop();
-                console.log("Initializing chat system, token exists:", !!token);
-                
-                // Default to hiding the chat sidebar
-                chatSidebar.classList.add('hidden');
-                toggleSidebar.classList.add('hidden');
-                container.classList.add('full-width');
-                
-                if (!token) {
-                    console.log("No token, hiding sidebar for unauthenticated users");
-                    return;
-                }
-                
-                // Check if user is viewing their own AI
-                try {
-                    const tokenData = JSON.parse(atob(token.split('.')[1]));
-                    const currentUsername = tokenData.username;
-                    const isOwnAI = urlUsername === currentUsername;
-                    
-                    console.log("Current user:", currentUsername, "URL username:", urlUsername, "Is own AI:", isOwnAI);
-                    
-                    if (!isOwnAI) {
-                        console.log("User is not viewing their own AI, hiding chat sidebar");
-                        return;
-                    }
-                    
-                    console.log("User is viewing their own AI, showing chat sidebar");
-                    
-                    // Check saved sidebar preference
-                    const isHidden = localStorage.getItem('sidebarHidden') === 'true';
-                    console.log("Saved sidebar preference, isHidden:", isHidden);
-                    
-                    if (isHidden) {
-                        console.log("Applying saved preference: hide sidebar");
-                        chatSidebar.classList.add('hidden');
-                        toggleSidebar.classList.add('hidden');
-                        container.classList.add('full-width');
-                        toggleSidebar.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                    } else {
-                        console.log("Applying saved preference or default: show sidebar");
-                        chatSidebar.classList.remove('hidden');
-                        toggleSidebar.classList.remove('hidden');
-                        container.classList.remove('full-width');
-                        toggleSidebar.innerHTML = '<i class="fas fa-chevron-left"></i>';
-                    }
-                    
-                    // Add event listeners
-                    if (newChatButton) {
-                        newChatButton.addEventListener('click', createNewChat);
-                    }
-                    
-                    // Load chats
-                    loadChats();
-                } catch (error) {
-                    console.error("Error checking if user is viewing their own AI:", error);
-                }
-            };
-            
-            // Run initialization
-            initChatSystem();
-
-            // Add debugging logs
-            console.log("Script initialized, checking for token:", localStorage.getItem('token') ? "Token found" : "No token");
-            
-            // Also initialize when DOM is fully loaded to ensure all elements exist
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log("DOM fully loaded, initializing chat system");
-                initChatSystem();
-                
-                // Add event listener to new chat button
-                const newChatButton = document.getElementById('newChatButton');
-                if (newChatButton) {
-                    console.log("New chat button found, adding event listener");
-                    newChatButton.addEventListener('click', createNewChat);
-                } else {
-                    console.error("New chat button not found in DOM");
-                }
-                
-                // Add event listener to toggle sidebar button
-                const toggleSidebar = document.getElementById('toggleSidebar');
-                if (toggleSidebar) {
-                    console.log("Toggle sidebar button found, adding event listener");
-                    toggleSidebar.addEventListener('click', () => {
-                        const chatSidebar = document.getElementById('chatSidebar');
-                        const container = document.querySelector('.container');
-                        
-                        // Close the right drawer if it's open
-                        if (document.body.classList.contains('drawer-open')) {
-                            document.body.classList.remove('drawer-open');
-                        }
-                        
-                        const isHidden = chatSidebar.classList.toggle('hidden');
-                        toggleSidebar.classList.toggle('hidden', isHidden);
-                        container.classList.toggle('full-width', isHidden);
-                        
-                        // Change icon based on state
-                        toggleSidebar.innerHTML = isHidden 
-                            ? '<i class="fas fa-chevron-right"></i>' 
-                            : '<i class="fas fa-chevron-left"></i>';
-                        
-                        // Save preference
-                        localStorage.setItem('sidebarHidden', isHidden);
-                    });
-                } else {
-                    console.error("Toggle sidebar button not found in DOM");
-                }
-            });
-
-            // Load a specific chat
-            const loadChat = async (chatId) => {
-                const token = localStorage.getItem('token');
-                console.log("loadChat called for chat ID:", chatId);
-                
-                if (!token) {
-                    console.log("No token found, cannot load chat");
-                    return;
-                }
-                
-                try {
-                    console.log("Fetching chat details from server...");
-                    const response = await fetch(`/api/chats/${chatId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-                    
-                    console.log("Server response status:", response.status);
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error("Error response from server:", errorText);
-                        throw new Error(`Failed to load chat: ${response.status} ${response.statusText}`);
-                    }
-                    
-                    const data = await response.json();
-                    console.log("Chat loaded:", data);
-                    
-                    if (data.success && data.chat) {
-                        // Set current chat ID
-                        currentChatId = chatId;
-                        
-                        // Update UI to show active chat
-                        document.querySelectorAll('.chat-item').forEach(item => {
-                            item.classList.remove('active');
-                            if (item.dataset.id === chatId) {
-                                item.classList.add('active');
-                            }
-                        });
-                        
-                        // Clear existing chat
-                        const chatBox = document.getElementById('chatBox');
-                        chatBox.innerHTML = '';
-                        
-                        // Reset chat history
-                        chatHistory = [];
-                        
-                        // Add messages to chat box
-                        if (data.chat.messages && data.chat.messages.length > 0) {
-                            console.log(`Found ${data.chat.messages.length} messages to display`);
-                            
-                            data.chat.messages.forEach(msg => {
-                                if (msg.role === 'user' || msg.role === 'assistant') {
-                                    console.log("Processing message:", msg.role);
-                                    const messageDiv = document.createElement('div');
-                                    messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`;
-                                    
-                                    if (msg.role === 'user') {
-                                        messageDiv.textContent = msg.content;
-                                    } else {
-                                        // Parse markdown for assistant messages
-                                        let cleanedResponse = msg.content.replace(/\n{3,}/g, '\n\n');
-                                        const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
-                                        cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
-                                        messageDiv.innerHTML = marked.parse(cleanedResponse);
-                                    }
-                                    
-                                    chatBox.appendChild(messageDiv);
-                                    animateMessage(messageDiv);
-                                    
-                                    // Add to chat history
-                                    chatHistory.push({
-                                        role: msg.role,
-                                        content: msg.content
-                                    });
-                                }
+                                // Add rename handler
+                                chatItem.querySelector('.rename-btn').addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    console.log("Rename button clicked for chat:", chat._id);
+                                    renameChat(chat._id, chat.title);
+                                });
+                                
+                                // Add delete handler
+                                chatItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                                    e.stopPropagation();
+                                    console.log("Delete button clicked for chat:", chat._id);
+                                    deleteChat(chat._id);
+                                });
+                                
+                                groupDiv.appendChild(chatItem);
                             });
                             
-                            // Scroll to bottom
-                            chatBox.scrollTop = chatBox.scrollHeight;
-                        } else {
-                            console.log("No messages found in this chat");
+                            chatsList.appendChild(groupDiv);
                         }
-                    }
-                } catch (error) {
-                    console.error('Error loading chat:', error);
-                    const chatBox = document.getElementById('chatBox');
-                    const errorMessage = document.createElement('div');
-                    errorMessage.className = 'message bot-message';
-                    errorMessage.textContent = `Error loading chat: ${error.message}`;
-                    chatBox.appendChild(errorMessage);
-                    animateMessage(errorMessage);
+                    });
+                } else {
+                    console.log("No chats found or empty chat list");
+                    chatsList.innerHTML = '<div class="empty-chats-message">No saved chats yet</div>';
                 }
-            };
+            } catch (error) {
+                console.error('Error loading chats:', error);
+                chatsList.innerHTML = `<div class="empty-chats-message">Failed to load chats: ${error.message}</div>`;
+            }
+        };
+        
+        // Create a new chat
+        const createNewChat = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            try {
+                const response = await fetch('/api/chats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title: 'New Chat' })
+                });
+                
+                if (!response.ok) throw new Error('Failed to create chat');
+                
+                const data = await response.json();
+                
+                if (data.success && data.chat) {
+                    // Refresh chat list
+                    loadChats();
+                    
+                    // Set as current chat
+                    currentChatId = data.chat._id;
+                    
+                    // Clear chat box
+                    const chatBox = document.getElementById('chatBox');
+                    chatBox.innerHTML = '';
+                    
+                    // Reset chat history
+                    chatHistory = [];
+                }
+            } catch (error) {
+                console.error('Error creating chat:', error);
+            }
+        };
+        
+        // Rename a chat
+        const renameChat = async (chatId, currentTitle) => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            const newTitle = prompt('Enter new title for this chat:', currentTitle);
+            if (!newTitle || newTitle === currentTitle) return;
+            
+            try {
+                const response = await fetch(`/api/chats/${chatId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title: newTitle })
+                });
+                
+                if (response.ok) {
+                    loadChats();
+                }
+            } catch (error) {
+                console.error('Error renaming chat:', error);
+            }
+        };
+        
+        // Delete a chat
+        const deleteChat = async (chatId) => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            
+            if (!confirm('Are you sure you want to delete this chat?')) return;
+            
+            try {
+                const response = await fetch(`/api/chats/${chatId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    if (currentChatId === chatId) {
+                        // Clear current chat if it was deleted
+                        currentChatId = null;
+                        document.getElementById('chatBox').innerHTML = '';
+                        chatHistory = [];
+                    }
+                    
+                    loadChats();
+                }
+            } catch (error) {
+                console.error('Error deleting chat:', error);
+            }
+        };
+        
+        // Initialize chat system
+        const initChatSystem = () => {
+            const token = localStorage.getItem('token');
+            const urlUsername = window.location.pathname.split('/').pop();
+            console.log("Initializing chat system, token exists:", !!token);
+            
+            // Default to hiding the chat sidebar
+            chatSidebar.classList.add('hidden');
+            toggleSidebar.classList.add('hidden');
+            container.classList.add('full-width');
+            
+            if (!token) {
+                console.log("No token, hiding sidebar for unauthenticated users");
+                return;
+            }
+            
+            // Check if user is viewing their own AI
+            try {
+                const tokenData = JSON.parse(atob(token.split('.')[1]));
+                const currentUsername = tokenData.username;
+                const isOwnAI = urlUsername === currentUsername;
+                
+                console.log("Current user:", currentUsername, "URL username:", urlUsername, "Is own AI:", isOwnAI);
+                
+                if (!isOwnAI) {
+                    console.log("User is not viewing their own AI, hiding chat sidebar");
+                    return;
+                }
+                
+                console.log("User is viewing their own AI, showing chat sidebar");
+                
+                // Check saved sidebar preference
+                const isHidden = localStorage.getItem('sidebarHidden') === 'true';
+                console.log("Saved sidebar preference, isHidden:", isHidden);
+                
+                if (isHidden) {
+                    console.log("Applying saved preference: hide sidebar");
+                    chatSidebar.classList.add('hidden');
+                    toggleSidebar.classList.add('hidden');
+                    container.classList.add('full-width');
+                    toggleSidebar.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                } else {
+                    console.log("Applying saved preference or default: show sidebar");
+                    chatSidebar.classList.remove('hidden');
+                    toggleSidebar.classList.remove('hidden');
+                    container.classList.remove('full-width');
+                    toggleSidebar.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                }
+                
+                // Add event listeners
+                if (newChatButton) {
+                    newChatButton.addEventListener('click', createNewChat);
+                }
+                
+                // Load chats
+                loadChats();
+            } catch (error) {
+                console.error("Error checking if user is viewing their own AI:", error);
+            }
+        };
+        
+        // Run initialization
+        initChatSystem();
+
+        // Add debugging logs
+        console.log("Script initialized, checking for token:", localStorage.getItem('token') ? "Token found" : "No token");
+        
+        // Also initialize when DOM is fully loaded to ensure all elements exist
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded, initializing chat system");
+            initChatSystem();
+            
+            // Add event listener to new chat button
+            const newChatButton = document.getElementById('newChatButton');
+            if (newChatButton) {
+                console.log("New chat button found, adding event listener");
+                newChatButton.addEventListener('click', createNewChat);
+            } else {
+                console.error("New chat button not found in DOM");
+            }
+            
+            // Add event listener to toggle sidebar button
+            const toggleSidebar = document.getElementById('toggleSidebar');
+            if (toggleSidebar) {
+                console.log("Toggle sidebar button found, adding event listener");
+                toggleSidebar.addEventListener('click', () => {
+                    const chatSidebar = document.getElementById('chatSidebar');
+                    const container = document.querySelector('.container');
+                    
+                    // Close the right drawer if it's open
+                    if (document.body.classList.contains('drawer-open')) {
+                        document.body.classList.remove('drawer-open');
+                    }
+                    
+                    const isHidden = chatSidebar.classList.toggle('hidden');
+                    toggleSidebar.classList.toggle('hidden', isHidden);
+                    container.classList.toggle('full-width', isHidden);
+                    
+                    // Change icon based on state
+                    toggleSidebar.innerHTML = isHidden 
+                        ? '<i class="fas fa-chevron-right"></i>' 
+                        : '<i class="fas fa-chevron-left"></i>';
+                    
+                    // Save preference
+                    localStorage.setItem('sidebarHidden', isHidden);
+                });
+            } else {
+                console.error("Toggle sidebar button not found in DOM");
+            }
         });
+
+        // Load a specific chat
+        const loadChat = async (chatId) => {
+            const token = localStorage.getItem('token');
+            console.log("loadChat called for chat ID:", chatId);
+            
+            if (!token) {
+                console.log("No token found, cannot load chat");
+                return;
+            }
+            
+            try {
+                console.log("Fetching chat details from server...");
+                const response = await fetch(`/api/chats/${chatId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log("Server response status:", response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error response from server:", errorText);
+                    throw new Error(`Failed to load chat: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log("Chat loaded:", data);
+                
+                if (data.success && data.chat) {
+                    // Set current chat ID
+                    currentChatId = chatId;
+                    
+                    // Update UI to show active chat
+                    document.querySelectorAll('.chat-item').forEach(item => {
+                        item.classList.remove('active');
+                        if (item.dataset.id === chatId) {
+                            item.classList.add('active');
+                        }
+                    });
+                    
+                    // Clear existing chat
+                    const chatBox = document.getElementById('chatBox');
+                    chatBox.innerHTML = '';
+                    
+                    // Reset chat history
+                    chatHistory = [];
+                    
+                    // Add messages to chat box
+                    if (data.chat.messages && data.chat.messages.length > 0) {
+                        console.log(`Found ${data.chat.messages.length} messages to display`);
+                        
+                        data.chat.messages.forEach(msg => {
+                            if (msg.role === 'user' || msg.role === 'assistant') {
+                                console.log("Processing message:", msg.role);
+                                const messageDiv = document.createElement('div');
+                                messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`;
+                                
+                                if (msg.role === 'user') {
+                                    messageDiv.textContent = msg.content;
+                                } else {
+                                    // Parse markdown for assistant messages
+                                    let cleanedResponse = msg.content.replace(/\n{3,}/g, '\n\n');
+                                    const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
+                                    cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
+                                    messageDiv.innerHTML = marked.parse(cleanedResponse);
+                                }
+                                
+                                chatBox.appendChild(messageDiv);
+                                animateMessage(messageDiv);
+                                
+                                // Add to chat history
+                                chatHistory.push({
+                                    role: msg.role,
+                                    content: msg.content
+                                });
+                            }
+                        });
+                        
+                        // Scroll to bottom
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    } else {
+                        console.log("No messages found in this chat");
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading chat:', error);
+                const chatBox = document.getElementById('chatBox');
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message bot-message';
+                errorMessage.textContent = `Error loading chat: ${error.message}`;
+                chatBox.appendChild(errorMessage);
+                animateMessage(errorMessage);
+            }
+        };
+
+        // Function to create and add the feature announcement to the chat
+        function showEmbedFeatureAnnouncement() {
+            // Only show for users who own their AI and haven't dismissed it
+            if (isOwnAI && !localStorage.getItem('embedFeatureDismissed')) {
+                // Create the announcement element
+                const announcement = document.createElement('div');
+                announcement.className = 'feature-announcement';
+                announcement.innerHTML = `
+                    <button class="feature-announcement-close" id="dismissFeatureBtn">×</button>
+                    <div class="feature-announcement-header">
+                        <span class="feature-announcement-badge">New</span>
+                        <h3 class="feature-announcement-title">Embed Your AI on Your Website!</h3>
+                    </div>
+                    <div class="feature-announcement-body">
+                        You can now add your AI assistant directly to your own website or blog!
+                        Visitors can chat with your AI without leaving your site.
+                    </div>
+                    <div class="feature-announcement-actions">
+                        <button class="feature-btn feature-btn-secondary" id="showEmbedBtn">
+                            <i class="fas fa-code"></i> Show Me How
+                        </button>
+                        <button class="feature-btn feature-btn-secondary" id="laterBtn">
+                            Remind Me Later
+                        </button>
+                    </div>
+                `;
+                
+                // Find the chat box to insert it at the beginning
+                const chatBox = document.getElementById('chatBox');
+                if (chatBox) {
+                    // Insert at the beginning of chat
+                    if (chatBox.firstChild) {
+                        chatBox.insertBefore(announcement, chatBox.firstChild);
+                    } else {
+                        chatBox.appendChild(announcement);
+                    }
+                    
+                    // Add event listeners to buttons
+                    document.getElementById('dismissFeatureBtn').addEventListener('click', function() {
+                        announcement.remove();
+                        localStorage.setItem('embedFeatureDismissed', 'true');
+                    });
+                    
+                    document.getElementById('showEmbedBtn').addEventListener('click', function() {
+                        announcement.remove();
+                        openDrawerToShare();
+                        // Scroll to embed section
+                        const embedBox = document.getElementById('embed-box');
+                        if (embedBox) {
+                            setTimeout(() => {
+                                embedBox.scrollIntoView({ behavior: 'smooth' });
+                                embedBox.style.animation = 'pulse 2s';
+                            }, 500);
+                        }
+                        localStorage.setItem('embedFeatureDismissed', 'true');
+                    });
+                    
+                    document.getElementById('laterBtn').addEventListener('click', function() {
+                        announcement.remove();
+                        // Don't set localStorage so it will show again next time
+                    });
+                }
+            }
+        }
+    });
     </script>
 </body>
 
