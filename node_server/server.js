@@ -1358,3 +1358,103 @@ app.post('/api/test-email', authenticateToken, async (req, res) => {
 app.get('/email-test', async (req, res) => {
     res.sendFile(path.join(__dirname, "public", "email-test.html"));
 });
+
+// Embed chat endpoint - for external websites
+app.post('/api/embed/chat', async (req, res) => {
+    try {
+        const { query, username, chatHistory, apiKey } = req.body;
+
+        // Input Validation
+        if (!query || query.trim().length === 0) {
+            return res.status(400).json({ success: false, message: "Query cannot be empty" });
+        }
+
+        if (!apiKey || apiKey.trim().length === 0) {
+            return res.status(400).json({ success: false, message: "API key is required" });
+        }
+
+        // Basic validation of API key format
+        if (!apiKey.startsWith('AI') || apiKey.length < 20) {
+            return res.status(400).json({ success: false, message: "Invalid API key format" });
+        }
+
+        // Get user data for self-assessment
+        // For embedded users, we'll use a generic one if username is not provided
+        let userSelfAssessment = "";
+        let name = "Mimikree Assistant";
+        
+        if (username && username !== 'embedded-user') {
+            try {
+                const user = await User.findOne({ username: username });
+                if (user && user.selfAssessment) {
+                    userSelfAssessment = user.selfAssessment;
+                    name = user.name || "Mimikree Assistant";
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                // Continue with default values if user not found
+            }
+        }
+
+        // Format chat history
+        let updatedHistory = [];
+        if (chatHistory && Array.isArray(chatHistory)) {
+            updatedHistory = chatHistory.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }));
+        }
+
+        // Prepare data for the LLaMA server
+        const dataForModel = {
+            query: query,
+            selfAssessment: userSelfAssessment || "I am an AI assistant powered by Mimikree, designed to be helpful, harmless, and honest.",
+            username: username || 'embedded-user',
+            name: name,
+            own_model: false, // Embedded users don't have their own model
+            chatHistory: updatedHistory,
+            apiKey: apiKey // Pass the API key to the LLaMA server
+        };
+
+        // Forward the request to the LLaMA server
+        const response = await axios.post(`${config.llamaServer}/ask_embed`, dataForModel);
+
+        // Response Handling
+        if (!response.data || !response.data.response) {
+            console.error("Invalid response from LLM:", response.data);
+            return res.status(500).json({ success: false, message: "Invalid response from LLM" });
+        }
+
+        console.log("LLM Response for embedded chat:", response.data.response);
+
+        return res.json({
+            success: true,
+            response: response.data.response,
+            hasPersonalData: response.data.hasPersonalData || false,
+            username: username,
+            name: name
+        });
+
+    } catch (error) {
+        console.error("Error in embedded chat:", error);
+        return res.status(500).json({ 
+            success: false, 
+            message: "An error occurred while processing your request"
+        });
+    }
+});
+
+// Serve embed page
+app.get('/embed.html', (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "embed.html"));
+});
+
+// Serve embed sample page
+app.get('/embed-sample', (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "embed-sample.html"));
+});
+
+// Serve iframe preview page
+app.get('/iframe-preview', (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "iframe-preview.html"));
+});

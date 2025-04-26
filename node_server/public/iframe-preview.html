@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimikree Embed Preview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            padding: 20px;
+            background-color: #2d3748;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .demo-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .demo-nav {
+            display: flex;
+        }
+        
+        .demo-nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            opacity: 0.7;
+        }
+        
+        .demo-content {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .demo-sidebar {
+            width: 280px;
+            background-color: #f1f3f6;
+            padding: 20px;
+            border-right: 1px solid #e1e4e8;
+        }
+        
+        .demo-main {
+            flex: 1;
+            padding: 30px;
+        }
+        
+        .demo-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .demo-text {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .iframe-container {
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            overflow: hidden;
+            height: 600px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e1e4e8;
+        }
+        
+        /* Preview Elements */
+        .preview-tab {
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .preview-header {
+            background-color: #f1f3f6;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e1e4e8;
+        }
+        
+        .preview-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .preview-body {
+            padding: 20px;
+        }
+        
+        .code-label {
+            display: inline-block;
+            background-color: #e1e4e8;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background-color: #f6f8fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            border: 1px solid #e1e4e8;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <div class="demo-logo">
+                <i class="fas fa-cube"></i> Developer's Website
+            </div>
+            <div class="demo-nav">
+                <a href="#">Home</a>
+                <a href="#">Products</a>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+        
+        <div class="demo-content">
+            <div class="demo-sidebar">
+                <h3>Navigation</h3>
+                <ul style="list-style: none; margin-top: 15px;">
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e1e4e8;">Dashboard</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e1e4e8;">Analytics</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e1e4e8; font-weight: bold; color: #4A55A2;">AI Assistant</li>
+                    <li style="padding: 8px 0; border-bottom: 1px solid #e1e4e8;">Settings</li>
+                </ul>
+            </div>
+            
+            <div class="demo-main">
+                <h1 class="demo-title">AI Assistant</h1>
+                <p class="demo-text">
+                    Welcome to our AI Assistant powered by Mimikree! Ask any questions about our products, 
+                    services, or general information. This assistant has been trained on our company's 
+                    knowledge base and can provide personalized responses.
+                </p>
+                
+                <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                    <button id="showBasicEmbed" style="background-color: #4A55A2; color: white; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; flex: 1;">
+                        Show Basic Embed (API Key Required)
+                    </button>
+                    <button id="showPreConfiguredEmbed" style="background-color: white; color: #4A55A2; border: 1px solid #4A55A2; border-radius: 4px; padding: 8px 16px; cursor: pointer; flex: 1;">
+                        Show Pre-configured Embed (No API Key)
+                    </button>
+                </div>
+                
+                <div class="iframe-container">
+                    <!-- Basic embed (will show API key input) -->
+                    <iframe 
+                        id="basicEmbed"
+                        src="/embed.html?username=sahil" 
+                        width="100%" 
+                        height="100%" 
+                        style="border: none;"
+                        scrolling="no"
+                        allow="clipboard-write"
+                    ></iframe>
+                    
+                    <!-- Pre-configured embed (API key included) -->
+                    <iframe 
+                        id="preConfiguredEmbed"
+                        src="/embed.html?username=sahil&apiKey=DEMO_KEY_REQUIRED" 
+                        width="100%" 
+                        height="100%" 
+                        style="border: none; display: none;"
+                        scrolling="no"
+                        allow="clipboard-write"
+                    ></iframe>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #4A55A2; border-radius: 4px;">
+                    <p style="margin: 0; font-size: 0.9rem;">
+                        <strong>Note:</strong> For demo purposes, clicking the "Pre-configured Embed" button shows an embed with a placeholder API key. 
+                        In actual implementation, you would replace <code>YOUR_GEMINI_API_KEY</code> with your valid Gemini API key.
+                        When using a pre-configured embed, the API key input form will be completely skipped, providing a seamless experience for your users.
+                    </p>
+                </div>
+                
+                <script>
+                    // Toggle between embed options
+                    document.getElementById('showBasicEmbed').addEventListener('click', function() {
+                        document.getElementById('basicEmbed').style.display = 'block';
+                        document.getElementById('preConfiguredEmbed').style.display = 'none';
+                        this.style.backgroundColor = '#4A55A2';
+                        this.style.color = 'white';
+                        document.getElementById('showPreConfiguredEmbed').style.backgroundColor = 'white';
+                        document.getElementById('showPreConfiguredEmbed').style.color = '#4A55A2';
+                    });
+                    
+                    document.getElementById('showPreConfiguredEmbed').addEventListener('click', function() {
+                        document.getElementById('basicEmbed').style.display = 'none';
+                        document.getElementById('preConfiguredEmbed').style.display = 'block';
+                        this.style.backgroundColor = '#4A55A2';
+                        this.style.color = 'white';
+                        document.getElementById('showBasicEmbed').style.backgroundColor = 'white';
+                        document.getElementById('showBasicEmbed').style.color = '#4A55A2';
+                    });
+                </script>
+                
+                <div class="preview-tab">
+                    <div class="preview-header">
+                        <div class="preview-title">Embed Code Options</div>
+                    </div>
+                    <div class="preview-body">
+                        <span class="code-label">Basic Embed</span>
+                        <div class="code-block">
+                            &lt;iframe 
+                                src="https://mimikree.com/embed.html?username=sahil" 
+                                width="100%" 
+                                height="600px" 
+                                style="border: none; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);"
+                                scrolling="no"
+                                allow="clipboard-write"
+                            &gt;&lt;/iframe&gt;
+                        </div>
+                        <p style="margin: 15px 0; color: #666; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> With this basic option, users will need to enter a Gemini API key themselves.
+                        </p>
+                        
+                        <span class="code-label">With Pre-configured API Key</span>
+                        <div class="code-block">
+                            &lt;iframe 
+                                src="https://mimikree.com/embed.html?username=sahil&apiKey=YOUR_GEMINI_API_KEY" 
+                                width="100%" 
+                                height="600px" 
+                                style="border: none; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);"
+                                scrolling="no"
+                                allow="clipboard-write"
+                            &gt;&lt;/iframe&gt;
+                        </div>
+                        <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
+                            <i class="fas fa-info-circle"></i> Replace "sahil" with the Mimikree username whose AI you want to embed and "YOUR_GEMINI_API_KEY" with a valid Gemini API key. By including your API key directly in the iframe URL, your end users won't need to enter an API key themselves, providing a more seamless experience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-footer">
+            © 2023 Example Developer Website. All rights reserved.
+        </div>
+    </div>
+</body>
+</html> 

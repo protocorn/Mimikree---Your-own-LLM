@@ -290,5 +290,178 @@ This image shows a portrait of a person'''
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/ask_embed', methods=['POST'])
+def ask_embed():
+    try:
+        data = request.json
+        query_text = data['query']
+        self_assessment = data['selfAssessment']
+        username = data['username']
+        name = data['name']
+        chat_history = data.get('chatHistory', [])
+        external_api_key = data.get('apiKey')  # Get the external API key
+
+        if not query_text:
+            return jsonify({"error": "No query provided"}), 400
+            
+        if not external_api_key:
+            return jsonify({"error": "API key is required"}), 400
+
+        # Format chat history for context
+        conversation_history = ""
+        if chat_history:
+            for msg in chat_history[-5:]:  # Include last 5 messages for context
+                role = "User" if msg["role"] == "user" else "Assistant"
+                conversation_history += f"{role}: {msg['content']}\n"
+        
+        # PHASE 1: Combined query expansion and complexity assessment
+        # Use the default Gemini API key for this phase
+        original_api_key = os.getenv('GOOGLE_API_KEY')
+        genai.configure(api_key=original_api_key)
+        
+        expanded_query, optimal_doc_count = analyze_query(query_text, conversation_history)
+        print(f"Original query: {query_text}")
+        print(f"Expanded query: {expanded_query}")
+        print(f"Determined optimal document count: {optimal_doc_count}")
+        
+        # PHASE 2: Initial retrieval
+        # Generate query embedding
+        query_vector = embedding_model.encode(expanded_query).tolist()
+        original_query_vector = embedding_model.encode(query_text).tolist()
+        
+        # Create a weighted average of the two vectors (70% expanded, 30% original)
+        hybrid_vector = [0.7 * e + 0.3 * o for e, o in zip(query_vector, original_query_vector)]
+        
+        # Normalize the hybrid vector
+        norm = np.sqrt(sum([x*x for x in hybrid_vector]))
+        if norm > 0:
+            normalized_hybrid_vector = [x/norm for x in hybrid_vector]
+        else:
+            normalized_hybrid_vector = hybrid_vector
+        
+        # Retrieve documents - only if username is a valid Mimikree user
+        context = ""
+        if username and username != 'embedded-user':
+            try:
+                # Retrieve documents
+                pinecone_results = index.query(
+                    vector=normalized_hybrid_vector, 
+                    top_k=optimal_doc_count * 2,  # Get 2x optimal count for filtering
+                    include_metadata=True, 
+                    filter={"user_id": username}
+                )
+                
+                # PHASE 3: Re-rank documents based on vector similarity to user query
+                retrieved_docs = []
+                
+                for match in pinecone_results["matches"]:
+                    doc_text = match["metadata"]["text"]
+                    doc_vector = match["values"]
+                    
+                    # Calculate similarity to original query (gives more weight to exact matches)
+                    similarity = cosine_similarity(original_query_vector, doc_vector)
+                    
+                    # Scale similarity to 0-10 range
+                    relevance_score = similarity * 10
+                    
+                    retrieved_docs.append((doc_text, relevance_score))
+                
+                # Sort by relevance score (descending)
+                retrieved_docs.sort(key=lambda x: x[1], reverse=True)
+                
+                # Only keep top k most relevant documents
+                final_docs = [doc[0] for doc in retrieved_docs[:optimal_doc_count]]
+                
+                # Join the documents into a single context
+                context = "\n".join(final_docs)
+                print(f"Retrieved {len(final_docs)} documents for {username}")
+            except Exception as retrieval_error:
+                print(f"Error retrieving documents: {retrieval_error}")
+                # Continue with empty context if retrieval fails
+        
+        interaction_type = f"You are talking with someone who is interacting with {name}'s AI through an embedded chat widget."
+        
+        # Use the comprehensive prompt with context if we have user data
+        if context:
+            prompt = prompt_template.format(
+                context=context,
+                background=self_assessment,
+                name=name,
+                question=query_text,
+                interaction=interaction_type,
+                history=conversation_history
+            )
+        else:
+            # Fall back to simplified prompt if no context
+            prompt = ChatPromptTemplate.from_template(
+                f"You are {name} made using Mimikree(Don't mention Mimikree in your response unless asked).\n\n"
+                "### Instructions ###\n"
+                f"- Respond as if you are {name}.\n"
+                "- Use Markdown formatting where appropriate to structure your response.\n"
+                "- Be concise but informative in your responses.\n\n"
+                
+                "### Previous Conversation ###\n"
+                "{history}\n\n"
+    
+                "### User's Current Question ###\n"
+                "{question}\n\n"
+    
+                "### Your Response ###"
+            ).format(
+                name=name,
+                history=conversation_history,
+                question=query_text
+            )
+
+        # Check for cloudinary links in the context and add special handling instructions
+        if "cloudinary" in context:
+            prompt += '''### Important note for Cloudinary Links ### 
+When you encounter URLs that contain the word "cloudinary":
+1. Return the URLs exactly as they are, without any modification
+2. After each URL, add a brief one-line description of what the image shows
+3. Place each URL on its own line, followed by its description
+4. Do not add any formatting, markdown, or HTML tags to the URLs
+5. Example format:
+https://res.cloudinary.com/example1.jpg
+This is a photo of a mountain landscape
+https://res.cloudinary.com/example2.jpg
+This image shows a portrait of a person'''
+
+        # Configure Gemini with the external API key
+        genai.configure(api_key=external_api_key)
+        
+        try:
+            # Request completion from Gemini using the external API key
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            response = model.generate_content([prompt])
+            
+            # Reset back to original API key
+            genai.configure(api_key=original_api_key)
+            
+            return jsonify({
+                "success": True,
+                "query": query_text,
+                "response": response.text,
+                "hasPersonalData": bool(context),  # Let the client know if personal data was used
+                "username": username
+            })
+            
+        except Exception as e:
+            # Reset back to original API key
+            genai.configure(api_key=original_api_key)
+            
+            print(f"Error with external API key: {e}")
+            return jsonify({
+                "success": False,
+                "error": "Invalid API key or error processing request with provided API key"
+            }), 400
+
+    except Exception as e:
+        # Reset API key to original just in case
+        genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+        
+        print(f"Error in ask_embed: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     serve(app, host="0.0.0.0", port=8080)

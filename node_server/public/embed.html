@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimikree Chat Embed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: transparent;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        .embed-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        
+        .chat-header {
+            background-color: #4A55A2;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-header h3 {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .chat-header img {
+            height: 24px;
+            margin-right: 8px;
+        }
+        
+        .chat-box {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #f9f9f9;
+            max-height: calc(100vh - 120px); /* Set max height to viewport height minus header and input area */
+            min-height: 300px; /* Ensure minimum height for small screens */
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background-color: #E4F1FF;
+            color: #333;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .bot-message {
+            background-color: white;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bot-message pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .bot-message code {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .input-area {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .message-input {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            padding: 10px 16px;
+            outline: none;
+            font-size: 14px;
+            resize: none;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .message-input:focus {
+            border-color: #4A55A2;
+        }
+        
+        .send-button {
+            background-color: #4A55A2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .send-button:hover {
+            background-color: #374291;
+        }
+        
+        .api-key-form {
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .api-key-form h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        
+        .api-key-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        
+        .api-key-form button {
+            background-color: #4A55A2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .api-key-form button:hover {
+            background-color: #374291;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        /* Loading indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            padding: 10px 14px;
+            border-radius: 16px;
+            max-width: 80%;
+            align-self: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: #4A55A2;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            opacity: 0.6;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation: bounce 1s infinite 0.1s;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation: bounce 1s infinite 0.3s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation: bounce 1s infinite 0.5s;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Personalization indicator */
+        .personalization-indicator {
+            font-size: 0.8rem;
+            color: #4A55A2;
+            padding: 5px 10px;
+            background-color: rgba(74, 85, 162, 0.1);
+            border-radius: 16px;
+            margin: 8px auto;
+            text-align: center;
+            align-self: center;
+            max-width: 80%;
+            transition: opacity 0.5s;
+        }
+        
+        .personalization-indicator i {
+            margin-right: 5px;
+            color: #4CAF50;
+        }
+        
+        .personalization-indicator.fade-out {
+            opacity: 0;
+        }
+        
+        /* Ensure the chat interface takes full height */
+        #chatInterface {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="embed-container">
+        <div id="apiKeyForm" class="api-key-form">
+            <h3>Enter your Gemini API Key</h3>
+            <p>You need a Gemini API key to use this chat widget</p>
+            <input 
+                type="password" 
+                id="apiKeyInput" 
+                placeholder="Enter your Gemini API key"
+            >
+            <div id="apiKeyError" class="error-message hidden"></div>
+            <button id="submitApiKey">Start Chatting</button>
+        </div>
+        
+        <div id="chatInterface" class="hidden">
+            <div class="chat-header">
+                <div style="display: flex; align-items: center;">
+                    <h3 id="chatTitle">Mimikree Chat</h3>
+                </div>
+                <div>
+                    <button id="resetApiKey" style="background: none; border: none; color: white; cursor: pointer;">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="chatBox" class="chat-box">
+                <div class="message bot-message" id="welcomeMessage">
+                    Hi there! I'm Mimikree. How can I help you today?
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Type your message..." 
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script>
+        // Get URL parameters
+        function getUrlParams() {
+            const params = {};
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            
+            for (const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+            
+            return params;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = getUrlParams();
+            const username = params.username || '';
+            
+            // Update title and welcome message if username is provided
+            if (username && username !== 'embedded-user') {
+                const chatTitle = document.getElementById('chatTitle');
+                const welcomeMessage = document.getElementById('welcomeMessage');
+                
+                if (chatTitle) {
+                    chatTitle.textContent = `${username}'s Chat`;
+                }
+                
+                if (welcomeMessage) {
+                    welcomeMessage.textContent = `Hi there! I'm ${username}. How can I help you today?`;
+                }
+            }
+            
+            // Elements
+            const apiKeyForm = document.getElementById('apiKeyForm');
+            const chatInterface = document.getElementById('chatInterface');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const apiKeyError = document.getElementById('apiKeyError');
+            const submitApiKey = document.getElementById('submitApiKey');
+            const resetApiKey = document.getElementById('resetApiKey');
+            const chatBox = document.getElementById('chatBox');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            // Chat history
+            let chatHistory = [];
+            
+            // Show API key error
+            function showApiKeyError(message) {
+                apiKeyError.textContent = message;
+                apiKeyError.classList.remove('hidden');
+                
+                // Hide error after 3 seconds
+                setTimeout(() => {
+                    apiKeyError.classList.add('hidden');
+                }, 3000);
+            }
+            
+            // Check if API key is provided in URL
+            if (params.apiKey) {
+                const apiKey = params.apiKey.trim();
+                apiKeyInput.value = apiKey;
+                
+                // Validate the API key format
+                if (!apiKey.startsWith('AI') || apiKey.length < 20) {
+                    // Invalid key, still show the form but with an error
+                    showApiKeyError('Invalid API key in URL. Please enter a valid Gemini API key');
+                } else {
+                    // Valid key, skip the form
+                    apiKeyForm.classList.add('hidden');
+                    chatInterface.classList.remove('hidden');
+                    // Focus on message input
+                    setTimeout(() => {
+                        messageInput.focus();
+                    }, 100);
+                }
+            }
+            
+            // Handle API key submission
+            submitApiKey.addEventListener('click', validateAndStartChat);
+            
+            // Handle reset API key
+            resetApiKey.addEventListener('click', function() {
+                // If API key was provided in URL, don't allow resetting
+                if (params.apiKey) {
+                    // Optional: Show a small notification that the API key is managed by the embedding site
+                    const notification = document.createElement('div');
+                    notification.className = 'personalization-indicator';
+                    notification.innerHTML = '<i class="fas fa-info-circle"></i> API key is managed by the embedding site';
+                    chatBox.appendChild(notification);
+                    
+                    // Auto-remove after a few seconds
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.classList.add('fade-out');
+                            setTimeout(() => {
+                                if (notification.parentNode) {
+                                    notification.parentNode.removeChild(notification);
+                                }
+                            }, 500);
+                        }
+                    }, 3000);
+                    return;
+                }
+                
+                // Otherwise show the API key form
+                chatInterface.classList.add('hidden');
+                apiKeyForm.classList.remove('hidden');
+            });
+            
+            // Handle enter key in message input
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // Handle send button click
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Auto-resize message input
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight < 100) ? this.scrollHeight + 'px' : '100px';
+            });
+            
+            // Validate API key and start chat
+            function validateAndStartChat() {
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!apiKey) {
+                    showApiKeyError('Please enter your Gemini API key');
+                    return;
+                }
+                
+                // Simple format validation (basic check)
+                if (!apiKey.startsWith('AI') || apiKey.length < 20) {
+                    showApiKeyError('Please enter a valid Gemini API key');
+                    return;
+                }
+                
+                // Hide API key form and show chat interface
+                apiKeyForm.classList.add('hidden');
+                chatInterface.classList.remove('hidden');
+                
+                // Focus on message input
+                messageInput.focus();
+            }
+            
+            // Send message
+            function sendMessage() {
+                const messageText = messageInput.value.trim();
+                
+                if (!messageText) return;
+                
+                // Add user message to chat
+                addMessage(messageText, 'user');
+                
+                // Clear input
+                messageInput.value = '';
+                messageInput.style.height = 'auto';
+                
+                // Add typing indicator
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+                chatBox.appendChild(typingIndicator);
+                
+                // Scroll to bottom
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // Get API key
+                const apiKey = apiKeyInput.value.trim();
+                
+                // Send message to API
+                fetch(`/api/embed/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: messageText,
+                        username: username || 'embedded-user',
+                        chatHistory: chatHistory,
+                        apiKey: apiKey
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to get response from server');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Remove typing indicator
+                    typingIndicator.remove();
+                    
+                    if (data.success && data.response) {
+                        // Add bot message to chat
+                        addMessage(data.response, 'assistant');
+                        
+                        // Update chat title and welcome message with user's real name if available
+                        if (data.name && chatTitle) {
+                            chatTitle.textContent = `${data.name}'s Chat`;
+                        }
+                        
+                        // Show personalized data indicator if applicable
+                        if (data.hasPersonalData) {
+                            const personalizationIndicator = document.createElement('div');
+                            personalizationIndicator.className = 'personalization-indicator';
+                            // Use the name from API response if available, otherwise fallback to username
+                            const displayName = data.name || data.username || username;
+                            personalizationIndicator.innerHTML = `<i class="fas fa-user-check"></i> Responding with ${displayName}'s personalized data`;
+                            chatBox.appendChild(personalizationIndicator);
+                            
+                            // Auto-remove after a few seconds
+                            setTimeout(() => {
+                                if (personalizationIndicator.parentNode) {
+                                    personalizationIndicator.classList.add('fade-out');
+                                    setTimeout(() => {
+                                        if (personalizationIndicator.parentNode) {
+                                            personalizationIndicator.parentNode.removeChild(personalizationIndicator);
+                                        }
+                                    }, 500);
+                                }
+                            }, 3000);
+                        }
+                    } else {
+                        throw new Error(data.message || 'Failed to get response');
+                    }
+                })
+                .catch(error => {
+                    // Remove typing indicator
+                    typingIndicator.remove();
+                    
+                    // Show error message
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'message bot-message';
+                    errorMessage.style.color = '#e74c3c';
+                    errorMessage.textContent = 'Sorry, there was an error processing your request. Please try again.';
+                    chatBox.appendChild(errorMessage);
+                    
+                    // Scroll to bottom
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    
+                    console.error('Error sending message:', error);
+                });
+            }
+            
+            // Add message to chat
+            function addMessage(content, role) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+                
+                if (role === 'user') {
+                    messageDiv.textContent = content;
+                } else {
+                    // Parse markdown for assistant messages
+                    messageDiv.innerHTML = marked.parse(content);
+                }
+                
+                chatBox.appendChild(messageDiv);
+                
+                // Animate message
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translateY(10px)';
+                
+                setTimeout(() => {
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                }, 10);
+                
+                // Scroll to bottom
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // Add to chat history
+                chatHistory.push({
+                    role: role,
+                    content: content
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
