@@ -266,6 +266,15 @@
             flex-direction: column;
             height: 100%;
         }
+
+        /* Mimikree branding */
+        .mimikree-branding {
+            font-size: 0.75rem;
+            color: #777;
+            text-align: center;
+            padding: 5px 0;
+            border-top: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -287,11 +296,6 @@
                 <div style="display: flex; align-items: center;">
                     <h3 id="chatTitle">Mimikree Chat</h3>
                 </div>
-                <div>
-                    <button id="resetApiKey" style="background: none; border: none; color: white; cursor: pointer;">
-                        <i class="fas fa-cog"></i>
-                    </button>
-                </div>
             </div>
             
             <div id="chatBox" class="chat-box">
@@ -311,6 +315,9 @@
                     <i class="fas fa-paper-plane"></i>
                 </button>
             </div>
+            <div class="mimikree-branding">
+                Powered by Mimikree
+            </div>
         </div>
     </div>
 
@@ -325,7 +332,8 @@
             const urlParams = new URLSearchParams(queryString);
             
             for (const [key, value] of urlParams.entries()) {
-                params[key] = value;
+                // Decode the value to handle special characters
+                params[key] = decodeURIComponent(value);
             }
             
             return params;
@@ -333,19 +341,107 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             const params = getUrlParams();
-            const username = params.username || '';
+            console.log('All params:', params); // Debug log
+            
+            // Get custom theme color if provided
+            let themeColor = params.themeColor || '#4A55A2';
+            
+            // Debug the raw param value
+            console.log('Raw theme color param:', params.themeColor);
+            
+            // Try to get the theme color from the URL hash if present
+            if (!themeColor || themeColor === '') {
+                // Check if there's a color in the URL hash
+                const hash = window.location.hash;
+                if (hash && hash.startsWith('#')) {
+                    themeColor = hash;
+                    console.log('Using color from URL hash:', themeColor);
+                }
+            }
+            
+            // Ensure theme color is a valid hex color
+            if (themeColor && !themeColor.startsWith('#') && !themeColor.startsWith('rgb')) {
+                themeColor = '#' + themeColor;
+            }
+            
+            console.log('Final theme color:', themeColor); // Debug log
+            
+            // Apply custom color to elements with !important to override
+            const style = document.createElement('style');
+            style.textContent = `
+                .chat-header { background-color: ${themeColor} !important; }
+                .send-button { background-color: ${themeColor} !important; }
+                .send-button:hover { background-color: ${adjustColor(themeColor, -20)} !important; }
+                .api-key-form button { background-color: ${themeColor} !important; }
+                .api-key-form button:hover { background-color: ${adjustColor(themeColor, -20)} !important; }
+                .message-input:focus { border-color: ${themeColor} !important; }
+                .typing-indicator span { background-color: ${themeColor} !important; }
+            `;
+            document.head.appendChild(style);
+            
+            // Function to adjust color brightness
+            function adjustColor(color, amount) {
+                // Remove any spaces from the color
+                color = color.replace(/\s/g, '');
+                console.log('Adjusting color:', color); // Debug log
+                
+                // Convert hex to RGB
+                let hex = color;
+                if (hex.startsWith('#')) {
+                    hex = hex.slice(1);
+                }
+                
+                // Handle RGB or RGBA
+                if (color.startsWith('rgb')) {
+                    const rgbMatch = color.match(/rgba?\((\d+),(\d+),(\d+)(?:,(\d+(?:\.\d+)?))?\)/);
+                    if (rgbMatch) {
+                        let r = parseInt(rgbMatch[1]);
+                        let g = parseInt(rgbMatch[2]);
+                        let b = parseInt(rgbMatch[3]);
+                        
+                        r = Math.max(0, Math.min(255, r + amount));
+                        g = Math.max(0, Math.min(255, g + amount));
+                        b = Math.max(0, Math.min(255, b + amount));
+                        
+                        return `rgb(${r}, ${g}, ${b})`;
+                    }
+                    return color;
+                }
+                
+                // Handle hex
+                let r = parseInt(hex.substring(0, 2), 16);
+                let g = parseInt(hex.substring(2, 4), 16);
+                let b = parseInt(hex.substring(4, 6), 16);
+                
+                r = Math.max(0, Math.min(255, r + amount));
+                g = Math.max(0, Math.min(255, g + amount));
+                b = Math.max(0, Math.min(255, b + amount));
+                
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+            
+            // Force style update
+            document.body.style.backgroundColor = 'transparent';
+            const headerElement = document.querySelector('.chat-header');
+            if (headerElement) {
+                headerElement.style.backgroundColor = themeColor;
+            }
+            const sendButtonElement = document.querySelector('.send-button');
+            if (sendButtonElement) {
+                sendButtonElement.style.backgroundColor = themeColor;
+            }
             
             // Update title and welcome message if username is provided
-            if (username && username !== 'embedded-user') {
+            if (params.username && params.username !== 'embedded-user') {
                 const chatTitle = document.getElementById('chatTitle');
                 const welcomeMessage = document.getElementById('welcomeMessage');
                 
                 if (chatTitle) {
-                    chatTitle.textContent = `${username}'s Chat`;
+                    chatTitle.textContent = `${params.username}'s Chat`;
                 }
                 
                 if (welcomeMessage) {
-                    welcomeMessage.textContent = `Hi there! I'm ${username}. How can I help you today?`;
+                    welcomeMessage.textContent = `Hi there! I'm ${params.username}. How can I help you today?`;
                 }
             }
             
@@ -355,7 +451,6 @@
             const apiKeyInput = document.getElementById('apiKeyInput');
             const apiKeyError = document.getElementById('apiKeyError');
             const submitApiKey = document.getElementById('submitApiKey');
-            const resetApiKey = document.getElementById('resetApiKey');
             const chatBox = document.getElementById('chatBox');
             const messageInput = document.getElementById('messageInput');
             const sendButton = document.getElementById('sendButton');
@@ -396,35 +491,6 @@
             
             // Handle API key submission
             submitApiKey.addEventListener('click', validateAndStartChat);
-            
-            // Handle reset API key
-            resetApiKey.addEventListener('click', function() {
-                // If API key was provided in URL, don't allow resetting
-                if (params.apiKey) {
-                    // Optional: Show a small notification that the API key is managed by the embedding site
-                    const notification = document.createElement('div');
-                    notification.className = 'personalization-indicator';
-                    notification.innerHTML = '<i class="fas fa-info-circle"></i> API key is managed by the embedding site';
-                    chatBox.appendChild(notification);
-                    
-                    // Auto-remove after a few seconds
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.classList.add('fade-out');
-                            setTimeout(() => {
-                                if (notification.parentNode) {
-                                    notification.parentNode.removeChild(notification);
-                                }
-                            }, 500);
-                        }
-                    }, 3000);
-                    return;
-                }
-                
-                // Otherwise show the API key form
-                chatInterface.classList.add('hidden');
-                apiKeyForm.classList.remove('hidden');
-            });
             
             // Handle enter key in message input
             messageInput.addEventListener('keypress', function(e) {
@@ -499,7 +565,7 @@
                     },
                     body: JSON.stringify({
                         query: messageText,
-                        username: username || 'embedded-user',
+                        username: params.username || 'embedded-user',
                         chatHistory: chatHistory,
                         apiKey: apiKey
                     })
@@ -519,31 +585,13 @@
                         addMessage(data.response, 'assistant');
                         
                         // Update chat title and welcome message with user's real name if available
-                        if (data.name && chatTitle) {
-                            chatTitle.textContent = `${data.name}'s Chat`;
+                        if (data.name && params.username) {
+                            const chatTitle = document.getElementById('chatTitle');
+                            if (chatTitle) {
+                                chatTitle.textContent = `${data.name}'s Chat`;
+                            }
                         }
                         
-                        // Show personalized data indicator if applicable
-                        if (data.hasPersonalData) {
-                            const personalizationIndicator = document.createElement('div');
-                            personalizationIndicator.className = 'personalization-indicator';
-                            // Use the name from API response if available, otherwise fallback to username
-                            const displayName = data.name || data.username || username;
-                            personalizationIndicator.innerHTML = `<i class="fas fa-user-check"></i> Responding with ${displayName}'s personalized data`;
-                            chatBox.appendChild(personalizationIndicator);
-                            
-                            // Auto-remove after a few seconds
-                            setTimeout(() => {
-                                if (personalizationIndicator.parentNode) {
-                                    personalizationIndicator.classList.add('fade-out');
-                                    setTimeout(() => {
-                                        if (personalizationIndicator.parentNode) {
-                                            personalizationIndicator.parentNode.removeChild(personalizationIndicator);
-                                        }
-                                    }, 500);
-                                }
-                            }, 3000);
-                        }
                     } else {
                         throw new Error(data.message || 'Failed to get response');
                     }
