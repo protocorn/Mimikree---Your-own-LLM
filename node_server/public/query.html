@@ -3398,7 +3398,12 @@
         
         // Add this function to clear chat history when the page is about to unload
         window.addEventListener('beforeunload', function() {
-            chatHistory = [];
+            // Don't clear the chat history when page unloads
+            // We want to keep it for persistence
+            // Instead, just make sure the chatId is saved
+            if (currentChatId) {
+                localStorage.setItem('currentChatId', currentChatId);
+            }
         });
         
         // Initialize chat history
@@ -3475,6 +3480,13 @@
                         content: data.response
                     });
                 
+                    // Save the chatId for future messages
+                    if (data.chatId) {
+                        currentChatId = data.chatId;
+                        // Save to localStorage to persist across page reloads
+                        localStorage.setItem('currentChatId', currentChatId);
+                    }
+                    
                     // Display bot response
                     const botMessage = document.createElement("div");
                     botMessage.className = "message bot-message";
@@ -4046,6 +4058,10 @@
             if (!token) return;
             
             try {
+                // Clear any existing chatId
+                localStorage.removeItem('currentChatId');
+                currentChatId = null;
+
                 const response = await fetch('/api/chats', {
                     method: 'POST',
                     headers: {
@@ -4065,6 +4081,8 @@
                     
                     // Set as current chat
                     currentChatId = data.chat._id;
+                    // Save to localStorage
+                    localStorage.setItem('currentChatId', currentChatId);
                     
                     // Clear chat box
                     const chatBox = document.getElementById('chatBox');
@@ -4181,6 +4199,16 @@
                     toggleSidebar.classList.remove('hidden');
                     container.classList.remove('full-width');
                     toggleSidebar.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                }
+                
+                // Restore current chat ID from localStorage if it exists
+                if (localStorage.getItem('currentChatId')) {
+                    currentChatId = localStorage.getItem('currentChatId');
+                    console.log("Restored current chat ID from localStorage:", currentChatId);
+                    // Load the chat if needed
+                    if (currentChatId) {
+                        loadChat(currentChatId);
+                    }
                 }
                 
                 // Add event listeners
