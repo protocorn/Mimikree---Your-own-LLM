@@ -9,6 +9,12 @@ COPY . /app
 
 # Install dependencies
 RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core langchain-community langchain langchain-text-splitters waitress google-generativeai
+
+# Create utils directory if it doesn't exist to ensure proper structure
+RUN mkdir -p /app/utils
+
+# Make sure utils is recognized as a package
+RUN touch /app/utils/__init__.py
 # Expose port
 EXPOSE 8080
 

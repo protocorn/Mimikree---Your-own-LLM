@@ -21,6 +21,7 @@ Contact me at: chordiasahil24@gmail.com
 - **Secure Authentication**: JWT-based user authentication system
 - **Cloud Storage**: Image and file storage using Cloudinary
 - **User Profiles**: Comprehensive user profiles with customizable settings
+- **API Key Rotation**: Automatically handles rate limits by rotating between multiple Gemini API keys
 
 ## 🛠️ Technology Stack
 
@@ -122,6 +123,11 @@ TWITTER_PASSWORD=<YOUR_TWITTER_PASSWORD>
 ```
 PINECONE_API_KEY=<YOUR_PINECONE_API_KEY>
 GOOGLE_API_KEY= <YOUR_GEMINI_API_KEY>
+# Optional additional Gemini API keys
+# These will be used automatically by the key rotation system
+# GOOGLE_API_KEY_2=<YOUR_SECOND_GEMINI_API_KEY>
+# GOOGLE_API_KEY_3=<YOUR_THIRD_GEMINI_API_KEY>
+# GOOGLE_API_KEY_4=<YOUR_FOURTH_GEMINI_API_KEY>
 ```
 
 ## 🌐 Deployment
@@ -130,6 +136,31 @@ The project is configured for deployment on various platforms:
 
 - Node.js server: Vercel deployment configuration included
 - LLaMA server: Fly.io deployment configuration included
+
+## 🔄 API Key Rotation System
+
+The application includes a built-in API key rotation system for Gemini API to handle rate limits:
+
+- **Automatic Fallback**: When one API key reaches its rate limit (15 requests/minute on free tier), the system automatically switches to the next available key.
+- **Load Distribution**: Distributes API requests across multiple keys to maximize throughput.
+- **Error Handling**: Gracefully handles rate limit errors and retries with alternative keys.
+- **Usage Tracking**: Monitors usage of each key to prevent rate limit errors.
+
+### Adding API Keys
+
+API keys can be added in two ways:
+1. **Environment Variables**: Add keys to your `.env` file (as shown above).
+2. **Direct Configuration**: Keys can also be directly configured in `llama_server/utils/gemini_key_manager.py`.
+
+### Testing the Key Rotation
+
+To test the key rotation system, run:
+```bash
+cd llama_server
+python test_key_rotation.py
+```
+
+This will simulate a high volume of requests to demonstrate the automatic key rotation functionality.
 
 ## 🔒 Security
 

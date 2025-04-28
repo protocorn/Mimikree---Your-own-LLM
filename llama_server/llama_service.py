@@ -23,6 +23,7 @@ from waitress import serve
 import google.generativeai as genai  # Import Google's Gemini API
 from dotenv import load_dotenv
 import numpy as np
+from utils.gemini_key_manager import with_key_rotation  # Import our key rotation decorator
 
 load_dotenv()
 
@@ -51,7 +52,8 @@ embedding_model = SentenceTransformer("sentence-transformers/all-mpnet-base-v2")
 langchain_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
 
 # Initialize Gemini API
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+# We no longer need to explicitly configure here as the key manager handles this
+# genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 
 # Structured prompt template
 prompt_template = ChatPromptTemplate.from_template(
@@ -100,6 +102,7 @@ DOCUMENT_COUNT: [number between 1-15]"""
 )
 
 # Perform combined query analysis: expansion and complexity assessment
+@with_key_rotation
 def analyze_query(query_text, conversation_history=""):
     """Expand query using conversation history and assess optimal document count in a single call"""
     try:
@@ -270,9 +273,14 @@ This is a photo of a mountain landscape
 https://res.cloudinary.com/example2.jpg
 This image shows a portrait of a person'''
 
-        # Request completion from Gemini
-        model = genai.GenerativeModel("gemini-2.0-flash-exp")
-        response = model.generate_content([prompt])
+        # Request completion from Gemini - wrapped with key rotation
+        @with_key_rotation
+        def generate_gemini_response(prompt):
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            return model.generate_content([prompt])
+        
+        # Call the wrapped function
+        response = generate_gemini_response(prompt)
         
         # Log the response for debugging
         print(f"Retrieved {len(final_docs)} documents with dynamic retrieval")
@@ -315,10 +323,7 @@ def ask_embed():
                 conversation_history += f"{role}: {msg['content']}\n"
         
         # PHASE 1: Combined query expansion and complexity assessment
-        # Use the default Gemini API key for this phase
-        original_api_key = os.getenv('GOOGLE_API_KEY')
-        genai.configure(api_key=original_api_key)
-        
+        # We'll still use our key rotation for this phase
         expanded_query, optimal_doc_count = analyze_query(query_text, conversation_history)
         print(f"Original query: {query_text}")
         print(f"Expanded query: {expanded_query}")
@@ -435,8 +440,9 @@ This image shows a portrait of a person'''
             model = genai.GenerativeModel("gemini-2.0-flash")
             response = model.generate_content([prompt])
             
-            # Reset back to original API key
-            genai.configure(api_key=original_api_key)
+            # Reset back to our key manager's current key
+            from utils.gemini_key_manager import key_manager
+            genai.configure(api_key=key_manager.current_key)
             
             return jsonify({
                 "success": True,
@@ -447,8 +453,9 @@ This image shows a portrait of a person'''
             })
             
         except Exception as e:
-            # Reset back to original API key
-            genai.configure(api_key=original_api_key)
+            # Reset back to our key manager's current key
+            from utils.gemini_key_manager import key_manager
+            genai.configure(api_key=key_manager.current_key)
             
             print(f"Error with external API key: {e}")
             return jsonify({
@@ -457,8 +464,9 @@ This image shows a portrait of a person'''
             }), 400
 
     except Exception as e:
-        # Reset API key to original just in case
-        genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+        # Reset API key to our key manager's current key
+        from utils.gemini_key_manager import key_manager
+        genai.configure(api_key=key_manager.current_key)
         
         print(f"Error in ask_embed: {e}")
         return jsonify({"error": str(e)}), 500

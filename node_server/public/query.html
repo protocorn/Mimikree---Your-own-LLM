@@ -4151,6 +4151,102 @@
                 console.error('Error deleting chat:', error);
             }
         };
+
+                // Load a specific chat
+                const loadChat = async (chatId) => {
+                    const token = localStorage.getItem('token');
+                    console.log("loadChat called for chat ID:", chatId);
+                    
+                    if (!token) {
+                        console.log("No token found, cannot load chat");
+                        return;
+                    }
+                    
+                    try {
+                        console.log("Fetching chat details from server...");
+                        const response = await fetch(`/api/chats/${chatId}`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        console.log("Server response status:", response.status);
+                        
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error("Error response from server:", errorText);
+                            throw new Error(`Failed to load chat: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log("Chat loaded:", data);
+                        
+                        if (data.success && data.chat) {
+                            // Set current chat ID
+                            currentChatId = chatId;
+                            
+                            // Update UI to show active chat
+                            document.querySelectorAll('.chat-item').forEach(item => {
+                                item.classList.remove('active');
+                                if (item.dataset.id === chatId) {
+                                    item.classList.add('active');
+                                }
+                            });
+                            
+                            // Clear existing chat
+                            const chatBox = document.getElementById('chatBox');
+                            chatBox.innerHTML = '';
+                            
+                            // Reset chat history
+                            chatHistory = [];
+                            
+                            // Add messages to chat box
+                            if (data.chat.messages && data.chat.messages.length > 0) {
+                                console.log(`Found ${data.chat.messages.length} messages to display`);
+                                
+                                data.chat.messages.forEach(msg => {
+                                    if (msg.role === 'user' || msg.role === 'assistant') {
+                                        console.log("Processing message:", msg.role);
+                                        const messageDiv = document.createElement('div');
+                                        messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`;
+                                        
+                                        if (msg.role === 'user') {
+                                            messageDiv.textContent = msg.content;
+                                        } else {
+                                            // Parse markdown for assistant messages
+                                            let cleanedResponse = msg.content.replace(/\n{3,}/g, '\n\n');
+                                            const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
+                                            cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
+                                            messageDiv.innerHTML = marked.parse(cleanedResponse);
+                                        }
+                                        
+                                        chatBox.appendChild(messageDiv);
+                                        animateMessage(messageDiv);
+                                        
+                                        // Add to chat history
+                                        chatHistory.push({
+                                            role: msg.role,
+                                            content: msg.content
+                                        });
+                                    }
+                                });
+                                
+                                // Scroll to bottom
+                                chatBox.scrollTop = chatBox.scrollHeight;
+                            } else {
+                                console.log("No messages found in this chat");
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading chat:', error);
+                        const chatBox = document.getElementById('chatBox');
+                        const errorMessage = document.createElement('div');
+                        errorMessage.className = 'message bot-message';
+                        errorMessage.textContent = `Error loading chat: ${error.message}`;
+                        chatBox.appendChild(errorMessage);
+                        animateMessage(errorMessage);
+                    }
+                };
         
         // Initialize chat system
         const initChatSystem = () => {
@@ -4272,102 +4368,6 @@
                 console.error("Toggle sidebar button not found in DOM");
             }
         });
-
-        // Load a specific chat
-        const loadChat = async (chatId) => {
-            const token = localStorage.getItem('token');
-            console.log("loadChat called for chat ID:", chatId);
-            
-            if (!token) {
-                console.log("No token found, cannot load chat");
-                return;
-            }
-            
-            try {
-                console.log("Fetching chat details from server...");
-                const response = await fetch(`/api/chats/${chatId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                console.log("Server response status:", response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Error response from server:", errorText);
-                    throw new Error(`Failed to load chat: ${response.status} ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log("Chat loaded:", data);
-                
-                if (data.success && data.chat) {
-                    // Set current chat ID
-                    currentChatId = chatId;
-                    
-                    // Update UI to show active chat
-                    document.querySelectorAll('.chat-item').forEach(item => {
-                        item.classList.remove('active');
-                        if (item.dataset.id === chatId) {
-                            item.classList.add('active');
-                        }
-                    });
-                    
-                    // Clear existing chat
-                    const chatBox = document.getElementById('chatBox');
-                    chatBox.innerHTML = '';
-                    
-                    // Reset chat history
-                    chatHistory = [];
-                    
-                    // Add messages to chat box
-                    if (data.chat.messages && data.chat.messages.length > 0) {
-                        console.log(`Found ${data.chat.messages.length} messages to display`);
-                        
-                        data.chat.messages.forEach(msg => {
-                            if (msg.role === 'user' || msg.role === 'assistant') {
-                                console.log("Processing message:", msg.role);
-                                const messageDiv = document.createElement('div');
-                                messageDiv.className = `message ${msg.role === 'user' ? 'user-message' : 'bot-message'}`;
-                                
-                                if (msg.role === 'user') {
-                                    messageDiv.textContent = msg.content;
-                                } else {
-                                    // Parse markdown for assistant messages
-                                    let cleanedResponse = msg.content.replace(/\n{3,}/g, '\n\n');
-                                    const cloudinaryPattern = /(https?:\/\/(?:res\.cloudinary\.com|cloudinary\.com)\/[^/\s]+\/image\/upload\/[^/\s]+\/[^\s"'<>]+\.[a-zA-Z0-9]+)/g;
-                                    cleanedResponse = cleanedResponse.replace(cloudinaryPattern, '![Image]($1)');
-                                    messageDiv.innerHTML = marked.parse(cleanedResponse);
-                                }
-                                
-                                chatBox.appendChild(messageDiv);
-                                animateMessage(messageDiv);
-                                
-                                // Add to chat history
-                                chatHistory.push({
-                                    role: msg.role,
-                                    content: msg.content
-                                });
-                            }
-                        });
-                        
-                        // Scroll to bottom
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                    } else {
-                        console.log("No messages found in this chat");
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading chat:', error);
-                const chatBox = document.getElementById('chatBox');
-                const errorMessage = document.createElement('div');
-                errorMessage.className = 'message bot-message';
-                errorMessage.textContent = `Error loading chat: ${error.message}`;
-                chatBox.appendChild(errorMessage);
-                animateMessage(errorMessage);
-            }
-        };
 
         // Function to create and add the feature announcement to the chat
         function showEmbedFeatureAnnouncement() {

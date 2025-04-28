@@ -25,3 +25,11 @@ primary_region = 'iad'
   memory = '4gb'
   cpu_kind = 'performance'
   cpus = 2
+
+# Environment variables will be set using fly secrets
+# You should use fly secrets set to add these rather than hardcoding them here
+# Example: fly secrets set GOOGLE_API_KEY=your_key
+# For multiple API keys, set them as separate secrets:
+# fly secrets set GOOGLE_API_KEY_2=your_second_key
+# fly secrets set GOOGLE_API_KEY_3=your_third_key
+# fly secrets set GOOGLE_API_KEY_4=your_fourth_key
