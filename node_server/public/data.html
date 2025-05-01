@@ -1138,6 +1138,92 @@
             box-shadow: 0 3px 10px rgba(77, 104, 255, 0.3);
             transform: translateY(-2px);
         }
+        
+        /* Add at the beginning of the existing style section */
+        
+        /* Permanent Deletion Button */
+        .delete-data-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .delete-data-btn:hover {
+            background-color: #e60000;
+        }
+        
+        /* Confirmation Popup */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ff4d4d;
+        }
+        
+        .modal-message {
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .modal-cancel {
+            background-color: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .modal-delete {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .modal-cancel:hover {
+            background-color: #e1e1e1;
+        }
+        
+        .modal-delete:hover {
+            background-color: #e60000;
+        }
     </style>
 </head>
 
@@ -1450,6 +1536,21 @@
             <div class="modal-footer">
                 <button class="modal-btn" id="continueBtn">Continue Anyway</button>
                 <button class="modal-btn" style="background-color: #f8f9fa; color: #333; margin-right: 10px;" id="goBackBtn">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add the confirmation modal HTML before the closing body tag -->
+    <div class="modal-overlay" id="deleteConfirmationModal">
+        <div class="modal-content">
+            <div class="modal-title">Confirm Permanent Deletion</div>
+            <div class="modal-message">
+                <p>Warning: This will permanently delete your data from Mimikree database.</p>
+                <p>This action cannot be undone. Are you sure you want to continue?</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="modal-delete" id="confirmDeleteBtn">Delete Permanently</button>
             </div>
         </div>
     </div>
@@ -1776,20 +1877,34 @@
         }
 
         function populatePdfs(pdfs) {
-            const pdfInput = document.getElementById('pdfInput');
-            const pdfList = document.getElementById('pdfList');
-
-            pdfs.forEach(pdf => {
-                const pdfItem = document.createElement('div');
-                pdfItem.className = 'pdf-item';
-                pdfItem.innerHTML = `
-                <div style="display: flex; align-items: center;">  
-                <p style="flex-grow: 1; margin-right: 10px;"></p>
-                </div>`;
-                pdfItem.querySelector('p').textContent = pdf;
-                pdfList.appendChild(pdfItem);
-                pdfInput.value = ''; // Clear input after processing
-            })
+            if (pdfs && pdfs.length > 0) {
+                const pdfList = document.getElementById('pdfList');
+                pdfList.innerHTML = '';
+                pdfs.forEach(pdf => {
+                    const pdfItem = document.createElement('div');
+                    pdfItem.className = 'pdf-item';
+                    pdfItem.innerHTML = `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+                            <div style="display: flex; align-items: center;">
+                                <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" class="pdf-icon" style="width: 24px; height: 24px; margin-right: 8px;">
+                                <span>${pdf}</span>
+                            </div>
+                            <button class="delete-data-btn" style="background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 6px 10px; margin-left: 10px; cursor: pointer; font-size: 12px;">Delete Permanently</button>
+                        </div>
+                    `;
+                    // Attach event listener properly
+                    pdfItem.querySelector('.delete-data-btn').addEventListener('click', function() {
+                        showDeleteConfirmation('pdf', pdf);
+                    });
+                    pdfList.appendChild(pdfItem);
+                });
+                
+                // Update the PDF section summary
+                document.getElementById('summary-pdfs').innerHTML = `<p>${pdfs.length} PDF document${pdfs.length > 1 ? 's' : ''} added.</p>`;
+                
+                // Update the entire summary to ensure consistency
+                updateSummary();
+            }
         }
 
         function populateImages(images) {
@@ -1917,13 +2032,28 @@
             if (!existing) {
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
+                
+                // Extract username from the URL
+                const username = new URL(url).pathname.split('/').pop();
+                
+                // Determine the profile type for deletion
+                let profileType = '';
+                if (platform.includes('GitHub')) profileType = 'github';
+                else if (platform.includes('LinkedIn')) profileType = 'linkedin';
+                else if (platform.includes('Twitter')) profileType = 'twitter';
+                else if (platform.includes('Medium')) profileType = 'medium';
+                else if (platform.includes('Reddit')) profileType = 'reddit';
+                
                 linkItem.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
+                <div style="display: flex; align-items: center; padding: 8px 0; justify-content: space-between;">
                     <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
                         <img src="${getPlatformIcon(platform)}" class="platform-icon">
-                        <span>${platform} (${new URL(url).pathname.split('/').pop()})</span>
+                        <span>${platform} (${username})</span>
                     </a>
-                    <button onclick="this.parentElement.parentElement.remove()" title="Remove link" style="background-color: #FF6B6B; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;">×</button>
+                    <div>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" title="Remove" style="border: none; background: transparent; cursor: pointer; color: #666;">×</button>
+                        <button class="delete-data-btn" style="visibility: hidden;">Delete Permanently</button>
+                    </div>
                 </div>
                 `;
                 linksList.appendChild(linkItem);
@@ -1939,12 +2069,25 @@
             if (!existing) {
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
+                
+                // Extract username from the URL
+                const username = new URL(url).pathname.split('/').pop();
+                
+                // Determine the profile type for deletion
+                let profileType = '';
+                if (platform.includes('GitHub')) profileType = 'github';
+                else if (platform.includes('LinkedIn')) profileType = 'linkedin';
+                else if (platform.includes('Twitter')) profileType = 'twitter';
+                else if (platform.includes('Medium')) profileType = 'medium';
+                else if (platform.includes('Reddit')) profileType = 'reddit';
+                
                 linkItem.innerHTML = `
-                <div style="display: flex; align-items: center; padding: 8px 0;">
+                <div style="display: flex; align-items: center; padding: 8px 0; justify-content: space-between;">
                     <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
                         <img src="${getPlatformIcon(platform)}" class="platform-icon">
-                        <span>${platform} (${new URL(url).pathname.split('/').pop()})</span>
+                        <span>${platform} (${username})</span>
                     </a>
+                    <button class="delete-data-btn" onclick="showDeleteConfirmation('${profileType}', '${username}')">Delete Permanently</button>
                 </div>
                 `;
                 linksList.appendChild(linkItem);
@@ -2362,26 +2505,22 @@
                 document.getElementById('summary-interests').textContent = 'None added';
             }
             
-            // PDF Documents Summary
+            // PDF Summary
             const pdfList = document.getElementById('pdfList');
-            const pdfsDiv = document.getElementById('summary-pdfs');
+            const pdfSummaryDiv = document.getElementById('summary-pdfs');
             
             if (pdfList.children.length > 0) {
-                let pdfsHtml = '';
-                Array.from(pdfList.children).forEach(item => {
-                    const pdfName = item.querySelector('p')?.textContent;
-                    if (pdfName) {
-                        pdfsHtml += `<div class="summary-item"><i class="fas fa-file-pdf"></i><span>${pdfName}</span></div>`;
-                    }
-                });
-                pdfsDiv.innerHTML = pdfsHtml || '<p>No PDF documents added.</p>';
+                const pdfCount = pdfList.children.length;
+                pdfSummaryDiv.innerHTML = `<p>${pdfCount} PDF document${pdfCount > 1 ? 's' : ''} added.</p>`;
+            } else {
+                pdfSummaryDiv.innerHTML = '<p>No PDF documents added.</p>';
             }
             
             // Images Summary
             const imagesList = document.getElementById('imagesList');
             const imagesDiv = document.getElementById('summary-images');
             
-            if (imagesList.children.length > 0) {
+            if (imagesList && imagesList.children.length > 0) {
                 imagesDiv.innerHTML = `<p>${imagesList.children.length} image(s) added</p>`;
                 let imagesHtml = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
                 Array.from(imagesList.children).slice(0, 4).forEach(item => { // Show up to 4 thumbnails
@@ -2394,6 +2533,137 @@
                 imagesDiv.innerHTML += imagesHtml;
             }
         }
+
+        // Add these functions at the end of the script section
+        let currentDeletionData = { profileType: '', username: '' };
+
+        function showDeleteConfirmation(profileType, username) {
+            currentDeletionData.profileType = profileType;
+            currentDeletionData.username = username;
+            
+            const modal = document.getElementById('deleteConfirmationModal');
+            modal.style.display = 'flex';
+            
+            // Set up the confirmation button
+            document.getElementById('confirmDeleteBtn').onclick = () => {
+                deletePermanently(profileType, username);
+            };
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmationModal').style.display = 'none';
+        }
+
+        async function deletePermanently(profileType, filename) {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    console.error("No token found, user not authenticated.");
+                    return;
+                }
+                
+                // Show loading state
+                document.getElementById('confirmDeleteBtn').textContent = 'Deleting...';
+                document.getElementById('confirmDeleteBtn').disabled = true;
+                
+                const requestData = { profileType };
+                
+                // Add filename for PDF deletion
+                if (profileType === 'pdf' && filename) {
+                    requestData.pdfFilename = filename;
+                }
+                
+                console.log(`Sending delete request for ${profileType}`, requestData);
+                
+                const response = await fetch('/api/delete-profile-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                console.log('Delete response:', result);
+                
+                if (result.success) {
+                    // Close the modal
+                    closeDeleteModal();
+                    
+                    if (profileType === 'pdf') {
+                        // Remove the PDF from the UI
+                        const pdfList = document.getElementById('pdfList');
+                        const items = Array.from(pdfList.children);
+                        
+                        for (const item of items) {
+                            const itemText = item.querySelector('span').textContent;
+                            if (itemText === filename) {
+                                pdfList.removeChild(item);
+                            }
+                        }
+                        
+                        // Update the summary
+                        const remainingPdfs = items.length - 1;
+                        document.getElementById('summary-pdfs').innerHTML = 
+                            remainingPdfs > 0 
+                            ? `<p>${remainingPdfs} PDF document${remainingPdfs > 1 ? 's' : ''} added.</p>` 
+                            : '<p>No PDF documents added.</p>';
+                    } else {
+                        // Remove the profile from the UI
+                        const linksList = document.getElementById('linksList');
+                        const platformMap = {
+                            'github': 'GitHub Profile',
+                            'linkedin': 'LinkedIn Profile',
+                            'twitter': 'Twitter Profile',
+                            'medium': 'Medium Profile',
+                            'reddit': 'Reddit Profile'
+                        };
+                        
+                        const platform = platformMap[profileType];
+                        const items = Array.from(linksList.children);
+                        
+                        for (const item of items) {
+                            const itemText = item.querySelector('a span').textContent;
+                            if (itemText.includes(platform)) {
+                                linksList.removeChild(item);
+                            }
+                        }
+                        
+                        // Update the loadedSocialLinks state
+                        if (loadedSocialLinks[profileType]) {
+                            loadedSocialLinks[profileType] = false;
+                        }
+                    }
+                    
+                    // Show success message
+                    alert(`Successfully deleted ${profileType === 'pdf' ? 'PDF' : profileType} data from Mimikree database.`);
+                } else {
+                    console.error('Delete error:', result);
+                    alert(`Error: ${result.message || 'Unknown error'}\n${result.details ? JSON.stringify(result.details) : ''}`);
+                    closeDeleteModal();
+                }
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                alert('An error occurred while trying to delete the data. Please try again or contact support.');
+                closeDeleteModal();
+            } finally {
+                // Reset button state
+                document.getElementById('confirmDeleteBtn').textContent = 'Delete Permanently';
+                document.getElementById('confirmDeleteBtn').disabled = false;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchUserProfile();
+            
+            // Update the summary when the page fully loads
+            setTimeout(updateSummary, 1000);
+            
+            document.getElementById('submitBtn').addEventListener('click', function() {
+                submitForm();
+            });
+        });
     </script>
 </body>
 

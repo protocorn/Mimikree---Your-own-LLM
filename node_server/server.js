@@ -32,17 +32,20 @@ app.set('views', path.join(__dirname, 'public'));
 const HUGGING_FACE_API_KEY = process.env.HUGGING_FACE_API_KEY;
 const HUGGING_FACE_API_URL = process.env.HUGGING_FACE_API_URL;
 
-// MongoDB Connection Setup - Moved to the top
-mongoose.connect(process.env.MONGO_URI, {
+// MongoDB Connection Config - centralized to avoid duplication
+const MONGO_CONNECTION_OPTIONS = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 15000, // Increase timeout to 15 seconds
-    socketTimeoutMS: 45000, // Socket timeout
-    connectTimeoutMS: 15000, // Connection timeout
-    maxPoolSize: 10, // Maximum number of connections in the pool
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+    connectTimeoutMS: 15000,
+    maxPoolSize: 10,
     retryWrites: true,
     w: 'majority'
-})
+};
+
+// MongoDB Connection Setup
+mongoose.connect(process.env.MONGO_URI, MONGO_CONNECTION_OPTIONS)
 .then(() => {
     console.log("Connected to MongoDB");
     // Start the server only after successful MongoDB connection
@@ -52,16 +55,7 @@ mongoose.connect(process.env.MONGO_URI, {
     console.error("Initial MongoDB connection error:", err);
     // Attempt to reconnect after a delay
     setTimeout(() => {
-        mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            serverSelectionTimeoutMS: 15000,
-            socketTimeoutMS: 45000,
-            connectTimeoutMS: 15000,
-            maxPoolSize: 10,
-            retryWrites: true,
-            w: 'majority'
-        })
+        mongoose.connect(process.env.MONGO_URI, MONGO_CONNECTION_OPTIONS)
         .then(() => console.log("Reconnected to MongoDB"))
         .catch((reconnectErr) => console.error("Failed to reconnect:", reconnectErr));
     }, 5000);
@@ -289,18 +283,44 @@ function calculateDataCompletenessScore(user) {
     return score;
 }
 
-// API endpoint to rate a user's model
-app.post('/api/rate-model', async (req, res) => {
+// Add findUserByUsername helper function after authenticateToken middleware
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+        return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ success: false, error: 'Authentication required' });
-        }
-
-        // Verify token to get the rater's information
         const decoded = jwt.verify(token, JWT_SECRET_KEY);
-        const raterId = decoded.userId;
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: "Invalid or expired token" });
+    }
+};
 
+// Helper function to find user by username and handle common error cases
+const findUserByUsername = async (username, res) => {
+    try {
+        const user = await User.findOne({ username });
+        if (!user) {
+            res.status(404).json({ success: false, message: "User not found" });
+            return null;
+        }
+        return user;
+    } catch (error) {
+        console.error("Database error fetching user:", error);
+        res.status(500).json({ success: false, message: "Database error" });
+        return null;
+    }
+};
+
+// Replace the API endpoint to rate a user's model with this refactored version
+app.post('/api/rate-model', authenticateToken, async (req, res) => {
+    try {
+        const raterId = req.user.userId;
         const { username, rating } = req.body;
         
         if (!username || !rating || rating < 1 || rating > 5) {
@@ -311,10 +331,8 @@ app.post('/api/rate-model', async (req, res) => {
         }
 
         // Find the user to be rated
-        const userToRate = await User.findOne({ username: username });
-        if (!userToRate) {
-            return res.status(404).json({ success: false, error: 'User not found' });
-        }
+        const userToRate = await findUserByUsername(username, res);
+        if (!userToRate) return;
 
         // Prevent users from rating themselves
         if (userToRate._id.toString() === raterId) {
@@ -488,32 +506,36 @@ app.post("/api/submit", async (req, res) => {
                 if (data.images && data.images.length > 0) {
                     for (const image of data.images) {
                         try {
+                            // Upload image to cloudinary
                             const result = await cloudinary.uploader.upload(image.src, {
                                 public_id: `user_${username}_${Date.now()}`,
                             });
                             const imageUrl = result.secure_url;
-                            await updateUserImages(username, imageUrl, image.description);
                             
-                            // Create a comprehensive image document that includes both caption and description
-                            const imageDocument = {
-                                url: imageUrl,
-                                caption: image.caption || '',
-                                description: image.description || '',
-                                type: 'image'
-                            };
-
-                            // Send both caption and description to llama_server
-                            await axios.post(`${config.llamaServer}/process`, { 
-                                document: `Image Analysis:
+                            // Update user's image collection
+                            const updateResult = await updateUserImages(username, imageUrl, image.description);
+                            if (!updateResult.success) {
+                                console.error("Failed to update user's images:", updateResult.message);
+                                continue; // Skip to next image instead of failing entirely
+                            }
+                            
+                            // Process the image for the AI model
+                            try {
+                                await axios.post(`${config.llamaServer}/process`, { 
+                                    document: `Image Analysis:
 URL: ${imageUrl}
-AI Generated Caption: ${image.caption}
-User Description: ${image.description}`, 
-                                username: username 
-                            });
-
-                            console.log(`Image uploaded and processed: ${imageUrl}`);
+AI Generated Caption: ${image.caption || ''}
+User Description: ${image.description || ''}`, 
+                                    username: username 
+                                });
+                                console.log(`Image uploaded and processed: ${imageUrl}`);
+                            } catch (processingError) {
+                                console.error("Error processing image for AI:", processingError.message);
+                                // Continue with other images since the upload and user update was successful
+                            }
                         } catch (uploadError) {
-                            console.error("Error uploading image:", uploadError);
+                            console.error("Error uploading image:", uploadError.message);
+                            // Continue with next image
                         }
                     }
                 }
@@ -543,12 +565,13 @@ User Description: ${image.description}`,
     }
 });
 
+// Refactor image upload handling to standardize error handling and cleanup
 async function updateUserImages(username, imageUrl, imageDescription) {
     try {
         const user = await User.findOne({ username: username });
         if (!user) {
             console.log(`User not found: ${username}`);
-            return;
+            return { success: false, message: "User not found" };
         }
 
         if (!user.images) {
@@ -559,8 +582,10 @@ async function updateUserImages(username, imageUrl, imageDescription) {
         await user.save();
 
         console.log(`Image URL added for user: ${username}`);
+        return { success: true };
     } catch (error) {
         console.error("Error updating images:", error);
+        return { success: false, message: error.message };
     }
 }
 
@@ -663,7 +688,7 @@ async function checkCalendarAvailability(username, date) {
 // Modify the query endpoint to include calendar information
 app.post('/api/query/:username', async (req, res) => {
     try {
-        const { query, chatHistory } = req.body;
+        const { query, chatHistory, memory_enabled } = req.body;
         const { username } = req.params;
 
         // Initialize or get existing chat history
@@ -852,120 +877,106 @@ app.post('/api/query/:username', async (req, res) => {
                 username: username,
                 name: user.name, // Include name if needed by your LLM
                 own_model: is_own_model,
-                chatHistory: updatedHistory  // Include updated chat history in the request to LLama server
+                chatHistory: updatedHistory,  // Include updated chat history in the request to LLama server
+                memory_enabled: memory_enabled && is_own_model // Only enable memory for user's own model
             };
 
             const response = await axios.post(`${config.llamaServer}/ask`, dataForModel);
 
-            // 6. Response Handling (Important!)
+            // 6. Response Handling
             if (!response.data || !response.data.response) { // Check for valid response structure
                 console.error("Invalid response from LLM:", response.data);
-                return res.status(500).json({ success: false, message: "Invalid response from LLM" });
+                return res.status(500).json({ success: false, message: "Invalid response from model" });
             }
 
-            console.log("LLM Response:", response.data.response); // Log the LLM's response
+            // Only store chat if user is chatting with their own model
+            let chatId = req.body.chatId;
             
-            // Save chat message if user is authenticated AND is chatting with their own AI
-            if (token && decoded?.username && is_own_model) {
+            // Create response object
+            const responseData = {
+                success: true,
+                response: response.data.response,
+                memory_confirmation_needed: response.data.memory_confirmation_needed || false,
+                memory_data: response.data.memory_data || null
+            };
+            
+            // Only store chats if user is talking to their own model
+            if (is_own_model) {
                 try {
-                    const user = await User.findOne({ username: decoded.username });
-                    
-                    if (user) {
-                        // Check if chatId is provided (existing chat)
-                        let chat;
-                        const chatId = req.body.chatId;
-                        
-                        if (chatId) {
-                            // Update existing chat
-                            chat = await Chat.findOne({ _id: chatId, userId: user._id });
-                            
-                            if (!chat) {
-                                // Create new chat if chatId is invalid
-                                chat = new Chat({ userId: user._id });
-                            }
-                        } else {
-                            // Check for an existing chat with no messages yet
-                            chat = await Chat.findOne({ 
+                    let chat;
+                    if (chatId) {
+                        // Update existing chat
+                        chat = await Chat.findById(chatId);
+                        if (!chat) {
+                            // If chat ID is invalid, create a new one
+                            chat = new Chat({
                                 userId: user._id,
-                                'messages.0': { $exists: false }
+                                title: query.substring(0, 30) + '...',
+                                messages: []
                             });
-                            
-                            if (!chat) {
-                                // Create a new chat
-                                chat = new Chat({ userId: user._id });
-                            }
                         }
-                        
-                        // Add user message
-                        chat.messages.push({
-                            role: 'user',
-                            content: query,
-                            timestamp: new Date()
-                        });
-                        
-                        // Add assistant response
-                        chat.messages.push({
-                            role: 'assistant',
-                            content: response.data.response,
-                            timestamp: new Date()
-                        });
-                        
-                        // Update metadata (if available in response)
-                        if (response.data.expandedQuery) {
-                            if (!chat.metadata.expandedQueries) chat.metadata.expandedQueries = [];
-                            chat.metadata.expandedQueries.push(response.data.expandedQuery);
-                        }
-                        
-                        if (response.data.queryComplexity) {
-                            if (!chat.metadata.queryComplexity) chat.metadata.queryComplexity = [];
-                            chat.metadata.queryComplexity.push(response.data.queryComplexity);
-                        }
-                        
-                        if (response.data.documentsRetrieved) {
-                            if (!chat.metadata.documentsRetrieved) chat.metadata.documentsRetrieved = [];
-                            chat.metadata.documentsRetrieved.push(response.data.documentsRetrieved);
-                        }
-                        
-                        // Update title if this is the first message
-                        if (chat.messages.length <= 2 && query.length < 50) {
-                            chat.title = query;
-                        } else if (chat.messages.length <= 2) {
-                            chat.title = query.substring(0, 50) + "...";
-                        }
-                        
-                        chat.updatedAt = new Date();
-                        await chat.save();
-                        
-                        // Return chatId with the response
-                        res.json({ 
-                            success: true, 
-                            response: response.data.response,
-                            chatId: chat._id,
-                            expanded_query: response.data.expandedQuery,
-                            query_complexity: response.data.queryComplexity,
-                            documents_retrieved: response.data.documentsRetrieved
-                        });
                     } else {
-                        // Just return the response without saving chat
-                        res.json({ success: true, response: response.data.response });
+                        // Create new chat
+                        chat = new Chat({
+                            userId: user._id,
+                            title: query.substring(0, 30) + '...',
+                            messages: []
+                        });
                     }
-                } catch (chatError) {
-                    console.error("Error saving chat:", chatError);
-                    res.json({ success: true, response: response.data.response });
+
+                    // Add user message
+                    chat.messages.push({
+                        role: 'user',
+                        content: query
+                    });
+
+                    // Add assistant message
+                    chat.messages.push({
+                        role: 'assistant',
+                        content: response.data.response
+                    });
+
+                    // Update title for new chats
+                    if (!chatId) {
+                        chat.title = query.substring(0, 30) + (query.length > 30 ? '...' : '');
+                    }
+
+                    // Update chat metadata
+                    chat.metadata = {
+                        ...chat.metadata,
+                        expandedQueries: [...(chat.metadata?.expandedQueries || []), response.data.expandedQuery],
+                        queryComplexity: [...(chat.metadata?.queryComplexity || []), response.data.queryComplexity],
+                        documentsRetrieved: [...(chat.metadata?.documentsRetrieved || []), response.data.documentsRetrieved]
+                    };
+
+                    // Update timestamp
+                    chat.updatedAt = Date.now();
+
+                    // Save to database
+                    await chat.save();
+                    
+                    // Add chat ID to response
+                    responseData.chatId = chat._id;
+                    
+                    console.log(`Saved chat for user ${username} (own model)`);
+                } catch (error) {
+                    console.error("Error saving chat:", error);
+                    // Continue even if chat saving fails
                 }
             } else {
-                // User is not authenticated, just return the response
-                res.json({ success: true, response: response.data.response });
+                console.log(`Chat not saved - user ${myusername || 'anonymous'} is viewing ${username}'s model`);
             }
 
-        } catch (dbError) {
-            console.error("Database error fetching user:", dbError);
-            return res.status(500).json({ success: false, message: "Database error" });
-        }
+            // Return response
+            return res.json(responseData);
 
+        } catch (error) {
+            console.error("Error in LLM processing:", error.message);
+            return res.status(500).json({ success: false, message: "Error in model processing" });
+        }
     } catch (error) {
-        console.error("Unexpected error in query route:", error);
-        res.status(500).json({ success: false, message: "Server error while processing query" });
+        console.error("General error in query endpoint:", error);
+        return res.status(500).json({ success: false, message: "Server error processing query" });
     }
 });
 
@@ -990,7 +1001,7 @@ app.post("/api/signup", async (req, res) => {
         // Create a new user
         const newUser = new User({ username, name, email, password: hashedPassword });
         await newUser.save();
-
+        
         // Send welcome email
         try {
             console.log("Attempting to send welcome email to:", email);
@@ -1059,32 +1070,11 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-// Middleware to verify JWT token
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    
-    if (!token) {
-        return res.status(401).json({ message: "Authentication required" });
-    }
-    
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET_KEY);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(403).json({ message: "Invalid or expired token" });
-    }
-};
-
 // Get all chats for the authenticated user
 app.get('/api/chats', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
-        
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
         
         const chats = await Chat.find({ userId: user._id })
             .select('_id title createdAt updatedAt')
@@ -1100,11 +1090,8 @@ app.get('/api/chats', authenticateToken, async (req, res) => {
 // Get a specific chat by ID
 app.get('/api/chats/:chatId', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
-        
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
         
         const chat = await Chat.findOne({ _id: req.params.chatId, userId: user._id });
         
@@ -1122,11 +1109,8 @@ app.get('/api/chats/:chatId', authenticateToken, async (req, res) => {
 // Create a new empty chat
 app.post('/api/chats', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
-        
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
         
         const title = req.body.title || 'New Chat';
         
@@ -1147,11 +1131,8 @@ app.post('/api/chats', authenticateToken, async (req, res) => {
 // Update a chat's title
 app.put('/api/chats/:chatId', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
-        
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
         
         const chat = await Chat.findOne({ _id: req.params.chatId, userId: user._id });
         
@@ -1176,11 +1157,8 @@ app.put('/api/chats/:chatId', authenticateToken, async (req, res) => {
 // Delete a chat
 app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.user.username });
-        
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
         
         const result = await Chat.deleteOne({ _id: req.params.chatId, userId: user._id });
         
@@ -1195,19 +1173,10 @@ app.delete('/api/chats/:chatId', authenticateToken, async (req, res) => {
     }
 });
 
-app.get("/api/user/profile", async (req, res) => {
+app.get("/api/user/profile", authenticateToken, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-            return res.status(401).json({ message: "No token provided" });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET_KEY);
-        const user = await User.findOne({ username: decoded.username });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
 
         res.json({
             socialProfiles: user.socialProfiles,
@@ -1225,17 +1194,13 @@ app.get("/api/user/profile", async (req, res) => {
 app.get("/api/user/profile/:username", async (req, res) => {
     try {
         const { username } = req.params;
-
-        const user = await User.findOne({ username: username });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        
+        const user = await findUserByUsername(username, res);
+        if (!user) return;
 
         // Return only the ratings
         res.json({
             ratings: user.ratings,
-          
         });
     } catch (error) {
         console.error("Error fetching user ratings:", error);
@@ -1247,11 +1212,8 @@ app.get("/api/user/profile/:username/full", async (req, res) => {
     try {
         const { username } = req.params;
 
-        const user = await User.findOne({ username: username });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+        const user = await findUserByUsername(username, res);
+        if (!user) return;
 
         // Return only the ratings
         res.json({
@@ -1384,15 +1346,10 @@ app.post('/api/embed/chat', async (req, res) => {
         let name = "Mimikree Assistant";
         
         if (username && username !== 'embedded-user') {
-            try {
-                const user = await User.findOne({ username: username });
-                if (user && user.selfAssessment) {
-                    userSelfAssessment = user.selfAssessment;
-                    name = user.name || "Mimikree Assistant";
-                }
-            } catch (error) {
-                console.error("Error fetching user data:", error);
-                // Continue with default values if user not found
+            const user = await User.findOne({ username: username });
+            if (user && user.selfAssessment) {
+                userSelfAssessment = user.selfAssessment;
+                name = user.name || "Mimikree Assistant";
             }
         }
 
@@ -1425,8 +1382,6 @@ app.post('/api/embed/chat', async (req, res) => {
             return res.status(500).json({ success: false, message: "Invalid response from LLM" });
         }
 
-        console.log("LLM Response for embedded chat:", response.data.response);
-
         return res.json({
             success: true,
             response: response.data.response,
@@ -1457,4 +1412,19 @@ app.get('/embed-sample', (req, res) => {
 // Serve iframe preview page
 app.get('/iframe-preview', (req, res) => {
     res.sendFile(path.join(__dirname, "public", "iframe-preview.html"));
+});
+
+// Proxy route for memory storage
+app.post('/store_memory', async (req, res) => {
+    try {
+        const response = await axios.post(`${config.llamaServer}/store_memory`, req.body);
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error storing memory:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to store memory",
+            error: error.message 
+        });
+    }
 });

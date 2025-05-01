@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies
-RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core langchain-community langchain langchain-text-splitters waitress google-generativeai
+RUN pip install --no-cache-dir Flask pinecone sentence-transformers langchain-core langchain-community langchain langchain-text-splitters waitress google-generativeai datetime
 
 # Create utils directory if it doesn't exist to ensure proper structure
 RUN mkdir -p /app/utils

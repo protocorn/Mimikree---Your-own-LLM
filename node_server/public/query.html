@@ -2371,6 +2371,83 @@
                 box-shadow: 0 0 0 0 rgba(110, 142, 251, 0);
             }
         }
+
+        /* Memory Dialog Styles */
+        .memory-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .memory-dialog-box {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .memory-summary {
+            background-color: #f5f5f5;
+            border-left: 4px solid #4a90e2;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .memory-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .memory-confirm-btn, .memory-cancel-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            border: none;
+        }
+
+        .memory-confirm-btn {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .memory-cancel-btn {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: #333;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 1001;
+        }
+
+        .toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -3457,7 +3534,8 @@
                     body: JSON.stringify({
                         query: queryText,
                         chatHistory: chatHistory,
-                        chatId: currentChatId
+                        chatId: currentChatId,
+                        memory_enabled: true // Enable memory extraction
                     })
                 });
                 
@@ -3508,6 +3586,11 @@
                     // Append message and apply animation
                     chatBox.appendChild(botMessage);
                     animateMessage(botMessage);
+                    
+                    // Check if memory needs confirmation
+                    if (data.memory_confirmation_needed && data.memory_data) {
+                        showMemoryConfirmationDialog(data.memory_data);
+                    }
                     
                     // Scroll to the bottom
                     chatBox.scrollTop = chatBox.scrollHeight;
@@ -3570,6 +3653,92 @@
                 localStorage.setItem("ratingVisible", "false");
                 ratingContainer.style.pointerEvents = "none"; // Add this line
             }
+        }
+
+        // Memory confirmation functions
+        function showMemoryConfirmationDialog(memoryData) {
+            // Create dialog elements
+            const dialogOverlay = document.createElement('div');
+            dialogOverlay.className = 'memory-dialog-overlay';
+            
+            const dialogBox = document.createElement('div');
+            dialogBox.className = 'memory-dialog-box';
+            
+            // Create dialog content
+            dialogBox.innerHTML = `
+                <h3>New Information Detected</h3>
+                <p>I found some information that might be important to remember for future conversations:</p>
+                <div class="memory-summary">${memoryData.MEMORY_SUMMARY}</div>
+                <p>Would you like me to remember this?</p>
+                <div class="memory-buttons">
+                    <button class="memory-confirm-btn">Yes, Remember This</button>
+                    <button class="memory-cancel-btn">No, Don't Remember</button>
+                </div>
+            `;
+            
+            // Add to DOM
+            dialogOverlay.appendChild(dialogBox);
+            document.body.appendChild(dialogOverlay);
+            
+            // Add event listeners
+            const confirmBtn = dialogBox.querySelector('.memory-confirm-btn');
+            const cancelBtn = dialogBox.querySelector('.memory-cancel-btn');
+            
+            confirmBtn.addEventListener('click', () => {
+                storeMemory(memoryData);
+                document.body.removeChild(dialogOverlay);
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                document.body.removeChild(dialogOverlay);
+            });
+        }
+
+        // Function to store confirmed memory
+        function storeMemory(memoryData) {
+            fetch('/store_memory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : ''
+                },
+                body: JSON.stringify({
+                    memory_text: memoryData.EXTRACTED_INFO,
+                    memory_summary: memoryData.MEMORY_SUMMARY,
+                    username: username,
+                    memory_category: memoryData.MEMORY_CATEGORY || "general",
+                    importance_score: memoryData.IMPORTANCE_SCORE || 5
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show a confirmation message
+                    showToast("Information saved to your memory");
+                }
+            })
+            .catch(error => {
+                console.error("Error storing memory:", error);
+                showToast("Failed to save information");
+            });
+        }
+
+        // Helper function to show a toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(toast);
+                    }, 300);
+                }, 3000);
+            }, 100);
         }
 
         // Load rating visibility state from local storage
