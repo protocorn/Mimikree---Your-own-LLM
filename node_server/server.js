@@ -71,7 +71,9 @@ app.use(helmet({
                 "'self'", 
                 "https://www.youtube.com", 
                 "https://youtube.com", 
-                "https://www.youtube-nocookie.com"
+                "https://www.youtube-nocookie.com",
+                "https://mimikree.com",
+                "https://www.mimikree.com"
             ],
             frameAncestors: ["*"], // Allow embedding in iframes on any domain
             mediaSrc: [
