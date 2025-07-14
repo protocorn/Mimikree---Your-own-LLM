@@ -1353,6 +1353,85 @@
             padding: 8px 0;
         }
 
+        /* Social Profiles Styles */
+        .loading-profiles {
+            color: #777;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .no-profiles {
+            color: #777;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        .no-profiles a {
+            color: #4285F4;
+            text-decoration: underline;
+        }
+
+        .social-profile-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .social-profile-item:last-child {
+            border-bottom: none;
+        }
+
+        .social-profile-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .social-profile-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .social-profile-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .social-profile-name {
+            font-weight: 500;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .social-profile-username {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .social-profile-status {
+            font-size: 0.75rem;
+            color: #34A853;
+            margin-top: 2px;
+        }
+
+
+
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .notification {
             position: fixed;
             bottom: 20px;
@@ -2551,7 +2630,19 @@
             <button class="drawer-close" id="drawerClose">×</button>
         </div>
         <div class="drawer-content">
-            <!-- Services Section - Now First -->
+            <!-- Social Profiles Section - Now First -->
+            <div class="drawer-section" id="socialProfilesSection">
+                <div class="drawer-section-title">Social Profiles</div>
+                <div class="drawer-section-content">
+                    <div id="socialProfilesList">
+                        <!-- Social profiles will be loaded here -->
+                        <div class="loading-profiles">Loading profiles...</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Services Section - Now Second -->
             <div class="drawer-section">
                 <div class="drawer-section-title">Connected Services</div>
                 <div class="drawer-section-content">
@@ -2662,13 +2753,18 @@
                                     window.getSelection().removeAllRanges();
                                     
                                     // Show success feedback
-                                    const originalText = copyEmbedButton.innerHTML;
-                                    copyEmbedButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                                    const originalContent = Array.from(copyEmbedButton.childNodes);
+                                    copyEmbedButton.textContent = '';
+                                    const checkIcon = document.createElement('i');
+                                    checkIcon.className = 'fas fa-check';
+                                    copyEmbedButton.appendChild(checkIcon);
+                                    copyEmbedButton.appendChild(document.createTextNode(' Copied!'));
                                     copyEmbedButton.style.backgroundColor = '#4CAF50';
                                     
                                     // Reset button after delay
                                     setTimeout(() => {
-                                        copyEmbedButton.innerHTML = originalText;
+                                        copyEmbedButton.textContent = '';
+                                        originalContent.forEach(node => copyEmbedButton.appendChild(node.cloneNode(true)));
                                         copyEmbedButton.style.backgroundColor = '#4A55A2';
                                     }, 2000);
                                 });
@@ -2808,7 +2904,11 @@
                 chatSidebar.classList.add('hidden');
                 document.getElementById('toggleSidebar').classList.add('hidden');
                 document.querySelector('.container').classList.add('full-width');
-                document.getElementById('toggleSidebar').innerHTML = '<i class="fas fa-chevron-right"></i>';
+                const toggleSidebarBtn = document.getElementById('toggleSidebar');
+                toggleSidebarBtn.textContent = '';
+                const chevronIcon = document.createElement('i');
+                chevronIcon.className = 'fas fa-chevron-right';
+                toggleSidebarBtn.appendChild(chevronIcon);
             }
             
             // Use different classes for desktop and mobile
@@ -3418,7 +3518,11 @@
             navigator.clipboard.writeText(window.location.href)
                 .then(() => {
                     // Give visual feedback
-                    copyLinkButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    copyLinkButton.textContent = '';
+            const checkIcon = document.createElement('i');
+            checkIcon.className = 'fas fa-check';
+            copyLinkButton.appendChild(checkIcon);
+            copyLinkButton.appendChild(document.createTextNode(' Copied!'));
                     copyLinkButton.style.background = '#4CAF50';
                     copyLinkButton.style.color = 'white';
                     
@@ -3444,16 +3548,28 @@
                     
                     // Reset button after delay
                     setTimeout(() => {
-                        copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                        copyLinkButton.textContent = '';
+                        const shareIcon = document.createElement('i');
+                        shareIcon.className = 'fas fa-share-alt';
+                        copyLinkButton.appendChild(shareIcon);
+                        copyLinkButton.appendChild(document.createTextNode(' Share Now'));
                         copyLinkButton.style.background = '';
                         copyLinkButton.style.color = '';
                     }, 2000);
                 })
                 .catch(err => {
                     console.error('Failed to copy: ', err);
-                    copyLinkButton.innerHTML = '<i class="fas fa-times"></i> Error';
+                    copyLinkButton.textContent = '';
+                    const errorIcon = document.createElement('i');
+                    errorIcon.className = 'fas fa-times';
+                    copyLinkButton.appendChild(errorIcon);
+                    copyLinkButton.appendChild(document.createTextNode(' Error'));
                     setTimeout(() => {
-                        copyLinkButton.innerHTML = '<i class="fas fa-share-alt"></i> Share Now';
+                        copyLinkButton.textContent = '';
+                        const shareResetIcon = document.createElement('i');
+                        shareResetIcon.className = 'fas fa-share-alt';
+                        copyLinkButton.appendChild(shareResetIcon);
+                        copyLinkButton.appendChild(document.createTextNode(' Share Now'));
                     }, 2000);
                 });
         });
@@ -3563,6 +3679,53 @@
                         currentChatId = data.chatId;
                         // Save to localStorage to persist across page reloads
                         localStorage.setItem('currentChatId', currentChatId);
+                        
+                        console.log("Chat response data:", {
+                            chatId: data.chatId,
+                            chatTitle: data.chatTitle,
+                            firstMessage: queryText.substring(0, 30),
+                            dataKeys: Object.keys(data)
+                        });
+                        
+                                    // For title handling
+            // Create a display title from the first message
+            const firstMessageTitle = queryText.substring(0, 30) + (queryText.length > 30 ? '...' : '');
+            
+            // Determine if this is the first message in a new chat
+            const isFirstMessage = chatHistory.length === 0;
+            
+            // Choose the appropriate title
+            let displayTitle = data.chatTitle;
+            
+            // If it's a new chat or has default title, use the first message as title
+            if (isFirstMessage || data.chatTitle === 'New Chat') {
+                displayTitle = firstMessageTitle;
+                
+                // Also update the title on the server
+                if (currentChatId) {
+                    fetch(`/api/chats/${currentChatId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ title: firstMessageTitle })
+                    }).catch(err => console.error('Error updating chat title:', err));
+                }
+            }
+            
+            // Try to find the chat item in the sidebar to update it
+            const chatItem = document.querySelector(`.chat-item[data-id="${currentChatId}"]`);
+            if (chatItem) {
+                // Update the title directly without reloading
+                const titleElement = chatItem.querySelector('.chat-title');
+                if (titleElement) {
+                    titleElement.textContent = displayTitle;
+                }
+            } else {
+                // If chat item isn't in the sidebar yet, reload the list
+                loadChats();
+            }
                     }
                     
                     // Display bot response
@@ -3724,10 +3887,24 @@
         }
 
         // Helper function to show a toast notification
-        function showToast(message) {
+        function showToast(message, type = 'info') {
+            // Remove existing toast if any
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.textContent = message;
+            
+            // Add type-specific styling
+            if (type === 'error') {
+                toast.style.backgroundColor = '#EA4335';
+            } else if (type === 'success') {
+                toast.style.backgroundColor = '#34A853';
+            }
+            
             document.body.appendChild(toast);
             
             setTimeout(() => {
@@ -3735,7 +3912,9 @@
                 setTimeout(() => {
                     toast.classList.remove('show');
                     setTimeout(() => {
-                        document.body.removeChild(toast);
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
                     }, 300);
                 }, 3000);
             }, 100);
@@ -3972,10 +4151,194 @@
         setupExamplePrompts();
 
         // Handle initial setup based on if this is user's own AI
+        // Social Profiles Management Functions
+        const loadSocialProfiles = async () => {
+            const token = localStorage.getItem('token');
+            const socialProfilesList = document.getElementById('socialProfilesList');
+            
+            // Check if user is viewing their own AI
+            let isOwnAI = false;
+            if (token) {
+                try {
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    const currentUsername = tokenData.username;
+                    const urlUsername = window.location.pathname.split('/').pop();
+                    isOwnAI = currentUsername === urlUsername;
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
+            }
+            
+            if (!token || !isOwnAI) {
+                socialProfilesList.innerHTML = '<div class="no-profiles">Social profiles are only available for your own AI.</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user profile');
+                }
+                
+                const userData = await response.json();
+                const socialProfiles = userData.socialProfiles || {};
+                
+                displaySocialProfiles(socialProfiles);
+                
+            } catch (error) {
+                console.error('Error loading social profiles:', error);
+                socialProfilesList.innerHTML = '<div class="no-profiles">Failed to load social profiles. Please try again later.</div>';
+                if (syncAllContainer) {
+                    syncAllContainer.style.display = 'none';
+                }
+            }
+        };
+        
+        const displaySocialProfiles = (socialProfiles) => {
+            const socialProfilesList = document.getElementById('socialProfilesList');
+            
+            const platforms = [
+                {
+                    key: 'github',
+                    name: 'GitHub',
+                    icon: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+                    urlTemplate: (username) => `https://github.com/${username}`
+                },
+                {
+                    key: 'linkedin',
+                    name: 'LinkedIn', 
+                    icon: 'https://cdn-icons-png.flaticon.com/512/174/174857.png',
+                    urlTemplate: (username) => username
+                },
+                {
+                    key: 'twitter',
+                    name: 'Twitter',
+                    icon: 'https://abs.twimg.com/responsive-web/client-web/icon-ios.b1fc7275.png',
+                    urlTemplate: (username) => `https://twitter.com/${username}`
+                },
+                {
+                    key: 'medium',
+                    name: 'Medium',
+                    icon: 'https://cdn4.iconfinder.com/data/icons/social-media-circle-7/512/Medium_circle-512.png',
+                    urlTemplate: (username) => `https://medium.com/@${username}`
+                },
+                {
+                    key: 'reddit',
+                    name: 'Reddit',
+                    icon: 'https://www.iconpacks.net/icons/2/free-reddit-logo-icon-2436-thumb.png',
+                    urlTemplate: (username) => `https://reddit.com/user/${username}`
+                }
+            ];
+            
+            const connectedProfiles = platforms.filter(platform => socialProfiles[platform.key]);
+            
+            if (connectedProfiles.length === 0) {
+                socialProfilesList.textContent = '';
+                const noProfilesDiv = document.createElement('div');
+                noProfilesDiv.className = 'no-profiles';
+                
+                const textLine1 = document.createTextNode('No social profiles connected yet.');
+                const br = document.createElement('br');
+                const link = document.createElement('a');
+                link.href = '/add-data';
+                link.textContent = 'Add social profiles';
+                const textLine2 = document.createTextNode(' to get started.');
+                
+                noProfilesDiv.appendChild(textLine1);
+                noProfilesDiv.appendChild(br);
+                noProfilesDiv.appendChild(link);
+                noProfilesDiv.appendChild(textLine2);
+                
+                socialProfilesList.appendChild(noProfilesDiv);
+                return;
+            }
+            
+            socialProfilesList.textContent = '';
+            connectedProfiles.forEach(platform => {
+                const username = socialProfiles[platform.key];
+                
+                // Create the main container
+                const profileItem = document.createElement('div');
+                profileItem.className = 'social-profile-item';
+                profileItem.setAttribute('data-platform', platform.key);
+                
+                // Create the profile info section
+                const profileInfo = document.createElement('div');
+                profileInfo.className = 'social-profile-info';
+                
+                // Create the profile icon
+                const profileIcon = document.createElement('img');
+                profileIcon.src = platform.icon;
+                profileIcon.className = 'social-profile-icon';
+                profileIcon.alt = platform.name;
+                
+                // Create the profile details container
+                const profileDetails = document.createElement('div');
+                profileDetails.className = 'social-profile-details';
+                
+                // Create profile name
+                const profileName = document.createElement('span');
+                profileName.className = 'social-profile-name';
+                profileName.textContent = platform.name;
+                
+                // Create profile username
+                const profileUsername = document.createElement('span');
+                profileUsername.className = 'social-profile-username';
+                profileUsername.textContent = username;
+                
+                // Create profile status
+                const profileStatus = document.createElement('span');
+                profileStatus.className = 'social-profile-status';
+                profileStatus.textContent = 'Connected';
+                
+                // Assemble profile details
+                profileDetails.appendChild(profileName);
+                profileDetails.appendChild(profileUsername);
+                profileDetails.appendChild(profileStatus);
+                
+                // Assemble profile info
+                profileInfo.appendChild(profileIcon);
+                profileInfo.appendChild(profileDetails);
+                
+                // Assemble the complete profile item
+                profileItem.appendChild(profileInfo);
+                
+                // Add to the list
+                socialProfilesList.appendChild(profileItem);
+            });
+        };
+    
+    
+
+
         const setupInitialState = () => {
-            // Hide the Google Calendar section for non-owner users
+            // Check if user is viewing their own AI
+            let isOwnAI = false;
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    const currentUsername = tokenData.username;
+                    const urlUsername = window.location.pathname.split('/').pop();
+                    isOwnAI = currentUsername === urlUsername;
+                } catch (error) {
+                    console.error('Error parsing token:', error);
+                }
+            }
+            
+            // Hide the social profiles and Google Calendar sections for non-owner users
             if (!isOwnAI) {
-                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section)');
+                const socialProfilesSection = document.getElementById('socialProfilesSection');
+                if (socialProfilesSection) {
+                    socialProfilesSection.style.display = 'none';
+                }
+                
+                const servicesSection = document.querySelector('.drawer-section:not(.drawer-share-section):not(#socialProfilesSection)');
                 if (servicesSection) {
                     servicesSection.style.display = 'none';
                 }
@@ -3985,10 +4348,14 @@
                 const toggleBtn = document.getElementById('toggleSidebar');
                 if (sidebarEl) sidebarEl.classList.add('hidden');
                 if (toggleBtn) toggleBtn.style.display = 'none';
+            } else {
+                // Load social profiles for the user's own AI
+                loadSocialProfiles();
             }
         };
         
         // Call this function when the page loads
+        console.log('Setting up initial state for social profiles...');
         setupInitialState();
         
         // Rest of initialization code
@@ -4002,6 +4369,8 @@
                 disconnectFromGoogleCalendar();
             }
         });
+
+
 
         // Chat storage management
         let currentChatId = null;
@@ -4023,9 +4392,10 @@
             container.classList.toggle('full-width', isHidden);
             
             // Change icon based on state
-            toggleSidebar.innerHTML = isHidden 
-                ? '<i class="fas fa-chevron-right"></i>' 
-                : '<i class="fas fa-chevron-left"></i>';
+            toggleSidebar.textContent = '';
+            const chevronIcon = document.createElement('i');
+            chevronIcon.className = isHidden ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+            toggleSidebar.appendChild(chevronIcon);
             
             // Save preference
             localStorage.setItem('sidebarHidden', isHidden);
@@ -4211,6 +4581,19 @@
                             chatsList.appendChild(groupDiv);
                         }
                     });
+                    
+                    // After loading, make sure the active chat is highlighted and visible
+                    if (currentChatId) {
+                        const activeChat = document.querySelector(`.chat-item[data-id="${currentChatId}"]`);
+                        if (activeChat) {
+                            activeChat.classList.add('active');
+                            
+                            // Scroll to make the active chat visible
+                            setTimeout(() => {
+                                activeChat.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }, 100);
+                        }
+                    }
                 } else {
                     console.log("No chats found or empty chat list");
                     chatsList.innerHTML = '<div class="empty-chats-message">No saved chats yet</div>';
@@ -4245,8 +4628,7 @@
                 const data = await response.json();
                 
                 if (data.success && data.chat) {
-                    // Refresh chat list
-                    loadChats();
+                    console.log("New chat created:", data.chat);
                     
                     // Set as current chat
                     currentChatId = data.chat._id;
@@ -4259,6 +4641,82 @@
                     
                     // Reset chat history
                     chatHistory = [];
+                    
+                    // Check if the chat already exists in the sidebar
+                    let chatExists = false;
+                    const existingChatItems = document.querySelectorAll('.chat-item');
+                    existingChatItems.forEach(item => {
+                        if (item.dataset.id === currentChatId) {
+                            chatExists = true;
+                            // Mark this chat as active
+                            document.querySelectorAll('.chat-item').forEach(c => c.classList.remove('active'));
+                            item.classList.add('active');
+                        }
+                    });
+                    
+                    // If chat doesn't exist in the sidebar, add it or reload the list
+                    if (!chatExists) {
+                        // Check if 'Today' category exists
+                        let todayGroup = null;
+                        // Find Today group using standard DOM methods
+                        const groupHeadings = document.querySelectorAll('.chat-group-heading');
+                        groupHeadings.forEach(heading => {
+                            if (heading.textContent === 'Today') {
+                                todayGroup = heading;
+                            }
+                        });
+                        
+                        if (!todayGroup) {
+                            // Create today group if it doesn't exist
+                            loadChats(); // Just reload the whole list for simplicity
+                        } else {
+                            // Add the new chat to Today group
+                            const todayContainer = todayGroup.closest('.chat-group');
+                            
+                            // Create new chat item element
+                            const chatItem = document.createElement('div');
+                            chatItem.className = 'chat-item active';
+                            chatItem.dataset.id = currentChatId;
+                            
+                            chatItem.innerHTML = `
+                                <div class="chat-title">${data.chat.title}</div>
+                                <div class="chat-actions">
+                                    <button class="chat-action-btn rename-btn" title="Rename">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="chat-action-btn delete-btn" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `;
+                            
+                            // Add click handler to load chat
+                            chatItem.addEventListener('click', (e) => {
+                                if (!e.target.closest('.chat-actions')) {
+                                    loadChat(currentChatId);
+                                }
+                            });
+                            
+                            // Add rename handler
+                            chatItem.querySelector('.rename-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                renameChat(currentChatId, data.chat.title);
+                            });
+                            
+                            // Add delete handler
+                            chatItem.querySelector('.delete-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                deleteChat(currentChatId);
+                            });
+                            
+                            // Insert at the beginning of the today category
+                            if (todayContainer.querySelector('.chat-item')) {
+                                todayContainer.insertBefore(chatItem, todayContainer.querySelector('.chat-item'));
+                            } else {
+                                todayContainer.appendChild(chatItem);
+                            }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error creating chat:', error);
@@ -4457,13 +4915,19 @@
                     chatSidebar.classList.add('hidden');
                     toggleSidebar.classList.add('hidden');
                     container.classList.add('full-width');
-                    toggleSidebar.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    toggleSidebar.textContent = '';
+            const chevronRightIcon = document.createElement('i');
+            chevronRightIcon.className = 'fas fa-chevron-right';
+            toggleSidebar.appendChild(chevronRightIcon);
                 } else {
                     console.log("Applying saved preference or default: show sidebar");
                     chatSidebar.classList.remove('hidden');
                     toggleSidebar.classList.remove('hidden');
                     container.classList.remove('full-width');
-                    toggleSidebar.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                    toggleSidebar.textContent = '';
+            const chevronLeftIcon = document.createElement('i');
+            chevronLeftIcon.className = 'fas fa-chevron-left';
+            toggleSidebar.appendChild(chevronLeftIcon);
                 }
                 
                 // Restore current chat ID from localStorage if it exists

@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");  // Security headers
+const { body, validationResult } = require('express-validator'); // Input validation
+const xss = require('xss'); // XSS protection
 const path = require("path");
 const fs = require("fs");
 const pdfParse = require("pdf-parse");  // Import the pdf-parse library
@@ -17,12 +20,137 @@ const dotenv = require('dotenv');
 const cloudinary = require('cloudinary').v2;
 // Import email service
 const { sendWelcomeEmail, getWelcomeEmailTemplate, testEmailDelivery } = require('./utils/emailService');
+// Import rate limiting middleware
+const rateLimit = require('express-rate-limit');
 
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Security middleware - helmet for security headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: [
+                "'self'", 
+                "'unsafe-inline'", 
+                "https://cdnjs.cloudflare.com", 
+                "https://fonts.googleapis.com", 
+                "https://unpkg.com",
+                "https://cdn.jsdelivr.net"
+            ],
+            scriptSrc: [
+                "'self'", 
+                "'unsafe-inline'", 
+                "'unsafe-eval'", // Needed for some JavaScript libraries
+                "https://cdnjs.cloudflare.com", 
+                "https://unpkg.com", 
+                "https://cdn.jsdelivr.net", // Allow jsdelivr CDN
+                "https://www.youtube.com", 
+                "https://youtube.com"
+            ],
+            fontSrc: [
+                "'self'", 
+                "https://fonts.gstatic.com", 
+                "https://cdnjs.cloudflare.com",
+                "https://cdn.jsdelivr.net"
+            ],
+            imgSrc: [
+                "'self'", 
+                "data:", 
+                "https:", 
+                "http:", 
+                "https://img.youtube.com", 
+                "https://i.ytimg.com"
+            ],
+            connectSrc: ["'self'", "https:", "http:"],
+            frameSrc: [
+                "'self'", 
+                "https://www.youtube.com", 
+                "https://youtube.com", 
+                "https://www.youtube-nocookie.com"
+            ],
+            mediaSrc: [
+                "'self'", 
+                "https:", 
+                "http:", 
+                "data:", 
+                "blob:", 
+                "https://www.youtube.com", 
+                "https://youtube.com"
+            ],
+            childSrc: [
+                "'self'", 
+                "https://www.youtube.com", 
+                "https://youtube.com"
+            ],
+            objectSrc: ["'none'"], // Prevent object/embed for security
+            baseUri: ["'self'"], // Restrict base URIs
+        },
+    },
+    crossOriginEmbedderPolicy: false, // Allow embedding for iframe functionality
+}));
+
+// Input sanitization middleware
+const sanitizeInput = (req, res, next) => {
+    const sanitizeField = (obj, field) => {
+        if (obj[field] && typeof obj[field] === 'string') {
+            obj[field] = xss(obj[field].trim());
+        }
+    };
+
+    // Sanitize common fields
+    if (req.body) {
+        ['query', 'username', 'email', 'name', 'title', 'content', 'message'].forEach(field => {
+            sanitizeField(req.body, field);
+        });
+    }
+    
+    next();
+};
+
+app.use(sanitizeInput);
+
+// Validation error handler
+const handleValidationErrors = (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            success: false,
+            message: 'Validation failed',
+            errors: errors.array()
+        });
+    }
+    next();
+};
+
+// Configure rate limiters
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 login attempts per window
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    message: { message: "Too many login attempts, please try again later" }
+});
+
+const signupLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // 10 signups per hour
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many signup attempts, please try again later" }
+});
+
+const apiLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100, // 100 requests per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: "Too many requests, please try again later" }
+});
 
 // View engine setup
 app.set('view engine', 'ejs');
@@ -62,10 +190,21 @@ mongoose.connect(process.env.MONGO_URI, MONGO_CONNECTION_OPTIONS)
 });
 
 // Middleware
-app.use(express.json({ limit: '50mb' })); // Increase limit to 50MB
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(express.json({ limit: '10mb' })); // Reduced from 50MB for security
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors());
+
+// Secure CORS configuration
+const corsOptions = {
+    origin: process.env.NODE_ENV === 'production' 
+        ? [process.env.FRONTEND_URL, 'https://mimikree.com', 'https://www.mimikree.com'] 
+        : ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use((req, res, next) => {
     if (req.path.includes('/wp-admin') || req.path.includes('/setup-config.php')) {
         return res.status(403).send('Access Denied');
@@ -458,7 +597,6 @@ app.post("/api/submit", async (req, res) => {
         }
 
         const token = req.headers.authorization?.split(" ")[1];
-        console.log(token);
         if (token) {
             let decoded;
             try {
@@ -686,7 +824,7 @@ async function checkCalendarAvailability(username, date) {
 }
 
 // Modify the query endpoint to include calendar information
-app.post('/api/query/:username', async (req, res) => {
+app.post('/api/query/:username', apiLimiter, async (req, res) => {
     try {
         const { query, chatHistory, memory_enabled } = req.body;
         const { username } = req.params;
@@ -940,6 +1078,11 @@ app.post('/api/query/:username', async (req, res) => {
                     if (!chatId) {
                         chat.title = query.substring(0, 30) + (query.length > 30 ? '...' : '');
                     }
+                    
+                    // Always update title if it's still "New Chat" regardless of chatId
+                    if (chat.title === 'New Chat') {
+                        chat.title = query.substring(0, 30) + (query.length > 30 ? '...' : '');
+                    }
 
                     // Update chat metadata
                     chat.metadata = {
@@ -955,8 +1098,9 @@ app.post('/api/query/:username', async (req, res) => {
                     // Save to database
                     await chat.save();
                     
-                    // Add chat ID to response
+                    // Add chat ID and title to response
                     responseData.chatId = chat._id;
+                    responseData.chatTitle = chat.title;
                     
                     console.log(`Saved chat for user ${username} (own model)`);
                 } catch (error) {
@@ -980,7 +1124,28 @@ app.post('/api/query/:username', async (req, res) => {
     }
 });
 
-app.post("/api/signup", async (req, res) => {
+// Validation rules for signup
+const signupValidation = [
+    body('username')
+        .isLength({ min: 3, max: 30 })
+        .withMessage('Username must be between 3 and 30 characters')
+        .matches(/^[a-zA-Z0-9_-]+$/)
+        .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+    body('email')
+        .isEmail()
+        .withMessage('Please provide a valid email address')
+        .normalizeEmail(),
+    body('password')
+        .isLength({ min: 8 })
+        .withMessage('Password must be at least 8 characters long')
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+    body('name')
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Name is required and must be less than 100 characters')
+];
+
+app.post("/api/signup", signupLimiter, signupValidation, handleValidationErrors, async (req, res) => {
     try {
         const { username, name, email, password } = req.body;
 
@@ -1019,14 +1184,23 @@ app.post("/api/signup", async (req, res) => {
     }
 });
 
-app.post("/api/login", async (req, res) => {
+// Validation rules for login
+const loginValidation = [
+    body('email')
+        .isEmail()
+        .withMessage('Please provide a valid email address')
+        .normalizeEmail(),
+    body('password')
+        .notEmpty()
+        .withMessage('Password is required')
+];
+
+app.post("/api/login", loginLimiter, loginValidation, handleValidationErrors, async (req, res) => {
     try {
         const { email, password, timezone } = req.body;
-        console.log("Login attempt:", { email, password, timezone }); // TEMPORARY DEBUG LOGGING
 
         // Find user by email
         const user = await User.findOne({ email });
-        console.log("User found:", user); // DEBUG LOGGING
 
         if (!user) {
             return res.status(400).json({ message: "User not found" });
@@ -1034,7 +1208,6 @@ app.post("/api/login", async (req, res) => {
 
         // Compare passwords
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log("Password match:", isMatch); // DEBUG LOGGING
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials" });
         }
@@ -1052,7 +1225,6 @@ app.post("/api/login", async (req, res) => {
                 JWT_SECRET_KEY, 
                 { expiresIn: "30d" }
             );
-            console.log("JWT Token:", token); //DEBUG LOGGING
             res.json({ 
                 message: "Login successful", 
                 token,
@@ -1229,8 +1401,10 @@ app.get("/api/user/profile/:username/full", async (req, res) => {
     }
 });
 
+
+
 // Add the generate-caption endpoint
-app.post('/api/generate-caption', async (req, res) => {
+app.post('/api/generate-caption', apiLimiter, async (req, res) => {
     try {
         // Verify authentication
         const token = req.headers.authorization?.split(" ")[1];
@@ -1322,7 +1496,7 @@ app.get('/email-test', async (req, res) => {
 });
 
 // Embed chat endpoint - for external websites
-app.post('/api/embed/chat', async (req, res) => {
+app.post('/api/embed/chat', apiLimiter, async (req, res) => {
     try {
         const { query, username, chatHistory, apiKey } = req.body;
 
@@ -1427,4 +1601,141 @@ app.post('/store_memory', async (req, res) => {
             error: error.message 
         });
     }
+});
+
+// Add GDPR data access endpoint
+app.get('/api/user/data-export', authenticateToken, async (req, res) => {
+    try {
+        // Get user ID from token
+        const userId = req.user.userId;
+        
+        // Fetch user data
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Fetch user chats
+        const chats = await Chat.find({ userId: userId });
+        
+        // Create comprehensive data export
+        const userData = {
+            account: {
+                username: user.username,
+                email: user.email,
+                name: user.name,
+                timezone: user.timezone,
+                createdAt: user._id.getTimestamp()
+            },
+            socialProfiles: user.socialProfiles || {},
+            selfAssessment: user.selfAssessment || {},
+            pdfs: user.pdfs || [],
+            images: user.images || [],
+            chats: chats.map(chat => ({
+                title: chat.title,
+                createdAt: chat.createdAt,
+                updatedAt: chat.updatedAt,
+                messages: chat.messages
+            }))
+        };
+
+        // Return the data as JSON
+        res.json({
+            success: true,
+            data: userData,
+            message: "Data export successful"
+        });
+        
+    } catch (error) {
+        console.error("Error exporting user data:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to export user data",
+            error: error.message
+        });
+    }
+});
+
+// Add data deletion request endpoint
+app.delete('/api/user/account', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { password } = req.body;
+        
+        // Find the user
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        
+        // Verify password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: "Invalid password" });
+        }
+        
+        // Delete user's vectors from Pinecone
+        try {
+            await axios.post(`${config.llamaServer}/delete_user_data`, {
+                username: user.username
+            });
+        } catch (deleteError) {
+            console.error("Error deleting user vectors:", deleteError);
+            // Continue with account deletion even if vector deletion fails
+        }
+        
+        // Delete user's chats
+        await Chat.deleteMany({ userId: userId });
+        
+        // Delete user's uploaded images from Cloudinary
+        if (user.images && user.images.length > 0) {
+            for (const image of user.images) {
+                try {
+                    // Extract public_id from Cloudinary URL
+                    const urlParts = image.url.split('/');
+                    const publicIdWithExtension = urlParts[urlParts.length - 1];
+                    const publicId = publicIdWithExtension.split('.')[0];
+                    
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (cloudinaryError) {
+                    console.error("Error deleting image from Cloudinary:", cloudinaryError);
+                    // Continue with deletion process
+                }
+            }
+        }
+        
+        // Finally, delete the user account
+        await User.findByIdAndDelete(userId);
+        
+        res.json({ 
+            success: true, 
+            message: "Account deleted successfully. We're sorry to see you go!"
+        });
+        
+    } catch (error) {
+        console.error("Error deleting user account:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to delete account",
+            error: error.message
+        });
+    }
+});
+
+// Serve sitemap.xml
+app.get('/sitemap.xml', (req, res) => {
+    res.type('application/xml');
+    res.sendFile(path.join(__dirname, "public", "sitemap.xml"));
+});
+
+// Serve robots.txt
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.sendFile(path.join(__dirname, "public", "robots.txt"));
+});
+
+// Update the data-privacy route
+app.get('/data-privacy', (req, res) => {
+    // Send the HTML file first, client-side JS will handle authentication
+    res.sendFile(path.join(__dirname, "public", "data-privacy.html"));
 });

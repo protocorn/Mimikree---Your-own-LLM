@@ -426,7 +426,7 @@
     
     <section class="container">
         <div class="back-to-main">
-            <button onclick="window.location.href='/'">
+            <button id="back-to-main-btn">
                 <i class="fas fa-arrow-left"></i> Back to Main Page
             </button>
         </div>
@@ -520,36 +520,84 @@
             stagger: 5
         });
         
+        // Handle back to main page button
+        document.getElementById('back-to-main-btn').addEventListener('click', function() {
+            try {
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Error navigating to main page:', error);
+                // Fallback method
+                window.location.replace('/');
+            }
+        });
+        
+        // Update the login form submit event handler to support redirects
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            // Get user's timezone information
-            const timezone = {
-                offset: new Date().getTimezoneOffset(),
-                name: Intl.DateTimeFormat().resolvedOptions().timeZone
-            };
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            
+            try {
+                // Show loading state
+                submitButton.textContent = 'Logging in...';
+                submitButton.disabled = true;
 
-            const formData = new FormData(e.target);
-            const data = {
-                email: formData.get('email'),
-                password: formData.get('password'),
-                timezone: timezone
-            };
+                // Get user's timezone information
+                const timezone = {
+                    offset: new Date().getTimezoneOffset(),
+                    name: Intl.DateTimeFormat().resolvedOptions().timeZone
+                };
 
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
-            });
+                const formData = new FormData(e.target);
+                const data = {
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    timezone: timezone
+                };
 
-            const result = await response.json();
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
 
-            if (response.ok) {
-                alert(result.message);
-                localStorage.setItem('token', result.token);  // Save the token in localStorage
-                window.location.href = '/'; // Redirect to homepage after login
-            } else {
-                alert(result.message);
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Save the token in localStorage
+                    localStorage.setItem('token', result.token);
+                    
+                    // Show success message
+                    alert(result.message);
+                    
+                    // Small delay to ensure token is saved
+                    setTimeout(() => {
+                        // Check for redirect parameter in URL
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirectUrl = urlParams.get('redirect');
+                        
+                        if (redirectUrl && redirectUrl.startsWith('/')) {
+                            // Ensure it's a relative URL for security
+                            console.log('Redirecting to:', redirectUrl);
+                            window.location.href = redirectUrl;
+                        } else {
+                            // Default redirect to homepage
+                            window.location.href = '/';
+                        }
+                    }, 100);
+                } else {
+                    alert(result.message);
+                    // Reset button state
+                    submitButton.textContent = originalText;
+                    submitButton.disabled = false;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('An error occurred during login. Please try again.');
+                // Reset button state
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
             }
         });
     </script>

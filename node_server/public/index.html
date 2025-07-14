@@ -1440,6 +1440,7 @@
             <span id="username-display"></span>
             <a href="/" class="nav-btn active">Home</a>
             <a href="/leaderboard" class="nav-btn">Leaderboard</a>
+            <a href="/data-privacy" class="nav-btn">Privacy Settings</a>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSf5mAJDd-1BjWd6lO7xC_Tbl41kmU2-_i_e08HcyjP6KtjH5w/viewform?usp=dialog" target="_blank" class="nav-btn feedback-btn"><i class="fas fa-comment-alt"></i> Feedback</a>
             <button id="login-btn" class="nav-btn" onclick="location.href='/login'">Login</button>
             <button id="signup-btn" class="nav-btn primary" onclick="location.href='/signup'">Sign Up</button>
@@ -1594,8 +1595,9 @@
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="script.js"></script>
+    <script src="cookie-consent.js"></script>
     <script>
         // Preloader
         window.addEventListener('load', function() {
@@ -1719,21 +1721,26 @@
                 const caption = slide.querySelector('.slide-caption');
                 const toggleBtn = document.createElement('button');
                 toggleBtn.className = 'caption-toggle';
-                toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                
+                const chevronIcon = document.createElement('i');
+                chevronIcon.className = 'fas fa-chevron-up';
+                toggleBtn.appendChild(chevronIcon);
+                
                 toggleBtn.setAttribute('aria-label', 'Toggle caption');
                 
                 // Default to collapsed on mobile
                 if (window.innerWidth <= 480) {
                     caption.classList.add('collapsed');
-                    toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                    chevronIcon.className = 'fas fa-chevron-down';
                 }
                 
                 toggleBtn.addEventListener('click', function() {
                     caption.classList.toggle('collapsed');
+                    const icon = toggleBtn.querySelector('i');
                     if (caption.classList.contains('collapsed')) {
-                        toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                        icon.className = 'fas fa-chevron-down';
                     } else {
-                        toggleBtn.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                        icon.className = 'fas fa-chevron-up';
                     }
                 });
                 

@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 import numpy as np
 from utils.gemini_key_manager import with_key_rotation  # Import our key rotation decorator
 import datetime
+import time
 
 load_dotenv()
 
@@ -179,6 +180,115 @@ def process_document():
         return jsonify({"success": True, "message": "Document processed successfully"})
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/process_smart', methods=['POST'])
+def process_document_smart():
+    """Processes documents with smart deduplication using deterministic IDs."""
+    try:
+        data = request.json
+        document_text = data.get("document", "")
+        user_id = data.get("username", "")
+        platform = data.get("platform", "")
+        content_type = data.get("content_type", "")
+        unique_id = data.get("unique_id", "")
+
+        if not document_text:
+            return jsonify({"error": "No document provided"}), 400
+
+        if not platform or not content_type:
+            return jsonify({"error": "Platform and content_type are required for smart processing"}), 400
+
+        # Generate embedding for the document
+        vector = embedding_model.encode(document_text).tolist()
+
+        # Generate deterministic document ID based on content
+        if unique_id:
+            document_id = f"doc_{user_id}_{platform}_{content_type}_{unique_id}"
+        else:
+            document_id = f"doc_{user_id}_{platform}_{content_type}"
+
+        # Sanitize document ID (remove special characters)
+        document_id = re.sub(r'[^a-zA-Z0-9_-]', '_', document_id)
+
+        # Store in Pinecone with deterministic ID (upsert will update if exists)
+        index.upsert(vectors=[(
+            document_id, 
+            vector, 
+            {
+                "text": document_text, 
+                "user_id": user_id,
+                "platform": platform,
+                "content_type": content_type,
+                "unique_id": unique_id,
+                "last_updated": str(datetime.datetime.now())
+            }
+        )])
+
+        print(f"Smart document stored/updated with ID: {document_id}")
+
+        return jsonify({
+            "success": True, 
+            "message": "Document processed successfully with smart deduplication",
+            "document_id": document_id
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/cleanup_platform_data', methods=['POST'])
+def cleanup_platform_data():
+    """Cleans up outdated platform data by removing documents that no longer exist."""
+    try:
+        data = request.json
+        user_id = data.get("username", "")
+        platform = data.get("platform", "")
+        current_ids = data.get("current_ids", [])  # List of unique_ids that currently exist
+
+        if not user_id or not platform:
+            return jsonify({"error": "Username and platform are required"}), 400
+
+        # Query all documents for this user and platform
+        query_response = index.query(
+            vector=[0] * 768,  # Dummy vector for metadata-only filtering
+            top_k=10000,  # High number to get all matches
+            include_metadata=True,
+            filter={"user_id": user_id, "platform": platform}
+        )
+
+        # Find documents to delete (those not in current_ids)
+        vectors_to_delete = []
+        
+        for match in query_response["matches"]:
+            vector_id = match["id"]
+            metadata = match.get("metadata", {})
+            unique_id = metadata.get("unique_id", "")
+            
+            # If this document's unique_id is not in the current list, mark for deletion
+            if unique_id and unique_id not in current_ids:
+                vectors_to_delete.append(vector_id)
+                print(f"Marking for deletion: {vector_id} (unique_id: {unique_id})")
+
+        # Delete the vectors if any found
+        deleted_count = 0
+        if vectors_to_delete:
+            # Delete vectors in batches of 100 to avoid exceeding API limits
+            batch_size = 100
+            for i in range(0, len(vectors_to_delete), batch_size):
+                batch = vectors_to_delete[i:i+batch_size]
+                delete_response = index.delete(ids=batch)
+                deleted_count += len(batch)
+
+        print(f"Cleaned up {deleted_count} outdated documents for {platform}")
+
+        return jsonify({
+            "success": True,
+            "message": f"Cleaned up {deleted_count} outdated documents for {platform}",
+            "deleted_count": deleted_count
+        })
+
+    except Exception as e:
+        print(f"Error in cleanup_platform_data: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/delete_user_data', methods=['POST'])
@@ -487,6 +597,7 @@ This image shows a portrait of a person'''
                 }
         
         # Call the wrapped function
+        start_time = time.time()
         response_data = generate_gemini_response(prompt, user_id, conversation_history)
         
         # Log the response for debugging
@@ -514,6 +625,32 @@ This image shows a portrait of a person'''
         else:
             print(f"[MEMORY MODULE] Memory module disabled for this request")
         
+        # Collect detailed backend processing information
+        backend_process = {
+            "query_expansion": {
+                "original_query": query,
+                "expanded_query": expanded_query,
+                "optimal_document_count": optimal_doc_count
+            },
+            "document_retrieval": {
+                "documents_retrieved": len(final_docs) if 'final_docs' in locals() else 0,
+                "context_length": len(context) if context else 0,
+                "embedding_used": "all-mpnet-base-v2"
+            },
+            "memory_processing": {
+                "memory_enabled": memory_enabled,
+                "memory_confirmation_needed": memory_confirmation_needed,
+                "vital_information_detected": bool(memory_data and memory_data.get("IS_VITAL", False)) if memory_data else False
+            },
+            "completion": {
+                "model_used": "gemini-2.0-flash",
+                "response_length": len(response_text) if response_text else 0
+            },
+            "timings": {
+                "total_processing_time_ms": int((time.time() - start_time) * 1000) if 'start_time' in locals() else None
+            }
+        }
+        
         # Return response with memory data if confirmation needed
         return jsonify({
             "success": True,
@@ -521,9 +658,10 @@ This image shows a portrait of a person'''
             "response": response_text,
             "expandedQuery": expanded_query,
             "queryComplexity": optimal_doc_count,
-            "documentsRetrieved": len(final_docs),
+            "documentsRetrieved": len(final_docs) if 'final_docs' in locals() else 0,
             "memory_confirmation_needed": memory_confirmation_needed,
-            "memory_data": memory_data if memory_confirmation_needed else None
+            "memory_data": memory_data if memory_confirmation_needed else None,
+            "backend_process": backend_process  # Add detailed backend process information
         })
 
     except Exception as e:

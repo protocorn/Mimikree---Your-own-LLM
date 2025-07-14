@@ -145,9 +145,9 @@ class GeminiKeyManager:
 # Create a singleton instance with the provided keys
 api_keys = [
     os.getenv('GOOGLE_API_KEY'),  # Original key from environment
-    "AIzaSyAahgh-jZTvWJPxAD4GlpTZrwvxOPUGElo",
-    "AIzaSyDuGQUR0Bwv5-x2iRy-yXnVbjpgGBoWSOA",
-    "AIzaSyCtN3ZfO0gw3S6uKsSEYBtFqUOurKU9HNQ"
+    os.getenv('GOOGLE_API_KEY_2'),
+    os.getenv('GOOGLE_API_KEY_3'),
+    os.getenv('GOOGLE_API_KEY_4')
 ]
 # Filter out any None values in case the environment variable isn't set
 api_keys = [key for key in api_keys if key]

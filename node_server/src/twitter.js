@@ -20,10 +20,6 @@ const scrapeTwitterProfile = async (username) => {
         // Visit the login page
         await page.goto(TWITTER_LOGIN_URL, { waitUntil: "networkidle2" });
 
-        // Log the environment variables for debugging
-        console.log("Username:", TWITTER_USERNAME);
-        console.log("Password:", TWITTER_PASSWORD);
-
         // Wait for the username input field
         await page.waitForSelector('input[name="text"]', { visible: true });
         const usernameField = await page.$('input[name="text"]');

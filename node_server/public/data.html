@@ -1595,6 +1595,32 @@
             
             // Step 2: Check social profiles
             else if (step === 2) {
+                // Auto-add any filled but not yet added social media profiles
+                const githubUsername = document.getElementById('githubUsername').value.trim();
+                if (githubUsername) {
+                    addGitHub();
+                }
+                
+                const linkedinUsername = document.getElementById('linkedinUsername').value.trim();
+                if (linkedinUsername) {
+                    addLinkedIn();
+                }
+                
+                const twitterUsername = document.getElementById('twitterUsername').value.trim();
+                if (twitterUsername) {
+                    addTwitter();
+                }
+                
+                const mediumUsername = document.getElementById('mediumUsername').value.trim();
+                if (mediumUsername) {
+                    addMedium();
+                }
+                
+                const redditUsername = document.getElementById('redditUsername').value.trim();
+                if (redditUsername) {
+                    addReddit();
+                }
+                
                 const linksList = document.getElementById('linksList');
                 if (linksList.children.length === 0) {
                     warningNeeded = true;
@@ -1863,14 +1889,22 @@
 
             if (selfAssessment.interests) {
                 const interestsList = document.getElementById('interestsList');
-                interestsList.innerHTML = '';
+                interestsList.textContent = '';
                 selfAssessment.interests.forEach(interest => {
                     const interestItem = document.createElement('div');
                     interestItem.className = 'interest-item';
-                    interestItem.innerHTML = `
-                        <span class="interest-text">${interest}</span>
-                        <button onclick="this.parentElement.remove()" title="Remove interest">×</button>
-                    `;
+                    
+                    const interestSpan = document.createElement('span');
+                    interestSpan.className = 'interest-text';
+                    interestSpan.textContent = interest;
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '×';
+                    removeBtn.title = 'Remove interest';
+                    removeBtn.onclick = function() { this.parentElement.remove(); };
+                    
+                    interestItem.appendChild(interestSpan);
+                    interestItem.appendChild(removeBtn);
                     interestsList.appendChild(interestItem);
                 });
             }
@@ -1879,28 +1913,63 @@
         function populatePdfs(pdfs) {
             if (pdfs && pdfs.length > 0) {
                 const pdfList = document.getElementById('pdfList');
-                pdfList.innerHTML = '';
+                pdfList.textContent = '';
                 pdfs.forEach(pdf => {
                     const pdfItem = document.createElement('div');
                     pdfItem.className = 'pdf-item';
-                    pdfItem.innerHTML = `
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0;">
-                            <div style="display: flex; align-items: center;">
-                                <img src="https://cdn-icons-png.flaticon.com/512/337/337946.png" class="pdf-icon" style="width: 24px; height: 24px; margin-right: 8px;">
-                                <span>${pdf}</span>
-                            </div>
-                            <button class="delete-data-btn" style="background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 6px 10px; margin-left: 10px; cursor: pointer; font-size: 12px;">Delete Permanently</button>
-                        </div>
-                    `;
+                    
+                    const outerDiv = document.createElement('div');
+                    outerDiv.style.display = 'flex';
+                    outerDiv.style.alignItems = 'center';
+                    outerDiv.style.justifyContent = 'space-between';
+                    outerDiv.style.padding = '8px 0';
+                    
+                    const leftDiv = document.createElement('div');
+                    leftDiv.style.display = 'flex';
+                    leftDiv.style.alignItems = 'center';
+                    
+                    const pdfIcon = document.createElement('img');
+                    pdfIcon.src = 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+                    pdfIcon.className = 'pdf-icon';
+                    pdfIcon.style.width = '24px';
+                    pdfIcon.style.height = '24px';
+                    pdfIcon.style.marginRight = '8px';
+                    
+                    const pdfName = document.createElement('span');
+                    pdfName.textContent = pdf;
+                    
+                    leftDiv.appendChild(pdfIcon);
+                    leftDiv.appendChild(pdfName);
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-data-btn';
+                    deleteBtn.style.backgroundColor = '#ff4d4d';
+                    deleteBtn.style.color = 'white';
+                    deleteBtn.style.border = 'none';
+                    deleteBtn.style.borderRadius = '4px';
+                    deleteBtn.style.padding = '6px 10px';
+                    deleteBtn.style.marginLeft = '10px';
+                    deleteBtn.style.cursor = 'pointer';
+                    deleteBtn.style.fontSize = '12px';
+                    deleteBtn.textContent = 'Delete Permanently';
+                    
+                    outerDiv.appendChild(leftDiv);
+                    outerDiv.appendChild(deleteBtn);
+                    pdfItem.appendChild(outerDiv);
+                    
                     // Attach event listener properly
-                    pdfItem.querySelector('.delete-data-btn').addEventListener('click', function() {
+                    deleteBtn.addEventListener('click', function() {
                         showDeleteConfirmation('pdf', pdf);
                     });
                     pdfList.appendChild(pdfItem);
                 });
                 
                 // Update the PDF section summary
-                document.getElementById('summary-pdfs').innerHTML = `<p>${pdfs.length} PDF document${pdfs.length > 1 ? 's' : ''} added.</p>`;
+                const summaryPdfs = document.getElementById('summary-pdfs');
+                summaryPdfs.textContent = '';
+                const summaryP = document.createElement('p');
+                summaryP.textContent = `${pdfs.length} PDF document${pdfs.length > 1 ? 's' : ''} added.`;
+                summaryPdfs.appendChild(summaryP);
                 
                 // Update the entire summary to ensure consistency
                 updateSummary();
@@ -1909,18 +1978,48 @@
 
         function populateImages(images) {
             const imagesList = document.getElementById('imagesList');
-            imagesList.innerHTML = ''; // Clear existing images
+            imagesList.textContent = ''; // Clear existing images
             loadedImageUrls = []; // Reset the loaded images array
 
             images.forEach(image => {
                 const imageItem = document.createElement('div');
                 imageItem.className = 'image-item';
 
-                imageItem.innerHTML = `
-                    <img src="${image.url}" class="image-preview">
-                    <div class="image-caption"><strong>AI Caption:</strong> <span class="caption-text">${image.caption || ''}</span></div>
-                    <div class="image-description"><strong>Description:</strong> <span class="description-text">${image.description || ''}</span></div>
-                `;
+                const img = document.createElement('img');
+                img.src = image.url;
+                img.className = 'image-preview';
+                
+                const captionDiv = document.createElement('div');
+                captionDiv.className = 'image-caption';
+                
+                const captionStrong = document.createElement('strong');
+                captionStrong.textContent = 'AI Caption:';
+                
+                const captionSpan = document.createElement('span');
+                captionSpan.className = 'caption-text';
+                captionSpan.textContent = image.caption || '';
+                
+                captionDiv.appendChild(captionStrong);
+                captionDiv.appendChild(document.createTextNode(' '));
+                captionDiv.appendChild(captionSpan);
+                
+                const descriptionDiv = document.createElement('div');
+                descriptionDiv.className = 'image-description';
+                
+                const descriptionStrong = document.createElement('strong');
+                descriptionStrong.textContent = 'Description:';
+                
+                const descriptionSpan = document.createElement('span');
+                descriptionSpan.className = 'description-text';
+                descriptionSpan.textContent = image.description || '';
+                
+                descriptionDiv.appendChild(descriptionStrong);
+                descriptionDiv.appendChild(document.createTextNode(' '));
+                descriptionDiv.appendChild(descriptionSpan);
+                
+                imageItem.appendChild(img);
+                imageItem.appendChild(captionDiv);
+                imageItem.appendChild(descriptionDiv);
 
                 imagesList.appendChild(imageItem);
                 loadedImageUrls.push(image.url); // Add URL to loaded URLs
@@ -1951,14 +2050,14 @@
             }
         }
 
-
         function addMedium() {
             const username = document.getElementById('mediumUsername').value.trim();
             if (username) {
-                addPredefinedLink(`https://medium.com/@${username}`, 'Medium Profile');
+                addPredefinedLink(`https://medium.com/${username}`, 'Medium Profile');
                 document.getElementById('mediumUsername').value = '';
             }
         }
+
         function addReddit() {
             const username = document.getElementById('redditUsername').value.trim();
             if (username) {
@@ -1966,7 +2065,6 @@
                 document.getElementById('redditUsername').value = '';
             }
         }
-
 
         function addImages() {
             const imageInput = document.getElementById('imageInput');
@@ -1986,25 +2084,68 @@
                         const imageItem = document.createElement('div');
                         imageItem.className = 'image-item';
 
-                        // Initial HTML with loading state
-                        imageItem.innerHTML = `
-                            <img src="${e.target.result}" class="image-preview">
-                            <div class="caption-loading">
-                                <div class="caption-spinner"></div>
-                                <span>Generating caption...</span>
-                            </div>
-                            <div class="image-description"><strong>Description:</strong> <span class="description-text">${manualDescription}</span></div>
-                            <button onclick="this.parentElement.remove()" title="Remove image">×</button>
-                        `;
+                        // Create elements using DOM
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'image-preview';
+                        
+                        const captionDiv = document.createElement('div');
+                        captionDiv.className = 'caption-loading';
+                        
+                        const spinner = document.createElement('div');
+                        spinner.className = 'caption-spinner';
+                        
+                        const loadingText = document.createElement('span');
+                        loadingText.textContent = 'Generating caption...';
+                        
+                        captionDiv.appendChild(spinner);
+                        captionDiv.appendChild(loadingText);
+                        
+                        const descriptionDiv = document.createElement('div');
+                        descriptionDiv.className = 'image-description';
+                        
+                        const descriptionStrong = document.createElement('strong');
+                        descriptionStrong.textContent = 'Description:';
+                        
+                        const descriptionSpan = document.createElement('span');
+                        descriptionSpan.className = 'description-text';
+                        descriptionSpan.textContent = manualDescription;
+                        
+                        descriptionDiv.appendChild(descriptionStrong);
+                        descriptionDiv.appendChild(document.createTextNode(' '));
+                        descriptionDiv.appendChild(descriptionSpan);
+                        
+                        const removeBtn = document.createElement('button');
+                        removeBtn.textContent = '×';
+                        removeBtn.title = 'Remove image';
+                        removeBtn.onclick = function() { this.parentElement.remove(); };
+                        
+                        imageItem.appendChild(img);
+                        imageItem.appendChild(captionDiv);
+                        imageItem.appendChild(descriptionDiv);
+                        imageItem.appendChild(removeBtn);
                         imagesList.appendChild(imageItem);
 
                         // Generate caption
                         const caption = await generateImageCaption(imageItem.querySelector('img'));
                         
-                        // Update HTML with caption
+                        // Update with caption using DOM
                         const captionLoadingDiv = imageItem.querySelector('.caption-loading');
                         captionLoadingDiv.className = 'image-caption';
-                        captionLoadingDiv.innerHTML = `<strong>AI Caption:</strong> <span class="caption-text">${caption}</span>`;
+                        
+                        // Clear existing content
+                        captionLoadingDiv.textContent = '';
+                        
+                        const captionStrong = document.createElement('strong');
+                        captionStrong.textContent = 'AI Caption:';
+                        
+                        const captionSpan = document.createElement('span');
+                        captionSpan.className = 'caption-text';
+                        captionSpan.textContent = caption;
+                        
+                        captionLoadingDiv.appendChild(captionStrong);
+                        captionLoadingDiv.appendChild(document.createTextNode(' '));
+                        captionLoadingDiv.appendChild(captionSpan);
 
                         // Update progress
                         processedImages++;
@@ -2021,7 +2162,6 @@
                 }
             }
         }
-
 
         function addPredefinedLink(url, platform) {
             const linksList = document.getElementById('linksList');
@@ -2044,18 +2184,52 @@
                 else if (platform.includes('Medium')) profileType = 'medium';
                 else if (platform.includes('Reddit')) profileType = 'reddit';
                 
-                linkItem.innerHTML = `
-                <div style="display: flex; align-items: center; padding: 8px 0; justify-content: space-between;">
-                    <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
-                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
-                        <span>${platform} (${username})</span>
-                    </a>
-                    <div>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" title="Remove" style="border: none; background: transparent; cursor: pointer; color: #666;">×</button>
-                        <button class="delete-data-btn" style="visibility: hidden;">Delete Permanently</button>
-                    </div>
-                </div>
-                `;
+                const outerDiv = document.createElement('div');
+                outerDiv.style.display = 'flex';
+                outerDiv.style.alignItems = 'center';
+                outerDiv.style.padding = '8px 0';
+                outerDiv.style.justifyContent = 'space-between';
+                
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = url;
+                linkAnchor.target = '_blank';
+                linkAnchor.style.display = 'flex';
+                linkAnchor.style.alignItems = 'center';
+                linkAnchor.style.textDecoration = 'none';
+                linkAnchor.style.color = '#333';
+                
+                const platformIcon = document.createElement('img');
+                platformIcon.src = getPlatformIcon(platform);
+                platformIcon.className = 'platform-icon';
+                
+                const linkText = document.createElement('span');
+                linkText.textContent = `${platform} (${username})`;
+                
+                linkAnchor.appendChild(platformIcon);
+                linkAnchor.appendChild(linkText);
+                
+                const buttonDiv = document.createElement('div');
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '×';
+                removeBtn.title = 'Remove';
+                removeBtn.style.border = 'none';
+                removeBtn.style.background = 'transparent';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.style.color = '#666';
+                removeBtn.onclick = function() { this.parentElement.parentElement.parentElement.remove(); };
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-data-btn';
+                deleteBtn.style.visibility = 'hidden';
+                deleteBtn.textContent = 'Delete Permanently';
+                
+                buttonDiv.appendChild(removeBtn);
+                buttonDiv.appendChild(deleteBtn);
+                
+                outerDiv.appendChild(linkAnchor);
+                outerDiv.appendChild(buttonDiv);
+                linkItem.appendChild(outerDiv);
                 linksList.appendChild(linkItem);
             }
         }
@@ -2081,15 +2255,38 @@
                 else if (platform.includes('Medium')) profileType = 'medium';
                 else if (platform.includes('Reddit')) profileType = 'reddit';
                 
-                linkItem.innerHTML = `
-                <div style="display: flex; align-items: center; padding: 8px 0; justify-content: space-between;">
-                    <a href="${url}" target="_blank" style="display: flex; align-items: center; text-decoration: none; color: #333;">
-                        <img src="${getPlatformIcon(platform)}" class="platform-icon">
-                        <span>${platform} (${username})</span>
-                    </a>
-                    <button class="delete-data-btn" onclick="showDeleteConfirmation('${profileType}', '${username}')">Delete Permanently</button>
-                </div>
-                `;
+                const outerDiv = document.createElement('div');
+                outerDiv.style.display = 'flex';
+                outerDiv.style.alignItems = 'center';
+                outerDiv.style.padding = '8px 0';
+                outerDiv.style.justifyContent = 'space-between';
+                
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = url;
+                linkAnchor.target = '_blank';
+                linkAnchor.style.display = 'flex';
+                linkAnchor.style.alignItems = 'center';
+                linkAnchor.style.textDecoration = 'none';
+                linkAnchor.style.color = '#333';
+                
+                const platformIcon = document.createElement('img');
+                platformIcon.src = getPlatformIcon(platform);
+                platformIcon.className = 'platform-icon';
+                
+                const linkText = document.createElement('span');
+                linkText.textContent = `${platform} (${username})`;
+                
+                linkAnchor.appendChild(platformIcon);
+                linkAnchor.appendChild(linkText);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-data-btn';
+                deleteBtn.textContent = 'Delete Permanently';
+                deleteBtn.onclick = function() { showDeleteConfirmation(profileType, username); };
+                
+                outerDiv.appendChild(linkAnchor);
+                outerDiv.appendChild(deleteBtn);
+                linkItem.appendChild(outerDiv);
                 linksList.appendChild(linkItem);
             }
         }
@@ -2111,10 +2308,18 @@
             if (interestsInput.value) {
                 const interestItem = document.createElement('div');
                 interestItem.className = 'interest-item';
-                interestItem.innerHTML = `
-                    <span class="interest-text">${interestsInput.value}</span>
-                    <button onclick="this.parentElement.remove()" title="Remove interest">×</button>
-                `;
+                
+                const interestSpan = document.createElement('span');
+                interestSpan.className = 'interest-text';
+                interestSpan.textContent = interestsInput.value;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = '×';
+                removeBtn.title = 'Remove interest';
+                removeBtn.onclick = function() { this.parentElement.remove(); };
+                
+                interestItem.appendChild(interestSpan);
+                interestItem.appendChild(removeBtn);
                 interestsList.appendChild(interestItem);
                 interestsInput.value = '';
             }
@@ -2329,10 +2534,18 @@
 
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
-                linkItem.innerHTML = `
-                <a href="${url}" target="_blank">${url}</a>
-                <button onclick="this.parentElement.remove()">Remove</button>
-            `;
+                
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = url;
+                linkAnchor.target = '_blank';
+                linkAnchor.textContent = url;
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = function() { this.parentElement.remove(); };
+                
+                linkItem.appendChild(linkAnchor);
+                linkItem.appendChild(removeBtn);
                 linksList.appendChild(linkItem);
                 linkInput.value = '';
             }
@@ -2346,11 +2559,22 @@
                 for (const file of pdfInput.files) {
                     const pdfItem = document.createElement('div');
                     pdfItem.className = 'pdf-item';
-                    pdfItem.innerHTML = `
-                        <i class="pdf-icon">📄</i>
-                        <p>${file.name}</p>
-                        <button onclick="this.parentElement.remove()" title="Remove PDF">×</button>
-                    `;
+                    
+                    const pdfIcon = document.createElement('i');
+                    pdfIcon.className = 'pdf-icon';
+                    pdfIcon.textContent = '📄';
+                    
+                    const fileName = document.createElement('p');
+                    fileName.textContent = file.name;
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '×';
+                    removeBtn.title = 'Remove PDF';
+                    removeBtn.onclick = function() { this.parentElement.remove(); };
+                    
+                    pdfItem.appendChild(pdfIcon);
+                    pdfItem.appendChild(fileName);
+                    pdfItem.appendChild(removeBtn);
                     
                     try {
                         const typedarray = new Uint8Array(await file.arrayBuffer());
@@ -2358,11 +2582,31 @@
                         
                         // Check page count
                         if (pdf.numPages > 5) {
-                            pdfItem.innerHTML = `
-                                <i class="pdf-icon" style="color: #dc3545;">⚠️</i>
-                                <p style="color: #dc3545;"><strong>${file.name}</strong> - Error: ${pdf.numPages} pages. Maximum allowed is 5 pages.</p>
-                                <button onclick="this.parentElement.remove()" title="Dismiss">×</button>
-                            `;
+                            // Clear existing content first
+                            pdfItem.textContent = '';
+                            
+                            const warningIcon = document.createElement('i');
+                            warningIcon.className = 'pdf-icon';
+                            warningIcon.style.color = '#dc3545';
+                            warningIcon.textContent = '⚠️';
+                            
+                            const errorMessage = document.createElement('p');
+                            errorMessage.style.color = '#dc3545';
+                            
+                            const strongName = document.createElement('strong');
+                            strongName.textContent = file.name;
+                            
+                            errorMessage.appendChild(strongName);
+                            errorMessage.appendChild(document.createTextNode(` - Error: ${pdf.numPages} pages. Maximum allowed is 5 pages.`));
+                            
+                            const dismissBtn = document.createElement('button');
+                            dismissBtn.textContent = '×';
+                            dismissBtn.title = 'Dismiss';
+                            dismissBtn.onclick = function() { this.parentElement.remove(); };
+                            
+                            pdfItem.appendChild(warningIcon);
+                            pdfItem.appendChild(errorMessage);
+                            pdfItem.appendChild(dismissBtn);
                             pdfList.appendChild(pdfItem);
                             continue; // Skip processing this file further
                         }
@@ -2375,11 +2619,31 @@
 
                     } catch (error) {
                         console.error("Error processing PDF:", error);
-                        pdfItem.innerHTML = `
-                            <i class="pdf-icon" style="color: #dc3545;">⚠️</i>
-                            <p style="color: #dc3545;"><strong>${file.name}</strong> - Error processing file</p>
-                            <button onclick="this.parentElement.remove()" title="Dismiss">×</button>
-                        `;
+                        // Clear existing content first
+                        pdfItem.textContent = '';
+                        
+                        const errorIcon = document.createElement('i');
+                        errorIcon.className = 'pdf-icon';
+                        errorIcon.style.color = '#dc3545';
+                        errorIcon.textContent = '⚠️';
+                        
+                        const errorMessage = document.createElement('p');
+                        errorMessage.style.color = '#dc3545';
+                        
+                        const strongName = document.createElement('strong');
+                        strongName.textContent = file.name;
+                        
+                        errorMessage.appendChild(strongName);
+                        errorMessage.appendChild(document.createTextNode(' - Error processing file'));
+                        
+                        const dismissBtn = document.createElement('button');
+                        dismissBtn.textContent = '×';
+                        dismissBtn.title = 'Dismiss';
+                        dismissBtn.onclick = function() { this.parentElement.remove(); };
+                        
+                        pdfItem.appendChild(errorIcon);
+                        pdfItem.appendChild(errorMessage);
+                        pdfItem.appendChild(dismissBtn);
                         pdfList.appendChild(pdfItem);
                     }
                 }
@@ -2425,7 +2689,11 @@
                         ? `1 PDF file selected` 
                         : `${fileCount} PDF files selected`;
                 } else {
-                    pdfLabel.innerHTML = '<i class="fas fa-file-pdf"></i> Choose PDF Files (Max 5 pages per PDF)';
+                    pdfLabel.textContent = '';
+                    const pdfIcon = document.createElement('i');
+                    pdfIcon.className = 'fas fa-file-pdf';
+                    pdfLabel.appendChild(pdfIcon);
+                    pdfLabel.appendChild(document.createTextNode(' Choose PDF Files (Max 5 pages per PDF)'));
                 }
             });
             
@@ -2440,7 +2708,11 @@
                         ? `1 image selected` 
                         : `${fileCount} images selected`;
                 } else {
-                    imageLabel.innerHTML = '<i class="fas fa-images"></i> Choose Images';
+                    imageLabel.textContent = '';
+                    const imageIcon = document.createElement('i');
+                    imageIcon.className = 'fas fa-images';
+                    imageLabel.appendChild(imageIcon);
+                    imageLabel.appendChild(document.createTextNode(' Choose Images'));
                 }
             });
             
@@ -2457,21 +2729,37 @@
             const socialProfilesDiv = document.getElementById('summary-social-profiles');
             
             if (linksList.children.length > 0) {
-                let socialHtml = '';
+                socialProfilesDiv.textContent = '';
                 Array.from(linksList.children).forEach(item => {
                     const linkInfo = item.querySelector('a');
                     if (linkInfo) {
-                        socialHtml += `<div class="summary-item">`;
+                        const summaryItem = document.createElement('div');
+                        summaryItem.className = 'summary-item';
+                        
                         const icon = linkInfo.querySelector('img');
                         if (icon) {
-                            socialHtml += `<img src="${icon.src}" alt="Platform Icon">`;
+                            const iconImg = document.createElement('img');
+                            iconImg.src = icon.src;
+                            iconImg.alt = 'Platform Icon';
+                            summaryItem.appendChild(iconImg);
                         } else {
-                            socialHtml += `<i class="fas fa-link"></i>`;
+                            const iconElement = document.createElement('i');
+                            iconElement.className = 'fas fa-link';
+                            summaryItem.appendChild(iconElement);
                         }
-                        socialHtml += `<span>${linkInfo.textContent}</span></div>`;
+                        
+                        const linkSpan = document.createElement('span');
+                        linkSpan.textContent = linkInfo.textContent;
+                        summaryItem.appendChild(linkSpan);
+                        
+                        socialProfilesDiv.appendChild(summaryItem);
                     }
                 });
-                socialProfilesDiv.innerHTML = socialHtml || '<p>No social profiles added.</p>';
+            } else {
+                socialProfilesDiv.textContent = '';
+                const noProfilesP = document.createElement('p');
+                noProfilesP.textContent = 'No social profiles added.';
+                socialProfilesDiv.appendChild(noProfilesP);
             }
             
             // Self Assessment Summary
@@ -2480,12 +2768,20 @@
             
             const personalityTraits = Array.from(document.querySelectorAll('#personalityTraits input:checked')).map(cb => cb.value);
             if (personalityTraits.length > 0) {
-                let traitsHtml = '<div class="summary-info">';
+                const traitsContainer = document.getElementById('summary-personality-traits');
+                traitsContainer.textContent = '';
+                
+                const summaryInfoDiv = document.createElement('div');
+                summaryInfoDiv.className = 'summary-info';
+                
                 personalityTraits.forEach(trait => {
-                    traitsHtml += `<span class="summary-tag">${trait}</span>`;
+                    const traitSpan = document.createElement('span');
+                    traitSpan.className = 'summary-tag';
+                    traitSpan.textContent = trait;
+                    summaryInfoDiv.appendChild(traitSpan);
                 });
-                traitsHtml += '</div>';
-                document.getElementById('summary-personality-traits').innerHTML = traitsHtml;
+                
+                traitsContainer.appendChild(summaryInfoDiv);
             } else {
                 document.getElementById('summary-personality-traits').textContent = 'None selected';
             }
@@ -2495,12 +2791,20 @@
             
             const interests = Array.from(document.querySelectorAll('#interestsList .interest-item .interest-text')).map(item => item.textContent.trim());
             if (interests.length > 0) {
-                let interestsHtml = '<div class="summary-info">';
+                const interestsContainer = document.getElementById('summary-interests');
+                interestsContainer.textContent = '';
+                
+                const summaryInfoDiv = document.createElement('div');
+                summaryInfoDiv.className = 'summary-info';
+                
                 interests.forEach(interest => {
-                    interestsHtml += `<span class="summary-tag">${interest}</span>`;
+                    const interestSpan = document.createElement('span');
+                    interestSpan.className = 'summary-tag';
+                    interestSpan.textContent = interest;
+                    summaryInfoDiv.appendChild(interestSpan);
                 });
-                interestsHtml += '</div>';
-                document.getElementById('summary-interests').innerHTML = interestsHtml;
+                
+                interestsContainer.appendChild(summaryInfoDiv);
             } else {
                 document.getElementById('summary-interests').textContent = 'None added';
             }
@@ -2511,9 +2815,15 @@
             
             if (pdfList.children.length > 0) {
                 const pdfCount = pdfList.children.length;
-                pdfSummaryDiv.innerHTML = `<p>${pdfCount} PDF document${pdfCount > 1 ? 's' : ''} added.</p>`;
+                pdfSummaryDiv.textContent = '';
+                const pdfSummaryP = document.createElement('p');
+                pdfSummaryP.textContent = `${pdfCount} PDF document${pdfCount > 1 ? 's' : ''} added.`;
+                pdfSummaryDiv.appendChild(pdfSummaryP);
             } else {
-                pdfSummaryDiv.innerHTML = '<p>No PDF documents added.</p>';
+                pdfSummaryDiv.textContent = '';
+                const noPdfP = document.createElement('p');
+                noPdfP.textContent = 'No PDF documents added.';
+                pdfSummaryDiv.appendChild(noPdfP);
             }
             
             // Images Summary
@@ -2521,16 +2831,33 @@
             const imagesDiv = document.getElementById('summary-images');
             
             if (imagesList && imagesList.children.length > 0) {
-                imagesDiv.innerHTML = `<p>${imagesList.children.length} image(s) added</p>`;
-                let imagesHtml = '<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">';
+                imagesDiv.textContent = '';
+                
+                const imageCountP = document.createElement('p');
+                imageCountP.textContent = `${imagesList.children.length} image(s) added`;
+                imagesDiv.appendChild(imageCountP);
+                
+                const thumbnailsDiv = document.createElement('div');
+                thumbnailsDiv.style.display = 'flex';
+                thumbnailsDiv.style.flexWrap = 'wrap';
+                thumbnailsDiv.style.gap = '10px';
+                thumbnailsDiv.style.marginTop = '10px';
+                
                 Array.from(imagesList.children).slice(0, 4).forEach(item => { // Show up to 4 thumbnails
                     const imgSrc = item.querySelector('img')?.src;
                     if (imgSrc) {
-                        imagesHtml += `<img src="${imgSrc}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #eee;">`;
+                        const thumbnailImg = document.createElement('img');
+                        thumbnailImg.src = imgSrc;
+                        thumbnailImg.style.width = '60px';
+                        thumbnailImg.style.height = '60px';
+                        thumbnailImg.style.objectFit = 'cover';
+                        thumbnailImg.style.borderRadius = '6px';
+                        thumbnailImg.style.border = '1px solid #eee';
+                        thumbnailsDiv.appendChild(thumbnailImg);
                     }
                 });
-                imagesHtml += '</div>';
-                imagesDiv.innerHTML += imagesHtml;
+                
+                imagesDiv.appendChild(thumbnailsDiv);
             }
         }
 
@@ -2605,10 +2932,14 @@
                         
                         // Update the summary
                         const remainingPdfs = items.length - 1;
-                        document.getElementById('summary-pdfs').innerHTML = 
-                            remainingPdfs > 0 
-                            ? `<p>${remainingPdfs} PDF document${remainingPdfs > 1 ? 's' : ''} added.</p>` 
-                            : '<p>No PDF documents added.</p>';
+                        const summaryPdfsDiv = document.getElementById('summary-pdfs');
+                        summaryPdfsDiv.textContent = '';
+                        
+                        const summaryP = document.createElement('p');
+                        summaryP.textContent = remainingPdfs > 0 
+                            ? `${remainingPdfs} PDF document${remainingPdfs > 1 ? 's' : ''} added.`
+                            : 'No PDF documents added.';
+                        summaryPdfsDiv.appendChild(summaryP);
                     } else {
                         // Remove the profile from the UI
                         const linksList = document.getElementById('linksList');

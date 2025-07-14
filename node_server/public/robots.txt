@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Allow: /signup
+Allow: /login
+Allow: /leaderboard
+Allow: /data-privacy
+Allow: /privacy
+
+# Block private/dynamic user pages
+Disallow: /query/
+Disallow: /email-test
+Disallow: /add-data
+
+# Allow static assets
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+
+# Sitemap location
+Sitemap: https://www.mimikree.com/sitemap.xml

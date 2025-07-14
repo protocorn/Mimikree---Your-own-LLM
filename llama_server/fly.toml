@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for llama-server on 2025-02-13T14:41:50-05:00
+# fly.toml app configuration file generated for llama-server on 2025-07-03T13:41:15-04:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -6,30 +6,22 @@
 app = 'llama-server'
 primary_region = 'iad'
 
+[build]
+
 [http_service]
   internal_port = 8080
   force_https = true
+  auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 1
   processes = ['app']
-  # Remove or set to false.
-  auto_stop_machines = false
 
   [http_service.concurrency]
-    type = "connections"
+    type = 'connections'
     hard_limit = 500
     soft_limit = 300
-
 
 [[vm]]
   memory = '4gb'
   cpu_kind = 'performance'
   cpus = 2
-
-# Environment variables will be set using fly secrets
-# You should use fly secrets set to add these rather than hardcoding them here
-# Example: fly secrets set GOOGLE_API_KEY=your_key
-# For multiple API keys, set them as separate secrets:
-# fly secrets set GOOGLE_API_KEY_2=your_second_key
-# fly secrets set GOOGLE_API_KEY_3=your_third_key
-# fly secrets set GOOGLE_API_KEY_4=your_fourth_key

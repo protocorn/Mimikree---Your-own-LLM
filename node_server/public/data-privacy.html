@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Data Privacy Settings - Mimikree</title>
+    <link rel="icon" type="image/png" href="/Mimikree_logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-hover: #3a56d4;
+            --secondary-color: #3a0ca3;
+            --text-color: #333;
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --error-color: #ef233c;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            transition: opacity 0.3s;
+        }
+        
+        nav a:hover {
+            opacity: 0.8;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card h2 {
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        .card p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn:hover {
+            background: var(--primary-hover);
+        }
+        
+        .btn-danger {
+            background-color: var(--error-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d90429;
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: rgba(76, 175, 80, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+        
+        .alert-danger {
+            background-color: rgba(239, 35, 60, 0.1);
+            border: 1px solid var(--error-color);
+            color: var(--error-color);
+        }
+        
+        .alert-warning {
+            background-color: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning-color);
+            color: var(--warning-color);
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.7rem;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
+        
+        /* Cookie settings */
+        .cookie-setting {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        
+        .cookie-setting h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            nav {
+                margin-top: 1rem;
+            }
+            
+            nav a {
+                margin-left: 1rem;
+                margin-right: 1rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        // Check for authentication token immediately on page load
+        (function() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                // Redirect to login if no token found
+                console.log('No token found, redirecting to login...');
+                window.location.replace('/login?redirect=' + encodeURIComponent('/data-privacy'));
+                return;
+            }
+            
+            // Verify token hasn't expired
+            try {
+                const decoded = jwt_decode(token);
+                const currentTime = Date.now() / 1000;
+                if (decoded.exp < currentTime) {
+                    console.log('Token expired, redirecting to login...');
+                    localStorage.removeItem("token");
+                    window.location.replace('/login?redirect=' + encodeURIComponent('/data-privacy'));
+                    return;
+                }
+                console.log('Token valid, user authenticated');
+            } catch (error) {
+                console.error("JWT Error:", error);
+                localStorage.removeItem("token");
+                window.location.replace('/login?redirect=' + encodeURIComponent('/data-privacy'));
+                return;
+            }
+        })();
+    </script>
+    <header>
+        <div class="logo">
+            <img src="/Mimikree_logo.png" alt="Mimikree Logo">
+            <span>Mimikree</span>
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/add-data">Add Data</a>
+            <a href="/leaderboard">Leaderboard</a>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSf5mAJDd-1BjWd6lO7xC_Tbl41kmU2-_i_e08HcyjP6KtjH5w/viewform?usp=dialog" target="_blank">Feedback</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Data Privacy Settings</h1>
+        
+        <div id="status-alert" style="display: none;" class="alert"></div>
+        
+        <div class="card">
+            <h2>Your Data Rights</h2>
+            <p>Under data protection laws like GDPR and CCPA, you have the right to access, correct, or delete your personal data.</p>
+        </div>
+
+        <div class="card">
+            <h2>Cookie Preferences</h2>
+            <p>Manage how we use cookies when you visit our website.</p>
+            
+            <div class="cookie-setting">
+                <h3>
+                    Essential Cookies
+                    <label class="switch">
+                        <input type="checkbox" checked disabled>
+                        <span class="slider"></span>
+                    </label>
+                </h3>
+                <p>Required for the website to function properly. These cannot be disabled.</p>
+            </div>
+            
+            <div class="cookie-setting">
+                <h3>
+                    Analytics Cookies
+                    <label class="switch">
+                        <input type="checkbox" id="analytics-cookies">
+                        <span class="slider"></span>
+                    </label>
+                </h3>
+                <p>Help us improve our website by collecting anonymous usage data.</p>
+            </div>
+            
+            <div class="cookie-setting">
+                <h3>
+                    Preference Cookies
+                    <label class="switch">
+                        <input type="checkbox" id="preference-cookies">
+                        <span class="slider"></span>
+                    </label>
+                </h3>
+                <p>Allow the website to remember your preferences and settings.</p>
+            </div>
+            
+            <div class="cookie-setting">
+                <h3>
+                    Marketing Cookies
+                    <label class="switch">
+                        <input type="checkbox" id="marketing-cookies">
+                        <span class="slider"></span>
+                    </label>
+                </h3>
+                <p>Used to track visitors across websites to display relevant ads.</p>
+            </div>
+            
+            <button id="save-cookie-preferences" class="btn">Save Cookie Preferences</button>
+        </div>
+
+        <div class="card">
+            <h2>Access Your Data</h2>
+            <p>Download a copy of all personal data we have collected about you.</p>
+            <button id="download-data" class="btn">Download My Data</button>
+        </div>
+
+        <div class="card">
+            <h2>Delete Your Account</h2>
+            <p>This will permanently delete your account and all associated data. This action cannot be undone.</p>
+            <button id="delete-account" class="btn btn-danger">Delete My Account</button>
+        </div>
+    </div>
+
+    <!-- Delete Account Confirmation Modal -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Delete Account</h2>
+            <p>This action will permanently delete your account and all your data. It cannot be undone.</p>
+            <p>Please enter your password to confirm:</p>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter your password">
+            </div>
+            
+            <div class="action-buttons">
+                <button class="btn btn-secondary cancel-delete">Cancel</button>
+                <button id="confirm-delete" class="btn btn-danger">Confirm Deletion</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load cookie preferences
+            loadCookiePreferences();
+            
+            // Event listeners
+            document.getElementById('download-data').addEventListener('click', downloadData);
+            document.getElementById('delete-account').addEventListener('click', showDeleteModal);
+            document.getElementById('save-cookie-preferences').addEventListener('click', saveCookiePreferences);
+            document.getElementById('confirm-delete').addEventListener('click', deleteAccount);
+            
+            // Close modal when clicking the X or Cancel
+            document.querySelector('.close').addEventListener('click', hideDeleteModal);
+            document.querySelector('.cancel-delete').addEventListener('click', hideDeleteModal);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target == document.getElementById('delete-modal')) {
+                    hideDeleteModal();
+                }
+            });
+        });
+        
+        // Add a helper function to get the authentication token and update all fetch calls
+        function getAuthHeader() {
+            const token = localStorage.getItem("token");
+            return { 'Authorization': `Bearer ${token}` };
+        }
+
+        // Load saved cookie preferences
+        function loadCookiePreferences() {
+            const consentData = localStorage.getItem('cookieConsent');
+            
+            if (consentData) {
+                try {
+                    const preferences = JSON.parse(consentData);
+                    
+                    if (preferences.level === 'all') {
+                        document.getElementById('analytics-cookies').checked = true;
+                        document.getElementById('preference-cookies').checked = true;
+                        document.getElementById('marketing-cookies').checked = true;
+                    } else if (preferences.level === 'custom' && preferences.preferences) {
+                        document.getElementById('analytics-cookies').checked = preferences.preferences.analytics;
+                        document.getElementById('preference-cookies').checked = preferences.preferences.preferences;
+                        document.getElementById('marketing-cookies').checked = preferences.preferences.marketing;
+                    } else {
+                        // Default to essential only
+                        document.getElementById('analytics-cookies').checked = false;
+                        document.getElementById('preference-cookies').checked = false;
+                        document.getElementById('marketing-cookies').checked = false;
+                    }
+                } catch (error) {
+                    console.error("Error loading cookie preferences:", error);
+                }
+            }
+        }
+        
+        // Save cookie preferences
+        function saveCookiePreferences() {
+            const preferences = {
+                essential: true, // Always required
+                analytics: document.getElementById('analytics-cookies').checked,
+                preferences: document.getElementById('preference-cookies').checked,
+                marketing: document.getElementById('marketing-cookies').checked
+            };
+            
+            const consentData = {
+                level: 'custom',
+                preferences: preferences,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('cookieConsent', JSON.stringify(consentData));
+            
+            showAlert('Cookie preferences saved successfully.', 'success');
+        }
+        
+        // Download user data
+        async function downloadData() {
+            try {
+                const token = localStorage.getItem("token");
+                
+                if (!token) {
+                    showAlert('You must be logged in to download your data.', 'danger');
+                    return;
+                }
+                
+                // Show loading state
+                document.getElementById('download-data').textContent = 'Downloading...';
+                document.getElementById('download-data').disabled = true;
+                
+                const response = await fetch('/api/user/data-export', {
+                    method: 'GET',
+                    headers: {
+                        ...getAuthHeader(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Create file download
+                    const dataStr = JSON.stringify(result.data, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(dataBlob);
+                    downloadLink.download = `mimikree-data-export-${new Date().toISOString().split('T')[0]}.json`;
+                    downloadLink.click();
+                    
+                    showAlert('Your data has been downloaded successfully.', 'success');
+                } else {
+                    showAlert(result.message || 'Failed to download data.', 'danger');
+                }
+            } catch (error) {
+                console.error("Error downloading data:", error);
+                showAlert('An error occurred while downloading your data.', 'danger');
+            } finally {
+                // Reset button state
+                document.getElementById('download-data').textContent = 'Download My Data';
+                document.getElementById('download-data').disabled = false;
+            }
+        }
+        
+        // Show delete account modal
+        function showDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'block';
+        }
+        
+        // Hide delete account modal
+        function hideDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            document.getElementById('password').value = '';
+        }
+        
+        // Delete user account
+        async function deleteAccount() {
+            const password = document.getElementById('password').value;
+            
+            if (!password) {
+                showAlert('Please enter your password to confirm account deletion.', 'warning', 'delete-modal');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem("token");
+                
+                if (!token) {
+                    showAlert('You must be logged in to delete your account.', 'danger');
+                    return;
+                }
+                
+                // Show loading state
+                document.getElementById('confirm-delete').textContent = 'Deleting...';
+                document.getElementById('confirm-delete').disabled = true;
+                
+                const response = await fetch('/api/user/account', {
+                    method: 'DELETE',
+                    headers: {
+                        ...getAuthHeader(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Clear local storage and redirect to home page
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('cookieConsent');
+                    
+                    // Show success message before redirecting
+                    alert('Your account has been deleted successfully.');
+                    window.location.href = '/';
+                } else {
+                    showAlert(result.message || 'Failed to delete account.', 'danger', 'delete-modal');
+                    // Reset button state
+                    document.getElementById('confirm-delete').textContent = 'Confirm Deletion';
+                    document.getElementById('confirm-delete').disabled = false;
+                }
+            } catch (error) {
+                console.error("Error deleting account:", error);
+                showAlert('An error occurred while deleting your account.', 'danger', 'delete-modal');
+                // Reset button state
+                document.getElementById('confirm-delete').textContent = 'Confirm Deletion';
+                document.getElementById('confirm-delete').disabled = false;
+            }
+        }
+        
+        // Show alert message
+        function showAlert(message, type, container = null) {
+            const alertContainer = container ? 
+                document.querySelector(`#${container} .action-buttons`) : 
+                document.getElementById('status-alert');
+            
+            if (!alertContainer) return;
+            
+            const alertElement = document.createElement('div');
+            alertElement.className = `alert alert-${type}`;
+            alertElement.textContent = message;
+            
+            if (container) {
+                // Insert before the buttons
+                alertContainer.parentNode.insertBefore(alertElement, alertContainer);
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    alertElement.remove();
+                }, 5000);
+            } else {
+                // Main page alert
+                alertContainer.className = `alert alert-${type}`;
+                alertContainer.textContent = message;
+                alertContainer.style.display = 'block';
+                
+                // Remove after 5 seconds
+                setTimeout(() => {
+                    alertContainer.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+    <script src="cookie-consent.js"></script>
+</body>
+</html> 
