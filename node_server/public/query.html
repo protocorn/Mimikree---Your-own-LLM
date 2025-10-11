@@ -2787,12 +2787,24 @@
     </div> -->
 
     <script>
+    // Global function to handle authentication errors
+    function handleAuthError(response) {
+        if (response && (response.status === 403 || response.status === 401)) {
+            console.error("Authentication error detected. Logging out...");
+            localStorage.removeItem("token");
+            localStorage.setItem("authError", "Your session has expired. Please log in again.");
+            window.location.replace('/login');
+            return true;
+        }
+        return false;
+    }
+
     // Preloader
     window.addEventListener('load', function() {
         setTimeout(function() {
             document.querySelector('.preloader').classList.add('fade-out');
         }, 500);
-        
+
     });
     
     // Function to apply animation to new messages
@@ -4180,16 +4192,20 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch user profile');
                 }
-                
+
                 const userData = await response.json();
                 const socialProfiles = userData.socialProfiles || {};
-                
+
                 displaySocialProfiles(socialProfiles);
-                
+
             } catch (error) {
                 console.error('Error loading social profiles:', error);
                 socialProfilesList.innerHTML = '<div class="no-profiles">Failed to load social profiles. Please try again later.</div>';
@@ -4494,9 +4510,13 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                
+
                 console.log("Server response status:", response.status);
-                
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error("Error response from server:", errorText);
@@ -4796,9 +4816,13 @@
                                 'Authorization': `Bearer ${token}`
                             }
                         });
-                        
+
                         console.log("Server response status:", response.status);
-                        
+
+                        if (handleAuthError(response)) {
+                            return;
+                        }
+
                         if (!response.ok) {
                             const errorText = await response.text();
                             console.error("Error response from server:", errorText);

@@ -445,20 +445,32 @@
     </div>
 
     <script>
+        // Global function to handle authentication errors
+        function handleAuthError(response) {
+            if (response && (response.status === 403 || response.status === 401)) {
+                console.error("Authentication error detected. Logging out...");
+                localStorage.removeItem("token");
+                localStorage.setItem("authError", "Your session has expired. Please log in again.");
+                window.location.replace('/login');
+                return true;
+            }
+            return false;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Load cookie preferences
             loadCookiePreferences();
-            
+
             // Event listeners
             document.getElementById('download-data').addEventListener('click', downloadData);
             document.getElementById('delete-account').addEventListener('click', showDeleteModal);
             document.getElementById('save-cookie-preferences').addEventListener('click', saveCookiePreferences);
             document.getElementById('confirm-delete').addEventListener('click', deleteAccount);
-            
+
             // Close modal when clicking the X or Cancel
             document.querySelector('.close').addEventListener('click', hideDeleteModal);
             document.querySelector('.cancel-delete').addEventListener('click', hideDeleteModal);
-            
+
             // Close modal when clicking outside
             window.addEventListener('click', function(event) {
                 if (event.target == document.getElementById('delete-modal')) {
@@ -466,7 +478,7 @@
                 }
             });
         });
-        
+
         // Add a helper function to get the authentication token and update all fetch calls
         function getAuthHeader() {
             const token = localStorage.getItem("token");
@@ -542,7 +554,11 @@
                         'Content-Type': 'application/json'
                     }
                 });
-                
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 const result = await response.json();
                 
                 if (response.ok) {
@@ -609,7 +625,11 @@
                     },
                     body: JSON.stringify({ password })
                 });
-                
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 const result = await response.json();
                 
                 if (response.ok) {

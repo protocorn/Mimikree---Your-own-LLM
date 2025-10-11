@@ -1442,9 +1442,9 @@
             <a href="/leaderboard" class="nav-btn">Leaderboard</a>
             <a href="/data-privacy" class="nav-btn">Privacy Settings</a>
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSf5mAJDd-1BjWd6lO7xC_Tbl41kmU2-_i_e08HcyjP6KtjH5w/viewform?usp=dialog" target="_blank" class="nav-btn feedback-btn"><i class="fas fa-comment-alt"></i> Feedback</a>
-            <button id="login-btn" class="nav-btn" onclick="location.href='/login'">Login</button>
-            <button id="signup-btn" class="nav-btn primary" onclick="location.href='/signup'">Sign Up</button>
-            <button id="logout-btn" class="nav-btn" onclick="logout()" style="display:none;">Logout</button>
+            <button id="login-btn" class="nav-btn">Login</button>
+            <button id="signup-btn" class="nav-btn primary">Sign Up</button>
+            <button id="logout-btn" class="nav-btn" style="display:none;">Logout</button>
         </div>
     </nav>
     
@@ -1476,13 +1476,13 @@
             </div>
             
             <div id="unauthenticated-buttons" class="animate__animated animate__fadeInUp animate__delay-2s">
-                <button class="btn btn-primary" onclick="location.href='/signup'">Get Started Free</button>
-                <button class="btn btn-secondary" onclick="location.href='#how-it-works'">Learn How It Works</button>
-                <button class="btn btn-demo" onclick="location.href='/query/sahil'">Try Demo AI</button>
+                <button class="btn btn-primary" id="get-started-btn">Get Started Free</button>
+                <button class="btn btn-secondary" id="learn-more-btn">Learn How It Works</button>
+                <button class="btn btn-demo" id="try-demo-btn">Try Demo AI</button>
             </div>
             <div id="authenticated-buttons" style="display:none;" class="animate__animated animate__fadeInUp animate__delay-2s">
                 <button class="btn btn-primary" id="chat-button">Chat with Your AI</button>
-                <button id="add-data-button" class="btn btn-secondary" onclick="location.href='/add-data'">Add Data To
+                <button id="add-data-button" class="btn btn-secondary">Add Data To
                     Model</button>
             </div>
         </div>
@@ -1601,7 +1601,8 @@
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="script.js"></script>
     <script src="cookie-consent.js"></script>
     <script>
@@ -1611,32 +1612,20 @@
                 document.querySelector('.preloader').classList.add('fade-out');
             }, 500);
             
-            // Initialize GSAP ScrollTrigger
-            gsap.registerPlugin(ScrollTrigger);
+            // Initialize GSAP ScrollTrigger if available
+            if (window.gsap && window.ScrollTrigger) {
+                gsap.registerPlugin(ScrollTrigger);
+            }
             
             // Hero section parallax effect on scroll
             const heroContent = document.querySelector('.hero-content');
             const heroCircles = document.querySelectorAll('.hero-circle');
             
-            // Parallax effect for hero content
-            gsap.to(heroContent, {
-                y: 100,
-                opacity: 0.5,
-                ease: "none",
-                scrollTrigger: {
-                    trigger: ".hero",
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: true
-                }
-            });
-            
-            // Rotate and scale circles on scroll
-            heroCircles.forEach((circle, index) => {
-                gsap.to(circle, {
-                    rotation: index % 2 === 0 ? 120 : -120,
-                    scale: 1.2,
-                    opacity: 0,
+            if (window.gsap && window.ScrollTrigger) {
+                // Parallax effect for hero content
+                gsap.to(heroContent, {
+                    y: 100,
+                    opacity: 0.5,
                     ease: "none",
                     scrollTrigger: {
                         trigger: ".hero",
@@ -1645,7 +1634,23 @@
                         scrub: true
                     }
                 });
-            });
+                
+                // Rotate and scale circles on scroll
+                heroCircles.forEach((circle, index) => {
+                    gsap.to(circle, {
+                        rotation: index % 2 === 0 ? 120 : -120,
+                        scale: 1.2,
+                        opacity: 0,
+                        ease: "none",
+                        scrollTrigger: {
+                            trigger: ".hero",
+                            start: "top top",
+                            end: "bottom top",
+                            scrub: true
+                        }
+                    });
+                });
+            }
             
             // Security badges animation (improved)
             const badges = document.querySelectorAll('.security-badge');
@@ -1790,6 +1795,18 @@
             }
         });
 
+        // Global function to handle authentication errors
+        function handleAuthError(response) {
+            if (response && (response.status === 403 || response.status === 401)) {
+                console.error("Authentication error detected. Logging out...");
+                localStorage.removeItem("token");
+                localStorage.setItem("authError", "Your session has expired. Please log in again.");
+                window.location.replace('/login');
+                return true;
+            }
+            return false;
+        }
+
         async function checkAuth() {
             const token = localStorage.getItem("token");
             if (token) {
@@ -1809,7 +1826,11 @@
                             'Authorization': `Bearer ${token}` // Include authorization token
                         }
                     });
-        
+
+                    if (handleAuthError(userData)) {
+                        return;
+                    }
+
                     if (userData.ok) {
                         const user = await userData.json();
                         disableChatButtonIfEmpty(user);
@@ -1827,8 +1848,8 @@
         }
 
         function logout() {
-            localStorage.removeItem("token");
-            location.reload();
+            try { localStorage.removeItem("token"); } catch (e) {}
+            window.location.replace('/');
         }
 
         function disableChatButtonIfEmpty(user) {
@@ -1894,11 +1915,39 @@
             });
         }
 
+        // Add event listeners for navigation buttons
+        document.getElementById('login-btn').addEventListener('click', function() {
+            window.location.href = '/login';
+        });
+
+        document.getElementById('signup-btn').addEventListener('click', function() {
+            window.location.href = '/signup';
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', function() {
+            logout();
+        });
+
+        // Hero section buttons
+        document.getElementById('get-started-btn').addEventListener('click', function() {
+            window.location.href = '/signup';
+        });
+
+        document.getElementById('learn-more-btn').addEventListener('click', function() {
+            window.location.href = '#how-it-works';
+        });
+
+        document.getElementById('try-demo-btn').addEventListener('click', function() {
+            window.location.href = '/query/sahil';
+        });
+
         document.getElementById("add-data-button").addEventListener("click", function (event) {
             if (!localStorage.getItem("token")) {
                 alert("You need to be logged in to add data to your model.");
                 location.href = '/login';
                 event.preventDefault();
+            } else {
+                window.location.href = '/add-data';
             }
         });
 
@@ -1912,7 +1961,7 @@
                         top: target.offsetTop - 80,
                         behavior: 'smooth'
                     });
-                    
+
                     // Close mobile menu if open
                     if (navLinks.classList.contains('active')) {
                         mobileMenuBtn.click();

@@ -1556,6 +1556,18 @@
     </div>
 
     <script>
+        // Global function to handle authentication errors
+        function handleAuthError(response) {
+            if (response && (response.status === 403 || response.status === 401)) {
+                console.error("Authentication error detected. Logging out...");
+                localStorage.removeItem("token");
+                localStorage.setItem("authError", "Your session has expired. Please log in again.");
+                window.location.replace('/login');
+                return true;
+            }
+            return false;
+        }
+
         // Modal related functions
         const modal = document.getElementById('warningModal');
         const closeBtn = document.querySelector('.close');
@@ -1800,6 +1812,11 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 const userData = await response.json();
                 if (userData.socialProfiles) {
                     populateSocialProfiles(userData.socialProfiles);
@@ -2488,6 +2505,10 @@
                     body: JSON.stringify(data)
                 });
 
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 const text = await response.text(); // Read response as text first
                 let result;
 
@@ -2663,6 +2684,10 @@
                         image: imageElement.src
                     })
                 });
+
+                if (handleAuthError(response)) {
+                    return 'Session expired';
+                }
 
                 if (!response.ok) {
                     throw new Error('Caption generation failed');
@@ -2910,7 +2935,11 @@
                     },
                     body: JSON.stringify(requestData)
                 });
-                
+
+                if (handleAuthError(response)) {
+                    return;
+                }
+
                 const result = await response.json();
                 console.log('Delete response:', result);
                 

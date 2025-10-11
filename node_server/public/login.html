@@ -475,6 +475,31 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script>
+        // Check for authentication error and display it
+        window.addEventListener('DOMContentLoaded', function() {
+            const authError = localStorage.getItem('authError');
+            if (authError) {
+                // Create error message element
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = 'background-color: #fee; color: #c33; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fcc; text-align: center; font-size: 14px;';
+                errorDiv.textContent = authError;
+
+                // Insert error message after header
+                const header = document.querySelector('#form-content header');
+                header.parentNode.insertBefore(errorDiv, header.nextSibling);
+
+                // Clear the error from localStorage
+                localStorage.removeItem('authError');
+
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    errorDiv.style.transition = 'opacity 0.5s ease';
+                    errorDiv.style.opacity = '0';
+                    setTimeout(() => errorDiv.remove(), 500);
+                }, 5000);
+            }
+        });
+
         // Preloader
         window.addEventListener('load', function() {
             setTimeout(function() {
