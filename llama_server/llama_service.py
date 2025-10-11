@@ -72,10 +72,9 @@ prompt_template = ChatPromptTemplate.from_template(
     "- Match the user's tone, phrasing, and vocabulary naturally.\n"
     "- If the user specifies a tone, style, or format, strictly follow it.\n"
     "- Ensure accuracy and do not assume facts beyond the given data.\n"
-    "- Pay special attention to information marked with [MEMORY] tags - these are your personal memories.\n"
-    "- Always incorporate relevant memories into your responses to personalize them.\n"
-    "- If a memory contradicts older information, prioritize the most recent memory.\n"
-    "- IMPORTANT PRIVACY RULE: NEVER share information from [PRIVATE MEMORY] entries. When asked about private information by anyone other than yourself, politely deflect or say you prefer not to share that information.\n"
+    "- Do not disclose internal retrieval sources (e.g., memory, database, RAG).\n"
+    "- Never say 'memory says' or reveal private notes or tags explicitly.\n"
+    "- If sensitive or private details appear in context, paraphrase minimally and avoid exposing them verbatim.\n"
     "- NEVER reveal sensitive personal information such as:\n"
     "  * Identification numbers (IDs, SSN, account numbers)\n"
     "  * Contact information (phone numbers, addresses)\n"
@@ -422,13 +421,15 @@ def ask():
                     filter={"user_id": user_id}
                 )
                 
-                # Use enhanced memory retrieval
-                memory_matches = retrieve_relevant_memories(
-                    query_text=query,
-                    query_vector=normalized_hybrid_vector,
-                    user_id=user_id,
-                    optimal_doc_count=optimal_doc_count
-                )
+                # Use enhanced memory retrieval only when memory is enabled (own model)
+                memory_matches = []
+                if memory_enabled:
+                    memory_matches = retrieve_relevant_memories(
+                        query_text=query,
+                        query_vector=normalized_hybrid_vector,
+                        user_id=user_id,
+                        optimal_doc_count=optimal_doc_count
+                    )
                 
                 # Combine regular documents with prioritized memories
                 # Create a unified format for both types
@@ -462,17 +463,14 @@ def ask():
                 for match in all_matches:
                     doc_text = match["metadata"]["text"]
                     
-                    # Format memory items specially
+                    # For memory items, never surface explicit memory tags; skip private when not owner
                     if match["metadata"].get("type") == "memory":
-                        memory_summary = match["metadata"].get("summary", "")
-                        memory_category = match["metadata"].get("category", "general")
                         privacy_level = match["metadata"].get("privacy_level", 0)
-                        
-                        # Mark private memories
-                        if privacy_level > 0 and not is_own_model:
-                            doc_text = f"[PRIVATE MEMORY - {memory_category}] {memory_summary}: This memory contains private information that should not be shared with anyone except the user themselves."
-                        else:
-                            doc_text = f"[MEMORY - {memory_category}] {memory_summary}: {doc_text}"
+                        if not is_own_model and privacy_level > 0:
+                            # Skip private memories for non-owners
+                            continue
+                        # Include only the content text without any memory labeling
+                        doc_text = match["metadata"].get("text", "")
                     
                     # Use final score as relevance
                     relevance_score = match.get("final_score", match.get("score", 0)) * 10
@@ -601,7 +599,8 @@ This image shows a portrait of a person'''
         response_data = generate_gemini_response(prompt, user_id, conversation_history)
         
         # Log the response for debugging
-        print(f"Retrieved {len(final_docs)} documents with dynamic retrieval")
+        doc_count_for_log = len(final_docs) if 'final_docs' in locals() else 0
+        print(f"Retrieved {doc_count_for_log} documents with dynamic retrieval")
         print("Model Response:", response_data["response"])
 
         response_text = response_data["response"]
@@ -769,17 +768,14 @@ def ask_embed():
                 for match in all_matches:
                     doc_text = match["metadata"]["text"]
                     
-                    # Format memory items specially
+                    # For memory items, never surface explicit memory tags; skip private when not owner
                     if match["metadata"].get("type") == "memory":
-                        memory_summary = match["metadata"].get("summary", "")
-                        memory_category = match["metadata"].get("category", "general")
                         privacy_level = match["metadata"].get("privacy_level", 0)
-                        
-                        # Mark private memories
-                        if privacy_level > 0 and not is_own_model:
-                            doc_text = f"[PRIVATE MEMORY - {memory_category}] {memory_summary}: This memory contains private information that should not be shared with anyone except the user themselves."
-                        else:
-                            doc_text = f"[MEMORY - {memory_category}] {memory_summary}: {doc_text}"
+                        if not is_own_model and privacy_level > 0:
+                            # Skip private memories for non-owners
+                            continue
+                        # Include only the content text without any memory labeling
+                        doc_text = match["metadata"].get("text", "")
                     
                     # Use final score as relevance
                     relevance_score = match.get("final_score", match.get("score", 0)) * 10

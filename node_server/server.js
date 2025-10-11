@@ -211,6 +211,7 @@ app.use(cors(corsOptions));
 app.use((req, res, next) => {
     if (req.path.includes('/wp-admin') || req.path.includes('/setup-config.php')) {
         return res.status(403).send('Access Denied');
+        console.log("Access Denied");
     }
     next();
 });
@@ -244,7 +245,7 @@ const userSchema = new mongoose.Schema({
         linkedin: { type: String, required: false },
         twitter: { type: String, required: false },
         medium: { type: String, required: false },
-        reddit: { type: String, required: false }
+        reddit: { type: String, required: false },
     },
     selfAssessment: {
         communicationStyle: { type: String, required: false },
