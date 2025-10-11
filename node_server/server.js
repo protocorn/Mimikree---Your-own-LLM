@@ -43,14 +43,16 @@ app.use(helmet({
                 "https://cdn.jsdelivr.net"
             ],
             scriptSrc: [
-                "'self'", 
-                "'unsafe-inline'", 
+                "'self'",
+                "'unsafe-inline'",
                 "'unsafe-eval'", // Needed for some JavaScript libraries
-                "https://cdnjs.cloudflare.com", 
-                "https://unpkg.com", 
+                "https://cdnjs.cloudflare.com",
+                "https://unpkg.com",
                 "https://cdn.jsdelivr.net", // Allow jsdelivr CDN
-                "https://www.youtube.com", 
-                "https://youtube.com"
+                "https://www.youtube.com",
+                "https://youtube.com",
+                "https://apis.google.com",
+                "https://accounts.google.com"
             ],
             fontSrc: [
                 "'self'", 
