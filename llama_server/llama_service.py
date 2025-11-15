@@ -1188,4 +1188,7 @@ def retrieve_relevant_memories(query_text, query_vector, user_id, optimal_doc_co
     return final_memories
 
 if __name__ == '__main__':
-    serve(app, host="0.0.0.0", port=8080)
+    # Get port from environment variable (Railway sets this) or default to 8080
+    port = int(os.getenv('PORT', 8080))
+    print(f"Starting server on 0.0.0.0:{port}")
+    serve(app, host="0.0.0.0", port=port)
