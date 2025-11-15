@@ -1,5 +1,5 @@
 # Multi-stage build to reduce final image size
-# Railway-specific Dockerfile (builds from repo root)
+# Railway-optimized Dockerfile (builds from repo root)
 FROM python:3.12-slim as builder
 
 # Set environment variables
@@ -7,9 +7,9 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    HF_HOME=/root/.cache/huggingface \
-    TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers \
-    SENTENCE_TRANSFORMERS_HOME=/root/.cache/torch/sentence_transformers
+    HF_HOME=/tmp/.cache/huggingface \
+    TRANSFORMERS_CACHE=/tmp/.cache/huggingface/transformers \
+    SENTENCE_TRANSFORMERS_HOME=/tmp/.cache/torch/sentence_transformers
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -33,12 +33,19 @@ RUN pip install --no-cache-dir --user -r requirements.txt
 # Pre-download the sentence-transformers model to avoid runtime downloads
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-mpnet-base-v2')"
 
-# Clean up unnecessary files to reduce image size
+# Aggressive cleanup to reduce image size
 RUN find /root/.local -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true && \
     find /root/.local -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
+    find /root/.local -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true && \
+    find /root/.local -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true && \
     find /root/.local -name "*.pyc" -delete && \
     find /root/.local -name "*.pyo" -delete && \
-    find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+    find /root/.local -name "*.pyd" -delete && \
+    find /root/.local -name "*.so" -type f -exec strip {} + 2>/dev/null || true && \
+    find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    find /root/.local -name "*.dist-info" -type d -exec rm -rf {}/RECORD {} + 2>/dev/null || true && \
+    find /tmp/.cache -name "*.h5" -type f -delete 2>/dev/null || true && \
+    rm -rf /tmp/.cache/huggingface/hub/models--*/blobs/*.safetensors.* 2>/dev/null || true
 
 # Final stage - minimal runtime image
 FROM python:3.12-slim
@@ -59,11 +66,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy installed packages from builder
+# Copy installed packages from builder (already cleaned)
 COPY --from=builder /root/.local /root/.local
 
 # Copy HuggingFace cache (contains pre-downloaded models)
-COPY --from=builder /root/.cache /root/.cache
+COPY --from=builder /tmp/.cache /root/.cache
 
 # Copy application code from llama_server directory
 COPY llama_server/llama_service.py /app/
@@ -71,6 +78,11 @@ COPY llama_server/utils/ /app/utils/
 
 # Ensure utils is a package
 RUN mkdir -p /app/utils && touch /app/utils/__init__.py
+
+# Final cleanup in runtime image
+RUN find /root/.local -name "*.pyc" -delete && \
+    find /root/.local -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true && \
+    rm -rf /tmp/* /var/tmp/* 2>/dev/null || true
 
 # Expose port
 EXPOSE 8080
