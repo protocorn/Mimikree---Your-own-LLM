@@ -1,0 +1,50 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+deployment-guide.md
+
+# Test files
+test_*.py
+*_test.py
+
+# Environment files (these should be secrets, not in image)
+.env
+.env.*
+
+# Logs
+*.log
+
+# Fly.io
+fly.toml
+.fly/
+
+# Temporary files
+*.tmp
+*.bak

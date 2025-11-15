@@ -1,0 +1,57 @@
+# Railway-specific ignore file
+# Similar to .dockerignore but for Railway
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation (will be built in image)
+*.md
+!RAILWAY_DEPLOYMENT_GUIDE.md
+
+# Test files
+test_*.py
+*_test.py
+
+# Environment files (set via Railway dashboard)
+.env
+.env.*
+
+# Logs
+*.log
+
+# Fly.io specific (we're using Railway)
+fly.toml
+.fly/
+
+# Temporary files
+*.tmp
+*.bak
+
+# Claude artifacts
+.claude/
+

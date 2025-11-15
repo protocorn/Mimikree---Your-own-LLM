@@ -1,0 +1,12 @@
+# Nixpacks configuration for Railway
+# This tells Railway to use Docker instead of trying to auto-detect
+
+[phases.setup]
+nixPkgs = []
+
+[phases.build]
+cmds = ["echo 'Using Dockerfile for build'"]
+
+[start]
+cmd = "cd llama_server && python -m llama_service"
+

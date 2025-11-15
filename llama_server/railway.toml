@@ -1,0 +1,14 @@
+# Railway.toml - Service-specific configuration
+# Note: This file is optional. Main config is in /railway.json at repo root
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "python -m llama_service"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+

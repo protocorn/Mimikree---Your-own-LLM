@@ -32,6 +32,11 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(32)
 
+# Simple health check endpoint for readiness/liveness probes
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({"status": "ok"}), 200
+
 # Initialize Pinecone
 pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 
