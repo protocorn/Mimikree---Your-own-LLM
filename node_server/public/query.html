@@ -2553,7 +2553,7 @@
     <div class="container">
         <div class="header-container">
             <div class="back-to-main">
-                <button onclick="window.location.href='/'">
+                <button id="back-to-main-btn">
                     <i class="fas fa-arrow-left"></i> Back to Main Page
                 </button>
             </div>
@@ -5089,6 +5089,20 @@
                     });
                 }
             }
+        }
+
+        // Handle back to main page button
+        const backToMainBtn = document.getElementById('back-to-main-btn');
+        if (backToMainBtn) {
+            backToMainBtn.addEventListener('click', function() {
+                try {
+                    window.location.href = '/';
+                } catch (error) {
+                    console.error('Error navigating to main page:', error);
+                    // Fallback method
+                    window.location.replace('/');
+                }
+            });
         }
     });
     </script>

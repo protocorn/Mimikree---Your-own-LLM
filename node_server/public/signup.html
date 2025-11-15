@@ -439,7 +439,7 @@
     
     <section class="container">
         <div class="back-to-main">
-            <button onclick="window.location.href='/'">
+            <button id="back-to-main-btn">
                 <i class="fas fa-arrow-left"></i> Back to Main Page
             </button>
         </div>
@@ -624,6 +624,17 @@
             } catch (error) {
                 alert("An error occurred. Please try again later.");
                 console.error(error);
+            }
+        });
+
+        // Handle back to main page button
+        document.getElementById('back-to-main-btn').addEventListener('click', function() {
+            try {
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Error navigating to main page:', error);
+                // Fallback method
+                window.location.replace('/');
             }
         });
     </script>

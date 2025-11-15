@@ -70,12 +70,15 @@ app.use(helmet({
             ],
             connectSrc: ["'self'", "https:", "http:"],
             frameSrc: [
-                "'self'", 
-                "https://www.youtube.com", 
-                "https://youtube.com", 
+                "'self'",
+                "https://www.youtube.com",
+                "https://youtube.com",
                 "https://www.youtube-nocookie.com",
                 "https://mimikree.com",
-                "https://www.mimikree.com"
+                "https://www.mimikree.com",
+                "https://content.googleapis.com",
+                "https://accounts.google.com",
+                "https://apis.google.com"
             ],
             frameAncestors: ["*"], // Allow embedding in iframes on any domain
             mediaSrc: [
@@ -329,6 +332,160 @@ app.get('/preview-welcome-email', async (req, res) => {
     const html = getWelcomeEmailTemplate(user);
     // No need to use juice since we've manually inlined all styles
     res.send(html);
+});
+
+// Authentication endpoint for external resume tailoring app
+app.post('/api/external/authenticate', loginLimiter, async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Input validation
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        // Compare passwords
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        // Return username for external app to use
+        res.json({
+            success: true,
+            username: user.username,
+            name: user.name,
+            message: "Authentication successful"
+        });
+    } catch (error) {
+        console.error("External authentication error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+});
+
+// Endpoint for resume tailoring app to ask batch questions
+app.post('/api/external/batch-questions', apiLimiter, async (req, res) => {
+    try {
+        const { username, questions } = req.body;
+
+        // Input validation
+        if (!username) {
+            return res.status(400).json({
+                success: false,
+                message: "Username is required"
+            });
+        }
+
+        if (!questions || !Array.isArray(questions) || questions.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Questions array is required and must not be empty"
+            });
+        }
+
+        if (questions.length > 20) {
+            return res.status(400).json({
+                success: false,
+                message: "Maximum 20 questions allowed per request"
+            });
+        }
+
+        // Verify user exists
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        // Process each question through the Mimikree chatbot
+        const responses = [];
+
+        for (const question of questions) {
+            try {
+                // Validate question
+                if (!question || typeof question !== 'string' || question.trim().length === 0) {
+                    responses.push({
+                        question: question,
+                        success: false,
+                        error: "Invalid question format"
+                    });
+                    continue;
+                }
+
+                // Call the LLM server with the question
+                const dataForModel = {
+                    query: question,
+                    selfAssessment: user.selfAssessment || {},
+                    username: username,
+                    name: user.name,
+                    own_model: false, // External access, not owner
+                    chatHistory: [], // No chat history for batch questions
+                    memory_enabled: false // Don't enable memory for external queries
+                };
+
+                const llmResponse = await axios.post(`${config.llamaServer}/ask`, dataForModel);
+
+                if (llmResponse.data && llmResponse.data.response) {
+                    responses.push({
+                        question: question,
+                        success: true,
+                        answer: llmResponse.data.response
+                    });
+                } else {
+                    responses.push({
+                        question: question,
+                        success: false,
+                        error: "Invalid response from model"
+                    });
+                }
+            } catch (questionError) {
+                console.error(`Error processing question: "${question}"`, questionError.message);
+                responses.push({
+                    question: question,
+                    success: false,
+                    error: "Error processing question"
+                });
+            }
+        }
+
+        // Return all responses
+        res.json({
+            success: true,
+            username: username,
+            totalQuestions: questions.length,
+            successfulResponses: responses.filter(r => r.success).length,
+            responses: responses
+        });
+
+    } catch (error) {
+        console.error("Error in batch questions endpoint:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error processing batch questions",
+            error: error.message
+        });
+    }
 });
 
 app.get('/email-preview', (req, res) => {

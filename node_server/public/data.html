@@ -1244,7 +1244,7 @@
         </div>
     </div>
     <div style="margin-bottom:10px; display: flex; justify-content: center;" class="button-holder">
-        <button onclick="location.href='/'" class="main-page-btn">
+        <button id="back-to-main-btn" class="main-page-btn">
             <i class="fas fa-arrow-left"></i> Back to Main page
         </button>
     </div>
@@ -3016,13 +3016,27 @@
 
         document.addEventListener("DOMContentLoaded", function() {
             fetchUserProfile();
-            
+
             // Update the summary when the page fully loads
             setTimeout(updateSummary, 1000);
-            
+
             document.getElementById('submitBtn').addEventListener('click', function() {
                 submitForm();
             });
+
+            // Handle back to main page button
+            const backToMainBtn = document.getElementById('back-to-main-btn');
+            if (backToMainBtn) {
+                backToMainBtn.addEventListener('click', function() {
+                    try {
+                        window.location.href = '/';
+                    } catch (error) {
+                        console.error('Error navigating to main page:', error);
+                        // Fallback method
+                        window.location.replace('/');
+                    }
+                });
+            }
         });
     </script>
 </body>

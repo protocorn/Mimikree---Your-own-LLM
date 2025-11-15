@@ -55,7 +55,7 @@ langchain_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/a
 
 # Initialize Gemini API
 # We no longer need to explicitly configure here as the key manager handles this
-# genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
 
 # Structured prompt template
 prompt_template = ChatPromptTemplate.from_template(
@@ -849,8 +849,8 @@ This image shows a portrait of a person'''
             response = model.generate_content([prompt])
             
             # Reset back to our key manager's current key
-            from utils.gemini_key_manager import key_manager
-            genai.configure(api_key=key_manager.current_key)
+            from utils.gemini_key_manager import get_key_manager
+            genai.configure(api_key=get_key_manager().current_key)
             
             return jsonify({
                 "success": True,
@@ -862,8 +862,8 @@ This image shows a portrait of a person'''
             
         except Exception as e:
             # Reset back to our key manager's current key
-            from utils.gemini_key_manager import key_manager
-            genai.configure(api_key=key_manager.current_key)
+            from utils.gemini_key_manager import get_key_manager
+            genai.configure(api_key=get_key_manager().current_key)
             
             print(f"Error with external API key: {e}")
             return jsonify({
@@ -873,9 +873,9 @@ This image shows a portrait of a person'''
 
     except Exception as e:
         # Reset API key to our key manager's current key
-        from utils.gemini_key_manager import key_manager
-        genai.configure(api_key=key_manager.current_key)
-        
+        from utils.gemini_key_manager import get_key_manager
+        genai.configure(api_key=get_key_manager().current_key)
+
         print(f"Error in ask_embed: {e}")
         return jsonify({"error": str(e)}), 500
 

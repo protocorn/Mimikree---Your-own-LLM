@@ -13,7 +13,7 @@ class GeminiKeyManager:
     def __init__(self, api_keys=None):
         """
         Initialize the key manager with a list of API keys.
-        
+
         Args:
             api_keys: List of API keys to use. If None, will try to get from environment.
         """
@@ -25,21 +25,21 @@ class GeminiKeyManager:
             self.api_keys = [primary_key]
         else:
             self.api_keys = list(api_keys)
-        
+
         # Ensure we have at least one key
         if not self.api_keys:
             raise ValueError("No API keys provided")
-        
+
         # Create a deque for easy rotation of keys
         self.key_queue = deque(self.api_keys)
-        
+
         # Track request timestamps for each key to calculate rate limits
         self.request_history = {key: [] for key in self.api_keys}
-        
+
         # Set the current key
         self.current_key = self.key_queue[0]
         genai.configure(api_key=self.current_key)
-        
+
         # Set rate limit (Gemini free tier: 15 per minute)
         self.rate_limit = 15
         self.rate_window = 60  # seconds
@@ -52,10 +52,10 @@ class GeminiKeyManager:
         # Rotate the queue to get the next key
         self.key_queue.rotate(-1)
         self.current_key = self.key_queue[0]
-        
+
         # Configure genai with the new key
         genai.configure(api_key=self.current_key)
-        
+
         print(f"Rotated to next API key due to rate limiting")
         return self.current_key
     
@@ -85,7 +85,7 @@ class GeminiKeyManager:
             if not self._is_rate_limited(self.current_key):
                 return self.current_key
             self.rotate_key()
-        
+
         # If all keys are rate limited, use the current one (it will be the least recently used)
         return self.current_key
     
@@ -123,7 +123,7 @@ class GeminiKeyManager:
                     
                 except Exception as e:
                     error_message = str(e).lower()
-                    
+
                     # Check if this is a rate limit error
                     if "rate limit" in error_message or "quota" in error_message:
                         retries += 1
@@ -142,18 +142,35 @@ class GeminiKeyManager:
         
         return wrapper
 
-# Create a singleton instance with the provided keys
-api_keys = [
-    os.getenv('GOOGLE_API_KEY'),  # Original key from environment
-    os.getenv('GOOGLE_API_KEY_2'),
-    os.getenv('GOOGLE_API_KEY_3'),
-    os.getenv('GOOGLE_API_KEY_4')
-]
-# Filter out any None values in case the environment variable isn't set
-api_keys = [key for key in api_keys if key]
+# Lazy initialization - don't create the manager until it's accessed
+_key_manager = None
 
-# Create the manager
-key_manager = GeminiKeyManager(api_keys)
+def get_key_manager():
+    """Get or create the singleton key manager instance."""
+    global _key_manager
+    if _key_manager is None:
+        # Collect API keys from environment
+        api_keys = [
+            os.getenv('GOOGLE_API_KEY'),  # Original key from environment
+            os.getenv('GOOGLE_API_KEY_2'),
+            os.getenv('GOOGLE_API_KEY_3'),
+            os.getenv('GOOGLE_API_KEY_4')
+        ]
+        # Filter out any None values in case the environment variable isn't set
+        api_keys = [key for key in api_keys if key]
 
-# Export the decorator for easy use
-with_key_rotation = key_manager.with_key_rotation 
+        # Create the manager
+        _key_manager = GeminiKeyManager(api_keys)
+
+    return _key_manager
+
+# Property to access the key manager
+@property
+def key_manager():
+    """Access the key manager singleton."""
+    return get_key_manager()
+
+# Export the decorator for easy use - this will be lazily initialized
+def with_key_rotation(func):
+    """Decorator wrapper that lazily initializes the key manager."""
+    return get_key_manager().with_key_rotation(func) 
