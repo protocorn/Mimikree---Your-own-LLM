@@ -2,7 +2,7 @@
 module.exports = {
     production: {
       nodeServer: "https://www.mimikree.com",
-      llamaServer: "https://llama-server.fly.dev",
+      llamaServer: "https://mimikree-your-own-llm-production.up.railway.app",
     },
     test: {
       nodeServer: "http://localhost:3000", // Example: Local GitHub API
