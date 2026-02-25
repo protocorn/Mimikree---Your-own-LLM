@@ -1759,7 +1759,7 @@
 
 
         document.addEventListener('DOMContentLoaded', fetchUserProfile);
-        document.addEventListener('DOMContentLoaded', checkAuth());
+        document.addEventListener('DOMContentLoaded', checkAuth);
 
         let currentStep = 1;
 
@@ -1783,6 +1783,23 @@
             if (step - 1 === 5) {
                 updateSummary();
             }
+        }
+
+        function resetInteractiveState() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const warningModal = document.getElementById('warningModal');
+
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+
+            if (warningModal) {
+                warningModal.style.display = 'none';
+            }
+
+            document.querySelectorAll('button').forEach(button => {
+                button.disabled = false;
+            });
         }
 
         function updateStepIndicator(step) {
@@ -3015,6 +3032,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            resetInteractiveState();
             fetchUserProfile();
 
             // Update the summary when the page fully loads

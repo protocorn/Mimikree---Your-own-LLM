@@ -408,9 +408,9 @@ def ask():
         hybrid_vector = [0.7 * e + 0.3 * o for e, o in zip(query_vector, original_query_vector)]
         
         # Normalize the hybrid vector
-        norm = np.sqrt(sum([x*x for x in hybrid_vector]))
+        norm = float(np.sqrt(sum([x*x for x in hybrid_vector])))
         if norm > 0:
-            normalized_hybrid_vector = [x/norm for x in hybrid_vector]
+            normalized_hybrid_vector = [float(x/norm) for x in hybrid_vector]
         else:
             normalized_hybrid_vector = hybrid_vector
         
@@ -715,9 +715,9 @@ def ask_embed():
         hybrid_vector = [0.7 * e + 0.3 * o for e, o in zip(query_vector, original_query_vector)]
         
         # Normalize the hybrid vector
-        norm = np.sqrt(sum([x*x for x in hybrid_vector]))
+        norm = float(np.sqrt(sum([x*x for x in hybrid_vector])))
         if norm > 0:
-            normalized_hybrid_vector = [x/norm for x in hybrid_vector]
+            normalized_hybrid_vector = [float(x/norm) for x in hybrid_vector]
         else:
             normalized_hybrid_vector = hybrid_vector
         
