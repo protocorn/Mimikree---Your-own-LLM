@@ -2957,7 +2957,19 @@
                     return;
                 }
 
-                const result = await response.json();
+                const rawResponse = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawResponse);
+                } catch (parseError) {
+                    console.error('Delete endpoint returned non-JSON response:', rawResponse);
+                    throw new Error(`Delete endpoint returned invalid response (HTTP ${response.status}).`);
+                }
+
+                if (!response.ok) {
+                    throw new Error(result?.message || `Delete failed with HTTP ${response.status}.`);
+                }
+
                 console.log('Delete response:', result);
                 
                 if (result.success) {

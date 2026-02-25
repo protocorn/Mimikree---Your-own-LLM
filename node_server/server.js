@@ -866,6 +866,78 @@ User Description: ${image.description || ''}`,
     }
 });
 
+// Delete a specific profile data source for the authenticated user
+app.post('/api/delete-profile-data', authenticateToken, async (req, res) => {
+    try {
+        const { profileType, pdfFilename } = req.body || {};
+        const allowedProfileTypes = ['github', 'linkedin', 'twitter', 'medium', 'reddit', 'pdf'];
+
+        if (!profileType || !allowedProfileTypes.includes(profileType)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid profileType. Allowed values: github, linkedin, twitter, medium, reddit, pdf."
+            });
+        }
+
+        if (profileType === 'pdf' && !pdfFilename) {
+            return res.status(400).json({
+                success: false,
+                message: "pdfFilename is required when profileType is 'pdf'."
+            });
+        }
+
+        const user = await findUserByUsername(req.user.username, res);
+        if (!user) return;
+
+        // 1) Delete vectors/documents from Llama/Pinecone-backed service
+        try {
+            const payload = {
+                username: user.username,
+                source: profileType
+            };
+
+            if (profileType === 'pdf') {
+                payload.pdfFilename = pdfFilename;
+            }
+
+            await axios.post(`${config.llamaServer}/delete_user_data`, payload);
+        } catch (deleteVectorError) {
+            console.error("Error deleting vectors for profile data:", deleteVectorError?.response?.data || deleteVectorError.message);
+            return res.status(502).json({
+                success: false,
+                message: "Failed to delete profile data from vector store."
+            });
+        }
+
+        // 2) Update app database profile fields to stay in sync
+        if (profileType === 'pdf') {
+            await User.updateOne(
+                { username: user.username },
+                { $pull: { pdfs: pdfFilename } }
+            );
+        } else {
+            await User.updateOne(
+                { username: user.username },
+                { $unset: { [`socialProfiles.${profileType}`]: 1 } }
+            );
+        }
+
+        return res.json({
+            success: true,
+            message: profileType === 'pdf'
+                ? `Deleted PDF data for '${pdfFilename}'.`
+                : `Deleted ${profileType} profile data.`,
+        });
+    } catch (error) {
+        console.error("Error in /api/delete-profile-data:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete profile data",
+            error: error.message
+        });
+    }
+});
+
 // Refactor image upload handling to standardize error handling and cleanup
 async function updateUserImages(username, imageUrl, imageDescription) {
     try {
