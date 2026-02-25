@@ -1298,13 +1298,13 @@
                 <h3>Interests and Hobbies</h3>
                 <div class="interest-input-group">
                     <input type="text" id="interestsInput" placeholder="Enter your interests and hobbies">
-                    <button onclick="addInterest()">Add Interest</button>
+                    <button id="addInterestBtn">Add Interest</button>
                 </div>
                 <div id="interestsList"></div>
             </div>
 
             <div class="navigation">
-                <button onclick="checkAndProceed(1)" class="next-btn">Next</button>
+                <button id="nextStep1Btn" class="next-btn">Next</button>
             </div>
         </div>
 
@@ -1326,7 +1326,7 @@
                                 <span class="tooltiptext">We'll collect your GitHub profile data, repository names, README files, and descriptions to better understand your technical interests and contributions.</span>
                             </div>
                         </div>
-                        <button onclick="addGitHub()" style="background-color: #2A3C3F;">
+                        <button id="addGitHubBtn" style="background-color: #2A3C3F;">
                             <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                                 class="platform-icon" alt="GitHub">
                             Add GitHub
@@ -1342,7 +1342,7 @@
                                 <span class="tooltiptext">We'll collect your LinkedIn profile data to understand your professional experience and skills.</span>
                             </div>
                         </div>
-                        <button onclick="addLinkedIn()" style="background-color:#0077B5">
+                        <button id="addLinkedInBtn" style="background-color:#0077B5">
                             <img src="https://static.vecteezy.com/system/resources/previews/018/910/724/non_2x/linkedin-logo-linkedin-symbol-linkedin-icon-free-free-vector.jpg"
                                 class="platform-icon" alt="LinkedIn">
                             Add LinkedIn
@@ -1357,7 +1357,7 @@
                                 <span class="tooltiptext">We'll collect your most recent tweets (up to 10) to better understand your interests and communication style.</span>
                             </div>
                         </div>
-                        <button onclick="addTwitter()" style="background:#000">
+                        <button id="addTwitterBtn" style="background:#000">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/57/X_logo_2023_%28white%29.png"
                                 class="platform-icon" alt="Twitter">
                             Add Twitter (X)
@@ -1372,7 +1372,7 @@
                                 <span class="tooltiptext">We'll collect all your published Medium articles to understand your writing style and topics of interest.</span>
                             </div>
                         </div>
-                        <button onclick="addMedium()" style="background:#efefef; color:black;">
+                        <button id="addMediumBtn" style="background:#efefef; color:black;">
                             <img src="https://www.svgrepo.com/show/354057/medium-icon.svg" class="platform-icon"
                                 alt="Medium">
                             Add Medium
@@ -1387,7 +1387,7 @@
                                 <span class="tooltiptext">We'll collect your recent Reddit posts to understand your interests and participation in online communities.</span>
                             </div>
                         </div>
-                        <button onclick="addReddit()" style="background:#FF4500;">
+                        <button id="addRedditBtn" style="background:#FF4500;">
                             <img src="https://img.icons8.com/ios_filled/512/FFFFFF/reddit.png" class="platform-icon"
                                 alt="Reddit">
                             Add Reddit
@@ -1400,8 +1400,8 @@
             </div>
 
             <div class="navigation">
-                <button onclick="prevStep(2)" class="back-btn">Back</button>
-                <button onclick="checkAndProceed(2)" class="next-btn">Next</button>
+                <button id="backStep2Btn" class="back-btn">Back</button>
+                <button id="nextStep2Btn" class="next-btn">Next</button>
             </div>
         </div>
 
@@ -1423,13 +1423,13 @@
                     <input type="file" id="pdfInput" name="pdfInput" accept=".pdf" multiple class="custom-file-input">
                 </div>
                 
-                <button onclick="addPDFs()" style="width: 100%;">Upload PDFs</button>
+                <button id="addPdfsBtn" style="width: 100%;">Upload PDFs</button>
                 <div id="pdfList"></div>
             </div>
 
             <div class="navigation">
-                <button onclick="prevStep(3)" class="back-btn">Back</button>
-                <button onclick="checkAndProceed(3)" class="next-btn">Next</button>
+                <button id="backStep3Btn" class="back-btn">Back</button>
+                <button id="nextStep3Btn" class="next-btn">Next</button>
             </div>
         </div>
 
@@ -1452,14 +1452,14 @@
                 
                 <div class="input-group">
                     <input type="text" id="imageDescription" placeholder="Add a description for these images">
-                    <button onclick="addImages()">Add Images</button>
+                    <button id="addImagesBtn">Add Images</button>
                 </div>
                 
                 <div id="imagesList"></div>
             </div>
             <div class="navigation">
-                <button onclick="prevStep(4)" class="back-btn">Back</button>
-                <button onclick="checkAndProceed(4)" class="next-btn">Next</button>
+                <button id="backStep4Btn" class="back-btn">Back</button>
+                <button id="nextStep4Btn" class="next-btn">Next</button>
             </div>
         </div>
 
@@ -1514,12 +1514,12 @@
                             Terms of Service</a></label>
                 </div>
                 <div class="submit-section">
-                    <button id="submitBtn" style="width: 100%; margin-top:15px; padding: 15px; border-radius: 8px; font-weight: 600; font-size: 16px;" onclick="submitData()">Submit All Information</button>
+                    <button id="submitBtn" style="width: 100%; margin-top:15px; padding: 15px; border-radius: 8px; font-weight: 600; font-size: 16px;">Submit All Information</button>
                     <div id="successMessage" class="success-message">✅ Data submitted successfully! <a href="/" class="test-model-link">Go & test your Model!</a></div>
                 </div>
             </div>
             <div class="navigation">
-                <button onclick="prevStep(5)" class="back-btn">Back</button>
+                <button id="backStep5Btn" class="back-btn">Back</button>
             </div>
         </div>
     </div>
@@ -1549,7 +1549,7 @@
                 <p>This action cannot be undone. Are you sure you want to continue?</p>
             </div>
             <div class="modal-buttons">
-                <button class="modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button id="deleteModalCancelBtn" class="modal-cancel">Cancel</button>
                 <button class="modal-delete" id="confirmDeleteBtn">Delete Permanently</button>
             </div>
         </div>
@@ -3038,9 +3038,32 @@
             // Update the summary when the page fully loads
             setTimeout(updateSummary, 1000);
 
-            document.getElementById('submitBtn').addEventListener('click', function() {
-                submitForm();
-            });
+            const bindClick = (id, handler) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('click', handler);
+                }
+            };
+
+            // Replace inline onclick handlers to comply with strict CSP
+            bindClick('addInterestBtn', addInterest);
+            bindClick('nextStep1Btn', () => checkAndProceed(1));
+            bindClick('addGitHubBtn', addGitHub);
+            bindClick('addLinkedInBtn', addLinkedIn);
+            bindClick('addTwitterBtn', addTwitter);
+            bindClick('addMediumBtn', addMedium);
+            bindClick('addRedditBtn', addReddit);
+            bindClick('backStep2Btn', () => prevStep(2));
+            bindClick('nextStep2Btn', () => checkAndProceed(2));
+            bindClick('addPdfsBtn', addPDFs);
+            bindClick('backStep3Btn', () => prevStep(3));
+            bindClick('nextStep3Btn', () => checkAndProceed(3));
+            bindClick('addImagesBtn', addImages);
+            bindClick('backStep4Btn', () => prevStep(4));
+            bindClick('nextStep4Btn', () => checkAndProceed(4));
+            bindClick('submitBtn', submitData);
+            bindClick('backStep5Btn', () => prevStep(5));
+            bindClick('deleteModalCancelBtn', closeDeleteModal);
 
             // Handle back to main page button
             const backToMainBtn = document.getElementById('back-to-main-btn');
