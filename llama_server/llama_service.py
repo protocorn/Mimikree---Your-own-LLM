@@ -126,7 +126,7 @@ def analyze_query(query_text, conversation_history=""):
             query=query_text,
             history=conversation_history
         )
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content([prompt])
         
         response_text = response.text.strip()
@@ -525,7 +525,7 @@ This image shows a portrait of a person'''
         @with_key_rotation
         def generate_gemini_response(prompt, user_id, conversation_history=""):
             try:
-                model = genai.GenerativeModel("gemini-2.0-flash")
+                model = genai.GenerativeModel("gemini-2.5-flash")
                 
                 print(f"[MEMORY MODULE] Analyzing response for user {user_id} using single API call")
                 
@@ -647,7 +647,7 @@ This image shows a portrait of a person'''
                 "vital_information_detected": bool(memory_data and memory_data.get("IS_VITAL", False)) if memory_data else False
             },
             "completion": {
-                "model_used": "gemini-2.0-flash",
+                "model_used": "gemini-2.5-flash",
                 "response_length": len(response_text) if response_text else 0
             },
             "timings": {
@@ -850,7 +850,7 @@ This image shows a portrait of a person'''
         
         try:
             # Request completion from Gemini using the external API key
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            model = genai.GenerativeModel("gemini-2.5-flash")
             response = model.generate_content([prompt])
             
             # Reset back to our key manager's current key
