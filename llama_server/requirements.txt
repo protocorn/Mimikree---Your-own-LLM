@@ -4,10 +4,11 @@ Flask-JWT-Extended==4.7.1
 Flask-PyMongo==3.0.1
 pinecone
 sentence-transformers==2.2.2
-langchain-core==0.2.6
-langchain-community==0.2.4
-langchain==0.2.4
-langchain-text-splitters==0.2.0
+# Keep these versions aligned (all 0.3.x); do not install langchain-core>=0.4
+langchain-core>=0.3.33,<0.4.0
+langchain>=0.3.17
+langchain-community>=0.3.16
+langchain-text-splitters>=0.3.5
 huggingface-hub==0.20.3
 python-dotenv==1.0.1
 waitress==2.1.2

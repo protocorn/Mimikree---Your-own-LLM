@@ -27,6 +27,7 @@ const rateLimit = require('express-rate-limit');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (AWS Lambda / API Gateway / load balancer)
 const PORT = process.env.PORT || 3000;
 
 // Security middleware - helmet for security headers
@@ -1744,9 +1745,9 @@ app.post('/api/embed/chat', apiLimiter, async (req, res) => {
             return res.status(400).json({ success: false, message: "API key is required" });
         }
 
-        // Basic validation of API key format
-        if (!apiKey.startsWith('AI') || apiKey.length < 20) {
-            return res.status(400).json({ success: false, message: "Invalid API key format" });
+        // Validate Gemini API key format (must start with "AIza" and be 39 chars)
+        if (!apiKey.startsWith('AIza') || apiKey.length !== 39) {
+            return res.status(400).json({ success: false, message: "Invalid API key. Please provide a valid Google Gemini API key (starts with 'AIza', 39 characters)." });
         }
 
         // Get user data for self-assessment
@@ -1801,6 +1802,14 @@ app.post('/api/embed/chat', apiLimiter, async (req, res) => {
 
     } catch (error) {
         console.error("Error in embedded chat:", error);
+        // Forward the actual error from the LLaMA server if available
+        if (error.response?.data) {
+            const status = error.response.status || 500;
+            return res.status(status).json({
+                success: false,
+                message: error.response.data.error || error.response.data.message || "Error from model server"
+            });
+        }
         return res.status(500).json({ 
             success: false, 
             message: "An error occurred while processing your request"
