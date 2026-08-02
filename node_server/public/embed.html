@@ -474,12 +474,8 @@
                 const apiKey = params.apiKey.trim();
                 apiKeyInput.value = apiKey;
                 
-                // Validate the API key format
-                if (!apiKey.startsWith('AI') || apiKey.length < 20) {
-                    // Invalid key, still show the form but with an error
-                    showApiKeyError('Invalid API key in URL. Please enter a valid Gemini API key');
-                } else {
-                    // Valid key, skip the form
+                if (apiKey) {
+                    // Key provided, skip the form
                     apiKeyForm.classList.add('hidden');
                     chatInterface.classList.remove('hidden');
                     // Focus on message input
@@ -515,12 +511,6 @@
                 
                 if (!apiKey) {
                     showApiKeyError('Please enter your Gemini API key');
-                    return;
-                }
-                
-                // Simple format validation (basic check)
-                if (!apiKey.startsWith('AI') || apiKey.length < 20) {
-                    showApiKeyError('Please enter a valid Gemini API key');
                     return;
                 }
                 

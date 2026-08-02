@@ -1745,11 +1745,6 @@ app.post('/api/embed/chat', apiLimiter, async (req, res) => {
             return res.status(400).json({ success: false, message: "API key is required" });
         }
 
-        // Validate Gemini API key format (must start with "AIza" and be 39 chars)
-        if (!apiKey.startsWith('AIza') || apiKey.length !== 39) {
-            return res.status(400).json({ success: false, message: "Invalid API key. Please provide a valid Google Gemini API key (starts with 'AIza', 39 characters)." });
-        }
-
         // Get user data for self-assessment
         // For embedded users, we'll use a generic one if username is not provided
         let userSelfAssessment = "";
